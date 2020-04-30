@@ -1,0 +1,46 @@
+{
+    "Simple XML documentation summary": {
+        "prefix": "tsummarysimple",
+        "body": [
+            "/// <summary>",
+            "/// ${1:your description}",
+            "/// </summary>"
+        ],
+        "description": "This snippet is creating the simple summary documentation comment for documenting procedures."
+    },
+    "XML Documentation summary": {
+        "prefix": "tsummary",
+        "body": [
+            "/// <summary>",
+            "/// ${1:your description}",
+            "/// </summary>",
+            "/// <param name=\"${2:parameter name}\">",
+            "/// ${3:parameter description}",
+            "/// </param>",
+            "/// <returns>${4:description of return value}</returns>"
+        ],
+        "description": "This snippet is creating the summary documentation with parameter comment for documenting procedures."
+    },
+    "Complete XML documentation summary": {
+        "prefix": "tsummarycomplete",
+        "body": [
+            "/// <summary>",
+            "/// ${1:your description}",
+            "/// </summary>",
+            "/// <param name=\"${2:parameter name}\">",
+            "/// ${3:parameter description}",
+            "/// </param>",
+            "/// <example>",
+            "/// ${4:example description}",
+            "/// <code>",
+            "/// ${5:example code}",
+            "/// </code>",
+            "/// </example>",
+            "/// <remarks>",
+            "/// ${6:remark description}",
+            "/// </remarks>",
+            "/// <returns>${7:description of return value}</returns>"
+        ],
+        "description": "This snippet is creating the complete summary documentation comment for documenting procedures."
+    }
+}

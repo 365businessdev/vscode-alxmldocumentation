@@ -1,0 +1,93 @@
+{
+	"name": "bdev-al-xml-doc",
+	"displayName": "AL XML Documentation",
+	"description": "Generate AL XML documentation comments and create Markdown documentation from your source code.",
+	"publisher": "365businessdev",
+	"version": "0.1.1",
+	"icon": "res/icon.png",
+	"author": {
+		"name": "Christoph Krieg",
+		"email": "christoph.krieg@365businessdev.com",
+		"url": "https://www.365businessdev.com/"
+	},
+	"engines": {
+		"vscode": "^1.44.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"keywords": [
+		"XML Documentation",
+		"AL",
+		"Business Central",
+		"Markdown"
+	],
+	"activationEvents": [
+		"onLanguage:al"
+	],
+	"main": "./out/extension.js",
+	"files": [
+		"bin/"
+	],
+	"contributes": {
+		"commands": [
+			{
+				"command": "bdev-al-xml-doc.exportMarkdown",
+				"title": "AL XML DOC: Create Markdown documentation"
+			},
+			{
+				"command": "bdev-al-xml-doc.exportDirectoryToMarkdown",
+				"title": "AL XML DOC: Create Markdown documentation for Directory"
+			}
+		],
+		"configuration": [
+			{
+				"title": "AL XML Documentation",
+				"properties": {
+					"bdev-al-xml-doc.markdown_path": {
+						"type": "string",
+						"scope": "resource",
+						"description": "Specifies the path where the markdown files should be created."
+					},
+					"bdev-al-xml-doc.verbose": {
+						"type": "boolean",
+						"scope": "resource",
+						"default": false,
+						"description": "Specifies whether detailed information should be output during execution."
+					}
+				}
+			}
+		],
+		"snippets": [
+			{
+				"path": "snippets.json",
+				"language": "al"
+			}
+		]
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"lint": "eslint src --ext ts",
+		"watch": "tsc -watch -p ./",
+		"pretest": "npm run compile && npm run lint",
+		"test": "node ./out/test/runTest.js"
+	},
+	"devDependencies": {
+		"@types/vscode": "^1.44.0",
+		"@types/glob": "^7.1.1",
+		"@types/mocha": "^7.0.2",
+		"@types/node": "^13.11.0",
+		"eslint": "^6.8.0",
+		"@typescript-eslint/parser": "^2.26.0",
+		"@typescript-eslint/eslint-plugin": "^2.26.0",
+		"glob": "^7.1.6",
+		"mocha": "^7.1.1",
+		"typescript": "^3.8.3",
+		"vscode-test": "^1.3.0"
+	},
+	"repository": {
+	  "type": "git",
+	  "url": "https://365businessdev.visualstudio.com/AL%20XML%20Documentation/_git/AL%20XML%20Documentation"
+	}
+}
