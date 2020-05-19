@@ -1,63 +1,71 @@
-import * as vscode from "vscode";
+import { OutputChannel, ExtensionContext, commands, window, TextEditor, TextDocument, extensions, workspace } from "vscode";
 import { isNullOrUndefined } from "util";
+import { DoComment } from "./doComment";
+import path = require("path");
 
-let output: vscode.OutputChannel;
+let output: OutputChannel;
 
-export function activate(_context: vscode.ExtensionContext) {
+export function activate(_context: ExtensionContext) {
 	console.log("AL XML Documentation Extension has been activated.");
 
-	vscode.commands.registerCommand("bdev-al-xml-doc.exportMarkdown", () => {
-		let activeEditor = vscode.window.activeTextEditor;
-		if (activeEditor === undefined || activeEditor === null) {
-			vscode.window.showErrorMessage("Please open a file in the project you want to export the documentation for.");
-			return;
-		}
-
-		ExportMarkdown(activeEditor!.document, true);
+	commands.registerCommand("bdev-al-xml-doc.exportMarkdown", () => {
+		ExportMarkdown(window.activeTextEditor, true);
 	});
 
-	vscode.commands.registerCommand("bdev-al-xml-doc.exportDirectoryToMarkdown", () => {
-		let activeEditor = vscode.window.activeTextEditor;
-		if (activeEditor === undefined || activeEditor === null) {
-			vscode.window.showErrorMessage("Please open a file in the project you want to export the documentation for.");
-			return;
-		}
-
-		ExportMarkdown(activeEditor!.document, false);
+	commands.registerCommand("bdev-al-xml-doc.exportDirectoryToMarkdown", () => {
+		ExportMarkdown(window.activeTextEditor, false);
 	});
+
+	const doComment = new DoComment();
+
+	_context.subscriptions.push(doComment);
 }
 
-function ExportMarkdown(document: vscode.TextDocument, useFile: boolean) {
-	var extension = vscode.extensions.getExtension("365businessdev.bdev-al-xml-doc");
+function ExportMarkdown(activeEditor: TextEditor | undefined, useFile: boolean) {
+	if (activeEditor === undefined || activeEditor === null) {
+		window.showErrorMessage("Please open a file in the project you want to export the documentation for.");
+		return;
+	}
+	if (activeEditor.document.languageId !== "al") {
+		window.showErrorMessage("XML documentation is not supported for this language.");
+		return;
+	}
+
+	var document: TextDocument = activeEditor!.document;
+	var extension = extensions.getExtension("365businessdev.bdev-al-xml-doc");
 
 	var manifest = extension?.packageJSON;
 
 	output = getOutputChannel(getOutputChannelName());
 	output.show(true);
 	output.appendLine(manifest.displayName + " version " + manifest.version);
-	output.appendLine("Copyright (C) business development Christoph Krieg. All rights reserved");
+	output.appendLine("Copyright (C) 365 business development. All rights reserved");
 	output.appendLine("");
 	try
 	{
-		extension = vscode.extensions.getExtension("365businessdev.bdev-al-xml-doc");
+		extension = extensions.getExtension("365businessdev.bdev-al-xml-doc");
 		var extensionPath = extension!.extensionPath;
 
 		var workingPath;
 		if (useFile) {
 			workingPath = document.fileName;
-			console.log("Using file: " + workingPath);
+			console.debug("Using file: " + workingPath);
 		} else {
 			workingPath = getDirectoryName(document.fileName);
-			console.log("Using working path: " + workingPath);
+			console.debug("Using working path: " + workingPath);
 		}
-		var markdownPath = vscode.workspace.getConfiguration("bdev-al-xml-doc").markdown_path;
+		var markdownPath = workspace.getConfiguration("bdev-al-xml-doc").markdown_path;
 		if (markdownPath === undefined || markdownPath === null || markdownPath === "") {
-			vscode.window.showErrorMessage("Please setup 'markdown_path' in workspace settings to define the export directory.");
-			return;
+			let workspaceRoot = workspace.workspaceFolders ? workspace.workspaceFolders[0].uri.fsPath : '';
+			if (workspaceRoot === '') {
+				window.showErrorMessage("Please setup 'markdown_path' in workspace settings to define the export directory.");
+				return;
+			}
+			markdownPath = path.join(workspaceRoot, "doc");			
 		}
-		console.log("Using export path: " + markdownPath);
+		console.debug("Using export path: " + markdownPath);
 	} catch (ex) {
-		vscode.window.showErrorMessage("An error occured while processing. See terminal for further information.");
+		window.showErrorMessage("An error occured while processing. See terminal for further information.");
 
 		output.appendLine("");
 		output.appendLine(ex.message);
@@ -66,7 +74,7 @@ function ExportMarkdown(document: vscode.TextDocument, useFile: boolean) {
 	}
 
 	var additionalArgs = "";
-	var verbose = vscode.workspace.getConfiguration("bdev-al-xml-doc").verbose;
+	var verbose = workspace.getConfiguration("bdev-al-xml-doc").verbose;
 	if (verbose === true) {
 		additionalArgs = " -v ";
 	}
@@ -83,12 +91,12 @@ function ExportMarkdown(document: vscode.TextDocument, useFile: boolean) {
 
 	require("child_process").exec(exec,  (_err: string, _stdout: string, _stderr: string) => {
 		if (_err) {			
-			vscode.window.showErrorMessage("An error occured while processing. See terminal for further information.");
+			window.showErrorMessage("An error occured while processing. See terminal for further information.");
 
 			output.appendLine("An error occured while processing:");
 			output.appendLine(_err);
 		} else {
-			vscode.window.showInformationMessage("XML documentation has been exported to markdown.");
+			window.showInformationMessage("XML documentation has been exported to markdown.");
 
 			output.appendLine(_stdout);
 
@@ -100,12 +108,12 @@ function ExportMarkdown(document: vscode.TextDocument, useFile: boolean) {
 	});
 }
 
-function getOutputChannel(outputName: string): vscode.OutputChannel {
+function getOutputChannel(outputName: string): OutputChannel {
 	if (!isNullOrUndefined(output)) {
 		output.clear();
 		return output;
 	}
-	output = vscode.window.createOutputChannel(outputName);
+	output = window.createOutputChannel(outputName);
 	return output;
 }
 
