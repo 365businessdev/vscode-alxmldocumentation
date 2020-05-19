@@ -3,7 +3,7 @@
 	"displayName": "AL XML Documentation",
 	"description": "Generate AL XML documentation comments and create Markdown documentation from your source code.",
 	"publisher": "365businessdev",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"icon": "res/icon.png",
 	"author": {
 		"name": "Christoph Krieg",
@@ -33,11 +33,11 @@
 		"commands": [
 			{
 				"command": "bdev-al-xml-doc.exportMarkdown",
-				"title": "AL XML DOC: Create Markdown documentation"
+				"title": "AL DOC: Generate markdown documentation"
 			},
 			{
 				"command": "bdev-al-xml-doc.exportDirectoryToMarkdown",
-				"title": "AL XML DOC: Create Markdown documentation for Directory"
+				"title": "AL DOC: Generate markdown documentation for directory"
 			}
 		],
 		"configuration": [

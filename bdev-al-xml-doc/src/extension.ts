@@ -65,7 +65,7 @@ function ExportMarkdown(activeEditor: TextEditor | undefined, useFile: boolean) 
 		}
 		console.debug("Using export path: " + markdownPath);
 	} catch (ex) {
-		window.showErrorMessage("An error occured while processing. See terminal for further information.");
+		window.showErrorMessage("An error occured while processing. See output for further information.");
 
 		output.appendLine("");
 		output.appendLine(ex.message);
@@ -91,7 +91,7 @@ function ExportMarkdown(activeEditor: TextEditor | undefined, useFile: boolean) 
 
 	require("child_process").exec(exec,  (_err: string, _stdout: string, _stderr: string) => {
 		if (_err) {			
-			window.showErrorMessage("An error occured while processing. See terminal for further information.");
+			window.showErrorMessage("An error occured while processing. See output for further information.");
 
 			output.appendLine("An error occured while processing:");
 			output.appendLine(_err);
