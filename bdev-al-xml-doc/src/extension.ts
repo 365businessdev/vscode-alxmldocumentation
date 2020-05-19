@@ -82,7 +82,6 @@ function ExportMarkdown(document: vscode.TextDocument, useFile: boolean) {
 	output.appendLine("");
 
 	require("child_process").exec(exec,  (_err: string, _stdout: string, _stderr: string) => {
-		// console.log("stderr: " + stderr);
 		if (_err) {			
 			vscode.window.showErrorMessage("An error occured while processing. See terminal for further information.");
 
@@ -99,16 +98,6 @@ function ExportMarkdown(document: vscode.TextDocument, useFile: boolean) {
 						
 		}
 	});
-
-	function getNoOfFiles(directoryName: string) {
-		var totalFiles = 0;
-		
-		let fs = require('fs');
-		fs.readdir(directoryName, function (_error: any, files: string | any[]) {
-			totalFiles = files.length;
-			return totalFiles;
-		});
-	}
 }
 
 function getOutputChannel(outputName: string): vscode.OutputChannel {
@@ -118,21 +107,9 @@ function getOutputChannel(outputName: string): vscode.OutputChannel {
 	}
 	output = vscode.window.createOutputChannel(outputName);
 	return output;
-
-	// let terminals = vscode.window.terminals.filter(element => element.name === terminalName);
-	// let terminal = terminals.shift()!;
-
-	// if (!(isUndefined(terminal))) {
-	// 	return terminal;
-	// }
-	// else {
-	// 	terminal = vscode.window.createTerminal(terminalName);
-	// 	return terminal;
-	// }
 }
 
 function getOutputChannelName() {
-	//return "al-xml-doc";
 	return "AL XML Documentation";
 }
 
