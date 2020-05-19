@@ -5,6 +5,7 @@ Generate XML documentation comments for AL language in Visual Studio Code and ge
 ## Usage
 ### Generate context aware XML documentation comments
 Type `///` in AL source code, it auto-generates an context aware XML documentation comment like this:
+
 ![Generate context aware XML documentation comments][GenerateXmlDoc]
 
 ### Generate markdown files from XML documentation comments
