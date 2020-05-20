@@ -32,8 +32,11 @@ function ExportMarkdown(activeEditor: TextEditor | undefined, useFile: boolean) 
 	}
 
 	var document: TextDocument = activeEditor!.document;
-	var extension = extensions.getExtension("365businessdev.bdev-al-xml-doc");
-
+	var extension = extensions.getExtension(GetExtensionName());
+	if (isNullOrUndefined(extension)) {
+		window.showErrorMessage("Unable to find Visual Studio Code extension. Please try re-install.");
+		return;
+	}
 	var manifest = extension?.packageJSON;
 
 	output = getOutputChannel(getOutputChannelName());
@@ -43,7 +46,6 @@ function ExportMarkdown(activeEditor: TextEditor | undefined, useFile: boolean) 
 	output.appendLine("");
 	try
 	{
-		extension = extensions.getExtension("365businessdev.bdev-al-xml-doc");
 		var extensionPath = extension!.extensionPath;
 
 		var workingPath;
@@ -124,6 +126,10 @@ function getOutputChannelName() {
 function getDirectoryName(filename: string) {
 	var path = require("path");
 	return path.dirname(filename);
+}
+
+function GetExtensionName():string {
+	return "365businessdevelopment.bdev-al-xml-doc";
 }
 
 // this method is called when your extension is deactivated

@@ -13,3 +13,6 @@ All notable changes to the "AL XML Documentation" extension will be documented i
 ## [0.1.2] - 2020-05-19
 - Create `doc` directory in root folder if `markdown_path` is not defined.
 - Auto-generate XML documentation comment after type "///".
+
+## [0.1.3] - 2020-05-20
+- Bugfix [#430](https://365businessdev.visualstudio.com/Visual%20Studio%20Code%20AL%20XML%20Documentation%20Extension/_workitems/edit/430) - `Command 'AL DOC: Generate markdown documentation' resulted in an error (Running the contributed command: 'bdev-al-xml-doc.exportMarkdown' failed.)`
