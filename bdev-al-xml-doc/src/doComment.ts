@@ -1,16 +1,20 @@
 import {Position, Disposable, TextDocumentContentChangeEvent, TextEditor, window, workspace, WorkspaceConfiguration, ThemeIcon, Selection, Range } from 'vscode';
 import { StringUtil } from './util/StringUtil';
+import { ALSyntaxUtil } from './util/ALSyntaxUtil';
 import { VSCodeApi } from './api/VSCodeApi';
+import { CodeType } from './types';
 import { isNullOrUndefined } from 'util';
 
 export class DoComment {
-    public disposable: Disposable;
-    public event!: TextDocumentContentChangeEvent;
-    public activeEditor!: TextEditor;
-    public vsCodeApi!: VSCodeApi;
+    private disposable: Disposable;
+    private event!: TextDocumentContentChangeEvent;
+    private activeEditor!: TextEditor;
+    private vsCodeApi!: VSCodeApi;
+    private codeType: CodeType;
 
     constructor() {       
         const subscriptions: Disposable[] = [];
+        this.codeType = CodeType.Undefined;
 
         workspace.onDidChangeTextDocument(event => {
             const activeEditor = window.activeTextEditor;
@@ -44,15 +48,61 @@ export class DoComment {
             return;
         }
 
-        const code: string = this.GetCode();
-        let regExResult = code.match(/(?!local)procedure\s+(?<ProcedureName>[A-Za-z0-9]+)\b[^\(]*\((?<Params>.*)\)(?<ReturnType>((.*\:\s*)[A-Za-z0-9\s\""\.\[\]]+))?/);
-        let groups = regExResult?.groups;
-        if (isNullOrUndefined(groups)) {
-            return;
-        }   
+        let xmlDocumentation = "";
 
-        let xmlDocumentation = this.GenerateDocString(this.vsCodeApi.ReadLine(this.vsCodeApi.GetActiveLine()).indexOf('///'), groups);
+        const code: string = this.GetCode();
+        switch (+this.codeType) {
+            case CodeType.Procedure:
+                var procedureDefinition = ALSyntaxUtil.AnalyzeProcedureDefinition(code);
+                if (isNullOrUndefined(procedureDefinition)) {
+                    return;
+                }        
+                var groups = procedureDefinition.groups;
+                if (isNullOrUndefined(groups)) {
+                    return;
+                }   
+
+                xmlDocumentation = this.GenerateProcedureDocString(this.vsCodeApi.ReadLine(this.vsCodeApi.GetActiveLine()).indexOf('///'), groups);
+                break;            
+            case CodeType.Object:
+                var objectDefinition = ALSyntaxUtil.AnalyzeObjectDefinition(code);
+                if (isNullOrUndefined(objectDefinition)) {
+                    return;
+                }        
+                var groups = objectDefinition.groups;
+                if (isNullOrUndefined(groups)) {
+                    return;
+                }   
+
+                xmlDocumentation = this.GenerateObjectDocString(this.vsCodeApi.ReadLine(this.vsCodeApi.GetActiveLine()).indexOf('///'), groups);
+                break;
+            default:
+                return; // something unexpected
+        }   
         this.WriteDocString(xmlDocumentation);
+    }
+
+    private IsDoCommentTrigger(): boolean {
+        if (isNullOrUndefined(this.event)) {
+            return false;
+        }
+
+        const eventText: string = this.event.text;
+        if (eventText === null || eventText === '') {
+            return false;
+        }
+
+        const currentChar: string = this.vsCodeApi.ReadCurrentChar();
+        if (currentChar === null) {
+            return false;
+        }
+
+        const activeLine: string = this.vsCodeApi.ReadLineAtCurrent();
+        if (activeLine.match(/^[ \t]*\/{3}[ \t]*$/) === null) {
+            return false;
+        }
+
+        return true;
     }
 
     private WriteDocString(docString: string) {
@@ -65,11 +115,27 @@ export class DoComment {
         });
     }
 
-    private GenerateDocString(indentPlaces: number, groups: { [key: string]: string; }): string {
-        let indent = "";
-        for (var i = 0; i < indentPlaces; i++) {
-            indent += " ";
+    private GenerateObjectDocString(indentPlaces: number, groups: { [key: string]: string; }): string {
+
+        var indent = StringUtil.GetIndentSpaces(this.vsCodeApi.ReadLine(this.vsCodeApi.GetActiveLine()).indexOf('///'));
+
+        let docString = "";
+
+        // format object type
+        if (groups['ObjectType'].indexOf('extension') !== -1) {
+            groups['ObjectType'] = groups['ObjectType'].replace('extension', ' extension');
         }
+        groups['ObjectType'] = groups['ObjectType'].replace(/(\w)(\w*)/g, function(g0,g1,g2){return g1.toUpperCase() + g2.toLowerCase();});
+
+        docString += indent + "/// <summary> \n";
+        docString += indent + "/// " + groups['ObjectType'] + " " + groups['ObjectName'] + " (ID " + groups['ObjectID'] + ").\n";
+        docString += indent + "/// </summary>";
+
+        return docString;
+    }
+
+    private GenerateProcedureDocString(indentPlaces: number, groups: { [key: string]: string; }): string {
+        let indent = StringUtil.GetIndentSpaces(indentPlaces);
 
         let docString = "";
         if (!isNullOrUndefined(groups['ProcedureName'])) {
@@ -115,36 +181,12 @@ export class DoComment {
         return docString;
     }
 
-    private IsDoCommentTrigger(): boolean {
-        if (isNullOrUndefined(this.event)) {
-            return false;
-        }
-
-        const eventText: string = this.event.text;
-        if (eventText === null || eventText === '') {
-            return false;
-        }
-
-        const currentChar: string = this.vsCodeApi.ReadCurrentChar();
-        if (currentChar === null) {
-            return false;
-        }
-
-        const activeLine: string = this.vsCodeApi.ReadLineAtCurrent();
-        if (activeLine.match(/^[ \t]*\/{3}[ \t]*$/) === null) {
-            return false;
-        }
-
-        return true;
-    }
-
     private GetCode(eol: string = '\n'): string {
         const lineCount: number = this.vsCodeApi.GetLineCount();
         const curLine: number = this.vsCodeApi.GetActiveLine();
 
         let code = '';
         for (let i: number = curLine; i < lineCount - 1; i++) {
-
             const line: string = this.vsCodeApi.ReadLine(i + 1);
 
             // Skip empty line
@@ -154,12 +196,15 @@ export class DoComment {
 
             code += line + eol;
 
-            // Detect start of code
-            if (!StringUtil.IsProcedure(line)) {
-                continue;
+            if (ALSyntaxUtil.IsObject(line)) {
+                this.codeType = CodeType.Object;
+                return code.trim();
             }
 
-            return StringUtil.RemoveComment(code).trim();
+            if (ALSyntaxUtil.IsProcedure(line)) {
+                this.codeType = CodeType.Procedure;
+                return code.trim();
+            }
         }
 
         return "";

@@ -1,0 +1,62 @@
+import { isNullOrUndefined } from "util";
+
+export class ALSyntaxUtil {
+    public static IsObject(line: string): boolean {
+        if (line === null) {
+            return false;
+        }
+
+        var objectDef = this.AnalyzeObjectDefinition(line);
+        if (isNullOrUndefined(objectDef)) {
+            return false;
+        }        
+        var groups = objectDef.groups;
+        if (isNullOrUndefined(groups)) {
+            return false;
+        }
+        if (isNullOrUndefined(groups['ObjectType'])) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public static IsProcedure(line: string): boolean {
+        if (line === null) {
+            return false;
+        }
+
+        const isProcedure: boolean = line.trim().startsWith('procedure');
+        if (isProcedure) {
+            return true;
+        }
+
+        const isLocalProcedure: boolean = line.trim().startsWith('local procedure');
+        if (isLocalProcedure) {
+            return true;
+        }
+
+        const isTriggerProcedure: boolean = line.trim().startsWith('trigger');
+        if (isTriggerProcedure) {
+            return true;
+        }
+
+
+        return false;
+    }
+
+    private static AnalyzeDefinition(regExResult: RegExpMatchArray | null) : RegExpMatchArray | null {
+        if (isNullOrUndefined(regExResult)) {
+            return null;
+        }
+        return regExResult;
+    }
+
+    public static AnalyzeProcedureDefinition(code: string): RegExpMatchArray | null {
+        return this.AnalyzeDefinition(code.match(/(trigger|(?!local)procedure)\s+(?<ProcedureName>[A-Za-z0-9]+)\b[^\(]*\((?<Params>.*)\)(?<ReturnType>((.*\:\s*)[A-Za-z0-9\s\""\.\[\]]+))?/));
+    }
+
+    public static AnalyzeObjectDefinition(code: string): RegExpMatchArray | null {
+        return this.AnalyzeDefinition(code.match(/^(?<ObjectType>[A-Za-z]*)\b\s+(?<ObjectID>[0-9]+)\b\s(?<ObjectName>"(?:[^"\\]|\\.)*"|([A-Za-z0-9]+))/));
+    }
+}
