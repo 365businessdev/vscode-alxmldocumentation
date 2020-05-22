@@ -11,7 +11,11 @@ export class ALDocCommentUtil {
         groups['ObjectType'] = groups['ObjectType'].replace(/(\w)(\w*)/g, function(g0,g1,g2){return g1.toUpperCase() + g2.toLowerCase();});
 
         docString += "/// <summary> \n";
-        docString += "/// ${1:" + groups['ObjectType'] + " " + groups['ObjectName'] + " (ID " + groups['ObjectID'] + ").}\n";
+        docString += "/// ${1:" + groups['ObjectType'] + " " + groups['ObjectName'] ;
+        if (!isNullOrUndefined(groups['ObjectID'])) {
+            docString += " (ID " + groups['ObjectID'] + ")";
+        }
+        docString += ".}\n";
         docString += "/// </summary>";
 
         return docString;

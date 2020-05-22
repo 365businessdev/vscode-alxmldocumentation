@@ -57,6 +57,10 @@ export class ALSyntaxUtil {
     }
 
     public static AnalyzeObjectDefinition(code: string): RegExpMatchArray | null {
-        return this.AnalyzeDefinition(code.match(/^(?<ObjectType>[A-Za-z]*)\b\s+(?<ObjectID>[0-9]+)\b\s(?<ObjectName>"(?:[^"\\]|\\.)*"|([A-Za-z0-9]+))/));
+        if (code.startsWith('interface')) {
+            return this.AnalyzeDefinition(code.match(/^(?<ObjectType>[A-Za-z]*)\b\s(?<ObjectName>"(?:[^"\\]|\\.)*"|([A-Za-z0-9]+))/));
+        } else {
+            return this.AnalyzeDefinition(code.match(/^(?<ObjectType>[A-Za-z]*)\b\s+(?<ObjectID>[0-9]+)\b\s(?<ObjectName>"(?:[^"\\]|\\.)*"|([A-Za-z0-9]+))/));
+        }
     }
 }
