@@ -8,6 +8,10 @@ Type `///` in AL source code, it auto-generates an context aware XML documentati
 
 ![Generate context aware XML documentation comments][GenerateXmlDoc]
 
+In addition to the regular documentation activity you can:
+ - Add new lines in existing XML Documentation comment section. (`///` will automatically added.)
+ - Use [Snippets](#Snippets) directly inside the XML Documentation comment section.
+
 ### Generate markdown files from XML documentation comments
 There are two commands available to generate markdown files from XML documentation:
 
@@ -25,14 +29,14 @@ There are two commands available to generate markdown files from XML documentati
 ### Snippets
 Additional three snippets are included into the extension:
 #### Summary XML documentation
-Adds simple `<summary>` xml documentation comment:
+`docsummary` snippet adds simple `<summary>` xml documentation comment:
 ```c#
     /// <summary>
     /// This is the description of a specific procedure, trigger or object.
     /// </summary>
 ```
 #### Example code XML documentation
-Adds `<example>` xml documentation comment:
+`docexamplecode` snippet adds `<example>` xml documentation comment:
 ```c#
     /// <example>
     /// This is the description of an example
@@ -43,7 +47,7 @@ Adds `<example>` xml documentation comment:
     /// </example>
 ```
 #### Remarks XML documentation
-Adds `<remarks>` xml documentation comment:
+`docremarks` snippet adds `<remarks>` xml documentation comment:
 ```c#
     /// <remarks>
     /// This are some specific remarks for the documented procedure.
@@ -80,16 +84,39 @@ There are two configuration parameters available:
 ## Supported Languages
 This extension is only processing AL language source code files.
 
-## Supported XML Tags
+## Supported AL Keywords
+| Object Type | Supported |
+| --- | :---: |
+| `procedure` | ![Supported] |
+| `local procedure` | ![Supported] |
+| `trigger` | ![Supported] |
+
+> **Note**<br>The purpose of the AL XML Documentation is to document your AL Source Code, not to document structures, controls or table fields.<br><br>Therefor it's currently not planned to add support for AL keywords, other the currently supported.
+
+## Supported AL Objects
+| Object Type | Supported |
+| --- | :---: |
+| `codeunit` | ![Supported] |
+| `table` | ![Supported] |
+| `page` | ![Supported] |
+| `enum` | ![Supported] |
+| `xmlport` | ![Supported] |
+| `interface` | ![Supported] |
+| `table extension` | ![Supported] |
+| `page extension` | ![Supported] |
+| `enum extension` | ![Supported] |
+| `page customization` | ![NotSupport] |
+| `profile` | ![NotSupport] |
+
+## Supported Documentation XML Tags
 
 | XML Tag | Supported |
 | --- | :---: |
-| `summary` | ![Check] |
-| `param` | ![Check] |
-| `returns` | ![Check] |
-| `remarks` | ![Check] |
-| `example` | ![Check] |
-
+| `summary` | ![Supported] |
+| `param` | ![Supported] |
+| `returns` | ![Supported] |
+| `remarks` | ![Supported] |
+| `example` | ![Supported] |
 
 ## License
 This extension is licensed under the [MIT License](https://365businessdev.visualstudio.com/Visual%20Studio%20Code%20AL%20XML%20Documentation%20Extension/_git/Visual%20Studio%20Code%20AL%20XML%20Documentation%20Extension?path=%2Fbdev-al-xml-doc%2FLICENSE.txt).
@@ -100,4 +127,6 @@ This extension is licensed under the [MIT License](https://365businessdev.visual
 
 [GenerateXmlDoc]: https://365businessdev.visualstudio.com/4cb83d4a-eb34-4814-b956-f9f37c442462/_apis/git/repositories/ee60b269-870f-4369-8cf5-1e5ffb21c10b/items?path=%2Fbdev-al-xml-doc%2Fdoc%2FAddXmlDocComment.gif&versionDescriptor%5BversionOptions%5D=0&versionDescriptor%5BversionType%5D=0&versionDescriptor%5Bversion%5D=master&resolveLfs=true&%24format=octetStream&api-version=5.0 "Generate context aware XML documentation comments"
 [GenerateMDDoc]: https://365businessdev.visualstudio.com/4cb83d4a-eb34-4814-b956-f9f37c442462/_apis/git/repositories/ee60b269-870f-4369-8cf5-1e5ffb21c10b/items?path=%2Fbdev-al-xml-doc%2Fdoc%2FGenerateMarkdownDoc.gif&versionDescriptor%5BversionOptions%5D=0&versionDescriptor%5BversionType%5D=0&versionDescriptor%5Bversion%5D=master&resolveLfs=true&%24format=octetStream&api-version=5.0 "Generate markdown files from XML documentation comments"
-[Check]: https://cdn4.iconfinder.com/data/icons/icocentre-free-icons/137/f-check_256-16.png "Check Icon"
+[XmlDocAsSnippet]: https://365businessdev.visualstudio.com/4cb83d4a-eb34-4814-b956-f9f37c442462/_apis/git/repositories/ee60b269-870f-4369-8cf5-1e5ffb21c10b/items?path=%2Fbdev-al-xml-doc%2Fdoc%2FGenerateMarkdownDoc-XMLDocAsSnippets.gif&versionDescriptor%5BversionOptions%5D=0&versionDescriptor%5BversionType%5D=0&versionDescriptor%5Bversion%5D=master&resolveLfs=true&%24format=octetStream&api-version=5.0 "XML Documentation comment as Snippet"
+[Supported]: https://cdn4.iconfinder.com/data/icons/icocentre-free-icons/137/f-check_256-16.png "Supported"
+[NotSupport]: https://cdn2.iconfinder.com/data/icons/circular%20icons/no.png "Not Supported"

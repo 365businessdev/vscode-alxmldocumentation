@@ -3,7 +3,7 @@
 	"displayName": "AL XML Documentation",
 	"description": "Generate AL XML documentation comments and create Markdown documentation from your source code.",
 	"publisher": "365businessdevelopment",
-	"version": "0.1.3",
+	"version": "0.1.4",
 	"icon": "res/icon.png",
 	"author": {
 		"name": "Christoph Krieg",

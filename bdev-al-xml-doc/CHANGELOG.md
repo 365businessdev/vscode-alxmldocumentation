@@ -16,3 +16,12 @@ All notable changes to the "AL XML Documentation" extension will be documented i
 
 ## [0.1.3] - 2020-05-20
 - Bugfix [#430](https://365businessdev.visualstudio.com/Visual%20Studio%20Code%20AL%20XML%20Documentation%20Extension/_workitems/edit/430) - `Command 'AL DOC: Generate markdown documentation' resulted in an error (Running the contributed command: 'bdev-al-xml-doc.exportMarkdown' failed.)`
+
+## [0.1.4] - 2020-05-22
+- Fixed `<param>` format from multiline to single line, according to [C# Programming Guide](https://docs.microsoft.com/de-de/dotnet/csharp/programming-guide/xmldoc/param).
+- Support for `trigger` procedures (e.g. `OnRun` trigger).
+- Support for object documentation (e.g. `codeunit 50000 MyCodeunit`).
+- Fixed `var` in parameter name.
+- Add XML documentation comments as snippets with placeholder variables.
+- Automatically add `///` when hit enter inside or below a xml documentation comment.
+- Allow direct usage of snippets in xml documentation comments.
