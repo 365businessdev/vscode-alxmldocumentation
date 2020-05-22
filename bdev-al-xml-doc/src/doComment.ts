@@ -1,11 +1,13 @@
 import {Position, Disposable, TextDocumentContentChangeEvent, TextEditor, window, workspace, WorkspaceConfiguration, ThemeIcon, Selection, Range } from 'vscode';
 import { StringUtil } from './stringUtil';
+import { VSCodeApi } from './VSCodeApi';
 import { isNullOrUndefined } from 'util';
 
 export class DoComment {
     public disposable: Disposable;
     public event!: TextDocumentContentChangeEvent;
     public activeEditor!: TextEditor;
+    public vsCodeApi!: VSCodeApi;
 
     constructor() {       
         const subscriptions: Disposable[] = [];
@@ -27,6 +29,7 @@ export class DoComment {
 
     public Execute(activeEditor: TextEditor, event: TextDocumentContentChangeEvent) {
         this.event = event;
+        this.vsCodeApi = new VSCodeApi(activeEditor);
         this.activeEditor = activeEditor;
 
         if (isNullOrUndefined(this.event) || isNullOrUndefined(this.activeEditor)) {
@@ -37,7 +40,7 @@ export class DoComment {
             return;
         }
 
-        if (this.ReadLine(this.GetActiveLine() + 1).trim().startsWith('///')) {
+        if (this.vsCodeApi.ReadLine(this.vsCodeApi.GetNextLine()).trim().startsWith('///')) {
             return;
         }
 
@@ -48,8 +51,7 @@ export class DoComment {
             return;
         }   
 
-        let xmlDocumentation = this.GenerateDocString(this.ReadLine(this.GetActiveLine()).indexOf('///'), groups);
-        // console.log(xmlDocumentation);
+        let xmlDocumentation = this.GenerateDocString(this.vsCodeApi.ReadLine(this.vsCodeApi.GetActiveLine()).indexOf('///'), groups);
         this.WriteDocString(xmlDocumentation);
     }
 
@@ -57,9 +59,9 @@ export class DoComment {
         // remove starting "///"
         docString = docString.substring(docString.indexOf("///") + 3);
 
-        const position: Position = this.GetActivePosition();
+        const position: Position = this.vsCodeApi.GetActivePosition();
         this.activeEditor.edit((editBuilder) => {
-            editBuilder.insert(this.ShiftPositionChar(position, 1), docString);
+            editBuilder.insert(this.vsCodeApi.ShiftPositionChar(position, 1), docString);
         });
     }
 
@@ -85,9 +87,9 @@ export class DoComment {
                 let paramDataType = param[1].trim();
 
                 docString += "\n";
-                docString += indent + "/// <param name=\"" + paramName + "\"> \n";
-                docString += indent + "/// Parameter of type " + paramDataType + ".\n";
-                docString += indent + "/// </param>";
+                docString += indent + "/// <param name=\"" + paramName + "\">";
+                docString += "Parameter of type " + paramDataType + ".";
+                docString += "</param>";
             });
         }
 
@@ -123,12 +125,12 @@ export class DoComment {
             return false;
         }
 
-        const currentChar: string = this.ReadCurrentChar();
+        const currentChar: string = this.vsCodeApi.ReadCurrentChar();
         if (currentChar === null) {
             return false;
         }
 
-        const activeLine: string = this.ReadLineAtCurrent();
+        const activeLine: string = this.vsCodeApi.ReadLineAtCurrent();
         if (activeLine.match(/^[ \t]*\/{3}[ \t]*$/) === null) {
             return false;
         }
@@ -137,13 +139,13 @@ export class DoComment {
     }
 
     private GetCode(eol: string = '\n'): string {
-        const lineCount: number = this.GetLineCount();
-        const curLine: number = this.GetActiveLine();
+        const lineCount: number = this.vsCodeApi.GetLineCount();
+        const curLine: number = this.vsCodeApi.GetActiveLine();
 
         let code = '';
         for (let i: number = curLine; i < lineCount - 1; i++) {
 
-            const line: string = this.ReadLine(i + 1);
+            const line: string = this.vsCodeApi.ReadLine(i + 1);
 
             // Skip empty line
             if (StringUtil.IsNullOrWhiteSpace(line)) {
@@ -161,46 +163,6 @@ export class DoComment {
         }
 
         return "";
-    }
-
-    private ShiftPositionChar(position: Position, offset: number): Position {
-        return this.GetPosition(position.line, position.character + offset);
-    }
-
-    private GetPosition(line: number, character: number): Position {
-        return new Position(line, character);
-    }
-
-    private GetSelectionByPosition(anchor: Position, active: Position): Selection {
-        return new Selection(anchor, active);
-    }
-
-    private GetLineCount(): number {
-        return this.activeEditor.document.lineCount;
-    }
-
-    private ReadCurrentChar(): string {
-        return this.ReadLineAtCurrent().charAt(this.GetActiveCharPosition());
-    }
-
-    private  ReadLineAtCurrent(): string {
-        return this.ReadLine(this.GetActiveLine());
-    }
-
-    private ReadLine(line: number): string {
-        return this.activeEditor.document.lineAt(line).text;
-    }
-
-    private GetActiveCharPosition(): number {
-        return this.activeEditor.selection.active.character;
-    }
-
-    private GetActiveLine(): number {
-        return this.GetActivePosition().line;
-    }
-
-    private GetActivePosition(): Position {
-        return this.activeEditor.selection.active;
     }
 
     public dispose() {
