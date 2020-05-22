@@ -1,6 +1,6 @@
 import {Position, Disposable, TextDocumentContentChangeEvent, TextEditor, window, workspace, WorkspaceConfiguration, ThemeIcon, Selection, Range } from 'vscode';
-import { StringUtil } from './stringUtil';
-import { VSCodeApi } from './VSCodeApi';
+import { StringUtil } from './util/StringUtil';
+import { VSCodeApi } from './api/VSCodeApi';
 import { isNullOrUndefined } from 'util';
 
 export class DoComment {
