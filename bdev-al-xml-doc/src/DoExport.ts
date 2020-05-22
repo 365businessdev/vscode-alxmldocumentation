@@ -4,7 +4,7 @@ import path = require("path");
 
 export class DoExport {
 
-    private output: OutputChannel;
+    private output!: OutputChannel;
     private activeEditor!: TextEditor;
 
     private extension!: Extension<any>;
@@ -18,9 +18,6 @@ export class DoExport {
         commands.registerCommand("bdev-al-xml-doc.exportDirectoryToMarkdown", () => {
             this.ExportMarkdown(window.activeTextEditor, false);
         });
-        
-        this.output = this.getOutputChannel(this.getOutputChannelName());
-        this.output.show(false);
     }
 
     private getOutputChannel(outputName: string): OutputChannel {
@@ -73,11 +70,12 @@ export class DoExport {
         }
         this.activeEditor = activeEditor;
 
-        this.VerifyPrerequisite();
+        this.VerifyPrerequisite();     
 
         var document: TextDocument = activeEditor!.document;
         document.save();
 
+        this.output = this.getOutputChannel(this.getOutputChannelName());
         this.output.show(true);
         this.output.appendLine(this.extensionManifest.displayName + " version " + this.extensionManifest.version);
         this.output.appendLine("Copyright (C) 365 business development. All rights reserved");
