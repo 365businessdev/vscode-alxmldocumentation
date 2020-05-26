@@ -24,10 +24,13 @@ There are two commands available to generate markdown files from XML documentati
 
 ![Generate markdown files from XML documentation comments][GenerateMDDoc]
 
-> **Note**<br>This features exports all valid XML documentation from codeunit objects with access modifier `Public` and Subtype `Normal` (empty). One markdown file per method will be created inside a directory which is named like the AL source file (e.g. `MyCodeunit.Codeunit.al`)
+Generate markdown documentation files, based on the XML documentation in AL source code. For each object file (e.g. `MyCodeunit.Codeunit.al`) a subdirectory inside the export directory will be created.
+Each procedure and trigger method is creating a single file (e.g. `DoSomething.al`) inside the subdirectory. Additionally an index file (`index.md`) will be created per object file and contains a list of every documented element in the source file.
+
+> **Note**<br>This feature exports all valid XML documentation from objects with access modifier `Public` (or not set) and Subtype `Normal` (or not set).<br><br>Additionally warnings will be shown in the output channel in Visual Studio Code to show missing documentations.
 
 ### Snippets
-Additional three snippets are included into the extension:
+Three snippets are included into the extension:
 #### Summary XML documentation
 `docsummary` snippet adds simple `<summary>` xml documentation comment:
 ```c#
@@ -118,6 +121,11 @@ This extension is only processing AL language source code files.
 | `remarks` | ![Supported] |
 | `example` | ![Supported] |
 
+## System Requirements
+ - Visual Studio Code 1.44.0 (or higher) - [Download here](https://code.visualstudio.com/Download)
+ - .NET Core 3.0 (or higher) - [Download here](https://dotnet.microsoft.com/download/dotnet-core/3.0)
+
+
 ## License
 This extension is licensed under the [MIT License](https://365businessdev.visualstudio.com/Visual%20Studio%20Code%20AL%20XML%20Documentation%20Extension/_git/Visual%20Studio%20Code%20AL%20XML%20Documentation%20Extension?path=%2Fbdev-al-xml-doc%2FLICENSE.txt).
 
@@ -127,6 +135,5 @@ This extension is licensed under the [MIT License](https://365businessdev.visual
 
 [GenerateXmlDoc]: https://365businessdev.visualstudio.com/4cb83d4a-eb34-4814-b956-f9f37c442462/_apis/git/repositories/ee60b269-870f-4369-8cf5-1e5ffb21c10b/items?path=%2Fbdev-al-xml-doc%2Fdoc%2FAddXmlDocComment.gif&versionDescriptor%5BversionOptions%5D=0&versionDescriptor%5BversionType%5D=0&versionDescriptor%5Bversion%5D=master&resolveLfs=true&%24format=octetStream&api-version=5.0 "Generate context aware XML documentation comments"
 [GenerateMDDoc]: https://365businessdev.visualstudio.com/4cb83d4a-eb34-4814-b956-f9f37c442462/_apis/git/repositories/ee60b269-870f-4369-8cf5-1e5ffb21c10b/items?path=%2Fbdev-al-xml-doc%2Fdoc%2FGenerateMarkdownDoc.gif&versionDescriptor%5BversionOptions%5D=0&versionDescriptor%5BversionType%5D=0&versionDescriptor%5Bversion%5D=master&resolveLfs=true&%24format=octetStream&api-version=5.0 "Generate markdown files from XML documentation comments"
-[XmlDocAsSnippet]: https://365businessdev.visualstudio.com/4cb83d4a-eb34-4814-b956-f9f37c442462/_apis/git/repositories/ee60b269-870f-4369-8cf5-1e5ffb21c10b/items?path=%2Fbdev-al-xml-doc%2Fdoc%2FGenerateMarkdownDoc-XMLDocAsSnippets.gif&versionDescriptor%5BversionOptions%5D=0&versionDescriptor%5BversionType%5D=0&versionDescriptor%5Bversion%5D=master&resolveLfs=true&%24format=octetStream&api-version=5.0 "XML Documentation comment as Snippet"
 [Supported]: https://cdn4.iconfinder.com/data/icons/icocentre-free-icons/137/f-check_256-16.png "Supported"
 [NotSupport]: https://cdn2.iconfinder.com/data/icons/circular%20icons/no.png "Not Supported"
