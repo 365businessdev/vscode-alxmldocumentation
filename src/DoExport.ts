@@ -38,7 +38,7 @@ export class DoExport {
         return path.dirname(filename);
     }
 
-    private GetExtensionName():string {
+    private getExtensionName():string {
         return "365businessdevelopment.bdev-al-xml-doc";
     }
 
@@ -53,7 +53,7 @@ export class DoExport {
             return false;
         }
         
-        var _extension = extensions.getExtension(this.GetExtensionName());
+        var _extension = extensions.getExtension(this.getExtensionName());
         if (isNullOrUndefined(_extension)) {
             window.showErrorMessage("Unable to find Visual Studio Code extension. Please try re-install.");
             return false;
