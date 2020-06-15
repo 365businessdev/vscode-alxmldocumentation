@@ -81,7 +81,8 @@ There are two configuration parameters available:
 ```json 
 {
     "bdev-al-xml-doc.markdown_path": "C:/Documentation/",
-    "bdev-al-xml-doc.verbose": true    
+    "bdev-al-xml-doc.verbose": true,
+    "bdev-al-xml-doc.exportScope": "all"    
 }
 ```
 
