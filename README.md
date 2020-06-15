@@ -94,6 +94,7 @@ This extension is only processing AL language source code files.
 | --- | :---: |
 | `procedure` | ![Supported] |
 | `local procedure` | ![Supported] |
+| `internal procedure` | ![Supported] |
 | `trigger` | ![Supported] |
 
 > **Note**<br>The purpose of the AL XML Documentation is to document your AL Source Code, not to document structures, controls or table fields.<br><br>Therefor it's currently not planned to add support for AL keywords, other the currently supported.
