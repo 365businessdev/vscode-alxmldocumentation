@@ -73,6 +73,7 @@ There are two configuration parameters available:
 | --- | --- | --- |
 | `markdown_path` | Specifies the path where the markdown files should be created. | `doc` folder in workspace root directory |
 | `verbose` | Specifies whether detailed information should be output during markdown creation. | `false` | 
+| `exportScope` | Specifies whether only global procedures (config value: `global`) or whether all procedures (config value: `all`) should be exported as markdown. | `global` |
 
 > **Important**<br>The object directory (e.g. `doc\mycodeunit.codeunit.al\`) will be deleted if already exist.
 
@@ -128,10 +129,6 @@ This extension is only processing AL language source code files.
 
 ## License
 This extension is licensed under the [MIT License](https://365businessdev.visualstudio.com/Visual%20Studio%20Code%20AL%20XML%20Documentation%20Extension/_git/Visual%20Studio%20Code%20AL%20XML%20Documentation%20Extension?path=%2Fbdev-al-xml-doc%2FLICENSE.txt).
-
-## Known Issues
- - None
-
 
 [GenerateXmlDoc]: https://365businessdev.visualstudio.com/4cb83d4a-eb34-4814-b956-f9f37c442462/_apis/git/repositories/ee60b269-870f-4369-8cf5-1e5ffb21c10b/items?path=%2Fbdev-al-xml-doc%2Fdoc%2FAddXmlDocComment.gif&versionDescriptor%5BversionOptions%5D=0&versionDescriptor%5BversionType%5D=0&versionDescriptor%5Bversion%5D=master&resolveLfs=true&%24format=octetStream&api-version=5.0 "Generate context aware XML documentation comments"
 [GenerateMDDoc]: https://365businessdev.visualstudio.com/4cb83d4a-eb34-4814-b956-f9f37c442462/_apis/git/repositories/ee60b269-870f-4369-8cf5-1e5ffb21c10b/items?path=%2Fbdev-al-xml-doc%2Fdoc%2FGenerateMarkdownDoc.gif&versionDescriptor%5BversionOptions%5D=0&versionDescriptor%5BversionType%5D=0&versionDescriptor%5Bversion%5D=master&resolveLfs=true&%24format=octetStream&api-version=5.0 "Generate markdown files from XML documentation comments"

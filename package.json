@@ -3,7 +3,7 @@
 	"displayName": "AL XML Documentation",
 	"description": "Generate AL XML documentation comments and create Markdown documentation from your source code.",
 	"publisher": "365businessdevelopment",
-	"version": "0.2.0",
+	"version": "0.2.1",
 	"icon": "res/icon.png",
 	"author": {
 		"name": "Christoph Krieg",
@@ -54,6 +54,15 @@
 						"scope": "resource",
 						"default": false,
 						"description": "Specifies whether detailed information should be output during execution."
+					},
+					"bdev-al-xml-doc.exportScope": {
+						"type": "string",
+						"default": "global",
+						"enum": ["global","all"],
+						"enumDescriptions": [
+							"Only global procedures are recognized in markdown export.",
+							"All procedures are recognized in markdown export."
+						]
 					}
 				}
 			}
@@ -88,6 +97,9 @@
 	},
 	"repository": {
 	  "type": "git",
-	  "url": "https://365businessdev.visualstudio.com/Visual%20Studio%20Code%20AL%20XML%20Documentation%20Extension/_git/Visual%20Studio%20Code%20AL%20XML%20Documentation%20Extension"
+	  "url": "https://github.com/365businessdev/vscode-alxmldocumentation"
+	},
+	"bugs": {
+		"url": "https://github.com/365businessdev/vscode-alxmldocumentation/issues"
 	}
 }
