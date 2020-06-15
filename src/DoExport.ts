@@ -1,4 +1,4 @@
-import { workspace, window, commands, TextEditor, TextDocument, extensions, OutputChannel, Extension, TextEditorVisibleRangesChangeEvent } from "vscode";
+import { workspace, window, commands, TextEditor, TextDocument, extensions, OutputChannel, Extension, TextEditorVisibleRangesChangeEvent, WorkspaceConfiguration } from "vscode";
 import { isNullOrUndefined } from "util";
 import path = require("path");
 
@@ -40,6 +40,10 @@ export class DoExport {
 
     private getExtensionName():string {
         return "365businessdevelopment.bdev-al-xml-doc";
+    }
+
+    private getConfiguration():WorkspaceConfiguration {
+        return workspace.getConfiguration("bdev-al-xml-doc");
     }
 
     private VerifyPrerequisite(): boolean {
@@ -92,7 +96,7 @@ export class DoExport {
                 workingPath = this.getDirectoryName(document.fileName);
                 console.debug("Using working path: " + workingPath);
             }
-            var markdownPath = workspace.getConfiguration("bdev-al-xml-doc").markdown_path;
+            var markdownPath = this.getConfiguration().markdown_path;
             if (markdownPath === undefined || markdownPath === null || markdownPath === "") {
                 let workspaceRoot = workspace.workspaceFolders ? workspace.workspaceFolders[0].uri.fsPath : '';
                 if (workspaceRoot === '') {
@@ -103,7 +107,7 @@ export class DoExport {
             }
             console.debug("Using export path: " + markdownPath);
         } catch (ex) {
-            window.showErrorMessage("An error occured while processing. See output for further information.");
+            window.showErrorMessage("An error occurred while processing. See output for further information.");
 
             this.output.appendLine("");
             this.output.appendLine(ex.message);
@@ -112,9 +116,13 @@ export class DoExport {
         }
 
         var additionalArgs = "";
-        var verbose = workspace.getConfiguration("bdev-al-xml-doc").verbose;
+        var verbose = this.getConfiguration().verbose;
         if (verbose === true) {
-            additionalArgs = " -v ";
+            additionalArgs = additionalArgs + " -v";
+        }
+        var exportScope = this.getConfiguration().exportScope;
+        if (exportScope === "global") {
+            additionalArgs = additionalArgs + " -g";
         }
 
         var exec = `"${extensionPath}/bin/ALCodeCommentMarkdownCreator.exe" ${additionalArgs} -o "${markdownPath}"`;
@@ -127,13 +135,14 @@ export class DoExport {
             this.output.appendLine(`Markdown export started for directory '${workingPath}' at '${new Date().toLocaleTimeString()}'`);
             exec += ` -i "${workingPath}"`;
         }
+        console.log(exec);
         this.output.appendLine("");
 
         require("child_process").exec(exec,  (_err: string, _stdout: string, _stderr: string) => {
             if (_err) {			
-                window.showErrorMessage("An error occured while processing. See output for further information.");
+                window.showErrorMessage("An error occurred while processing. See output for further information.");
 
-                this.output.appendLine("An error occured while processing:");
+                this.output.appendLine("An error occurred while processing:");
                 this.output.appendLine(_err);
             } else {
                 window.showInformationMessage("XML documentation has been exported to markdown.");

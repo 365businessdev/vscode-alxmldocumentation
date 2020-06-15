@@ -54,6 +54,15 @@
 						"scope": "resource",
 						"default": false,
 						"description": "Specifies whether detailed information should be output during execution."
+					},
+					"bdev-al-xml-doc.exportScope": {
+						"type": "string",
+						"default": "global",
+						"enum": ["global","all"],
+						"enumDescriptions": [
+							"Only global procedures are recognized in markdown export.",
+							"All procedures are recognized in markdown export."
+						]
 					}
 				}
 			}
