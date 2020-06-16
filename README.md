@@ -67,7 +67,7 @@ Three snippets are included into the extension:
 ## Setup
 The menu under File > Preferences (Code > Preferences on Mac) provides entries to configure user and workspace settings. 
 
-There are two configuration parameters available:
+The following configuration parameters are available:
 
 | Configuration Parameter | Description | Default Value |
 | --- | --- | --- |
