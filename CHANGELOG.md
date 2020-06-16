@@ -40,3 +40,7 @@ All notable changes to the "AL XML Documentation" extension will be documented i
 - Fixed [#3](https://github.com/365businessdev/vscode-alxmldocumentation/issues/3) keywords in documentation.
 - Moved Repository to GitHub.
 - Added Bug Tracking information.
+
+## [0.2.2] - 2020-06-16
+
+- Removed procedure hover from prototype.
