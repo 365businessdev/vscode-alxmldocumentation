@@ -53,7 +53,7 @@ export class ALSyntaxUtil {
     }
 
     public static AnalyzeProcedureDefinition(code: string): RegExpMatchArray | null {
-        return this.AnalyzeDefinition(code.match(/(trigger|(?!local)procedure)\s+(?<ProcedureName>[A-Za-z0-9]+)\b[^\(]*\((?<Params>.*)\)(?<ReturnType>((.*\:\s*)[A-Za-z0-9\s\""\.\[\]]+))?/));
+        return this.AnalyzeDefinition(code.match(/(trigger|(?!local)procedure)\s+(?<ProcedureName>[A-Za-z0-9_]+)\b[^\(]*\((?<Params>.*)\)(?<ReturnType>((.*\:\s*)[A-Za-z0-9\s\""\.\[\]]+))?/));
     }
 
     public static AnalyzeObjectDefinition(code: string): RegExpMatchArray | null {
