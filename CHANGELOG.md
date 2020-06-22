@@ -36,7 +36,7 @@ All notable changes to the "AL XML Documentation" extension will be documented i
 
 ## [0.2.1] - 2020-06-15
 
-- Add configuration parameter `name` [#2](https://github.com/365businessdev/vscode-alxmldocumentation/issues/2).
+- Add configuration parameter `exportScope` [#2](https://github.com/365businessdev/vscode-alxmldocumentation/issues/2).
 - Fixed [#3](https://github.com/365businessdev/vscode-alxmldocumentation/issues/3) keywords in documentation.
 - Moved Repository to GitHub.
 - Added Bug Tracking information.
@@ -44,3 +44,7 @@ All notable changes to the "AL XML Documentation" extension will be documented i
 ## [0.2.2] - 2020-06-16
 
 - Removed procedure hover from prototype.
+
+## [0.2.3]
+
+- Allow underscore in Procedure Name [#1](https://github.com/365businessdev/vscode-alxmldocumentation/issues/1).
