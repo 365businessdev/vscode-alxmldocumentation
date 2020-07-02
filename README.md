@@ -142,8 +142,8 @@ This extension is only processing AL language source code files.
 ## License
 This extension is licensed under the [MIT License](https://github.com/365businessdev/vscode-alxmldocumentation/blob/dev/LICENSE.txt).
 
-[GenerateXmlDoc]: doc/AddXmlDocComment.gif "Generate context aware XML documentation comments"
-[GenerateMDDoc]: doc/GenerateMarkdownDoc.gif  "Generate markdown files from XML documentation comments"
-[SummaryHover]: doc/HoverProcedureDescription.gif  "Generate markdown files from XML documentation comments"
+[GenerateXmlDoc]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/AddXmlDocComment.gif?raw=true "Generate context aware XML documentation comments"
+[GenerateMDDoc]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/GenerateMarkdownDoc.gif?raw=true  "Generate markdown files from XML documentation comments"
+[SummaryHover]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/HoverProcedureDescription.gif?raw=true  "Generate markdown files from XML documentation comments"
 [Supported]: https://cdn4.iconfinder.com/data/icons/icocentre-free-icons/137/f-check_256-16.png "Supported"
 [NotSupport]: https://cdn2.iconfinder.com/data/icons/circular%20icons/no.png "Not Supported"
