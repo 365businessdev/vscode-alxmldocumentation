@@ -3,6 +3,7 @@ export type AlXmlDocConfig = {
 	verbose: boolean;
 	exportScope: string;
 	enableSummaryHover: boolean;
+	enableSignatureHover: boolean;
 };
 
 export enum CodeType {

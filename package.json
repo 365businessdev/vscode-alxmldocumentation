@@ -75,6 +75,12 @@
 						"scope": "resource",
 						"default": true,
 						"description": "Specifies whether <summary> description should be shown on procedures as tooltip."
+					},
+					"bdev-al-xml-doc.enableSignatureHover": {
+						"type": "boolean",
+						"scope": "resource",
+						"default": true,
+						"description": "Specifies whether <param> description should be shown on procedure signatures."
 					}
 				}
 			}
