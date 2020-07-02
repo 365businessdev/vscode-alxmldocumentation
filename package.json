@@ -3,7 +3,7 @@
 	"displayName": "AL XML Documentation",
 	"description": "Generate AL XML documentation comments and create Markdown documentation from your source code.",
 	"publisher": "365businessdevelopment",
-	"version": "0.2.2",
+	"version": "0.3.0",
 	"icon": "res/icon.png",
 	"author": {
 		"name": "Christoph Krieg",
@@ -21,6 +21,9 @@
 		"AL",
 		"Business Central",
 		"Markdown"
+	],
+	"extensionDependencies": [
+		"ms-dynamics-smb.al"
 	],
 	"activationEvents": [
 		"onLanguage:al"
@@ -58,11 +61,20 @@
 					"bdev-al-xml-doc.exportScope": {
 						"type": "string",
 						"default": "global",
-						"enum": ["global","all"],
+						"enum": [
+							"global",
+							"all"
+						],
 						"enumDescriptions": [
 							"Only global procedures are recognized in markdown export.",
 							"All procedures are recognized in markdown export."
 						]
+					},
+					"bdev-al-xml-doc.enableSummaryHover": {
+						"type": "boolean",
+						"scope": "resource",
+						"default": true,
+						"description": "Specifies whether <summary> description should be shown on procedures as tooltip."
 					}
 				}
 			}
@@ -73,6 +85,10 @@
 				"language": "al"
 			}
 		]
+	},
+	"dependencies": {
+		"fast-xml-parser": "^3.17.4",
+		"vscode-languageclient": "^6.1.3"
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
@@ -96,10 +112,11 @@
 		"vscode-test": "^1.3.0"
 	},
 	"repository": {
-	  "type": "git",
-	  "url": "https://github.com/365businessdev/vscode-alxmldocumentation"
+		"type": "git",
+		"url": "https://github.com/365businessdev/vscode-alxmldocumentation"
 	},
 	"bugs": {
 		"url": "https://github.com/365businessdev/vscode-alxmldocumentation/issues"
-	}
+	},
+	"license": "https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/LICENSE.txt"
 }
