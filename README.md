@@ -17,7 +17,7 @@ There are two commands available to generate markdown files from XML documentati
 
 | Command | Description | 
 | --- | --- |
-| `AL DOC: Generate markdown documentation` | Create markdown documentation file for the currently opend AL source code file. |
+| `AL DOC: Generate markdown documentation` | Create markdown documentation file for the currently opened AL source code file. |
 | `AL DOC: Generate markdown documentation for directory` | Create markdown documentation files for all AL source code files in the currently opened directory. |
 
 > **Note**<br>All commands start with `AL DOC` prefix to make it easier to find them.
@@ -28,6 +28,15 @@ Generate markdown documentation files, based on the XML documentation in AL sour
 Each procedure and trigger method is creating a single file (e.g. `DoSomething.al`) inside the subdirectory. Additionally an index file (`index.md`) will be created per object file and contains a list of every documented element in the source file.
 
 > **Note**<br>This feature exports all valid XML documentation from objects with access modifier `Public` (or not set) and Subtype `Normal` (or not set).<br><br>Additionally warnings will be shown in the output channel in Visual Studio Code to show missing documentations.
+
+### Show summary tag description from XML documentation comments as tooltip
+If `enableSummaryHover` configuration is activated every time hovering over a procedure in your AL source code the XML documentation in the source file or symbols will be searched and presented as tooltip.
+
+![Show XML documentation summary as Tooltip][SummaryHover]
+
+> **Note**<br>Currently only procedures are supported and only the `<summary>` tag will be presented as tooltip.
+
+> **Important**<br>Due to possible accessibility limitations of symbol files (`showmycode` in AL project `app.json`, etc.) it's not possible to retrieve the XML documentation comments for dependencies in this case.
 
 ### Snippets
 Three snippets are included into the extension:
@@ -74,6 +83,7 @@ The following configuration parameters are available:
 | `markdown_path` | Specifies the path where the markdown files should be created. | `doc` folder in workspace root directory |
 | `verbose` | Specifies whether detailed information should be output during markdown creation. | `false` | 
 | `exportScope` | Specifies whether only global procedures (config value: `global`) or whether all procedures (config value: `all`) should be exported as markdown. | `global` |
+| `enableSummaryHover` | Specifies whether `<summary>` description should be shown on procedures as tooltip. | `true` | 
 
 > **Important**<br>The object directory (e.g. `doc\mycodeunit.codeunit.al\`) will be deleted if already exist.
 
@@ -82,7 +92,8 @@ The following configuration parameters are available:
 {
     "bdev-al-xml-doc.markdown_path": "C:/Documentation/",
     "bdev-al-xml-doc.verbose": true,
-    "bdev-al-xml-doc.exportScope": "all"    
+    "bdev-al-xml-doc.exportScope": "all",
+    "bdev-al-xml-doc.enableSummaryHover": true    
 }
 ```
 
@@ -128,11 +139,11 @@ This extension is only processing AL language source code files.
  - Visual Studio Code 1.44.0 (or higher) - [Download here](https://code.visualstudio.com/Download)
  - .NET Core 3.0 (or higher) - [Download here](https://dotnet.microsoft.com/download/dotnet-core/3.0)
 
-
 ## License
 This extension is licensed under the [MIT License](https://github.com/365businessdev/vscode-alxmldocumentation/blob/dev/LICENSE.txt).
 
-[GenerateXmlDoc]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/dev/doc/AddXmlDocComment.gif?raw=true "Generate context aware XML documentation comments"
-[GenerateMDDoc]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/dev/doc/GenerateMarkdownDoc.gif?raw=true  "Generate markdown files from XML documentation comments"
+[GenerateXmlDoc]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/AddXmlDocComment.gif?raw=true "Generate context aware XML documentation comments"
+[GenerateMDDoc]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/GenerateMarkdownDoc.gif?raw=true  "Generate markdown files from XML documentation comments"
+[SummaryHover]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/HoverProcedureDescription.gif?raw=true  "Generate markdown files from XML documentation comments"
 [Supported]: https://cdn4.iconfinder.com/data/icons/icocentre-free-icons/137/f-check_256-16.png "Supported"
 [NotSupport]: https://cdn2.iconfinder.com/data/icons/circular%20icons/no.png "Not Supported"
