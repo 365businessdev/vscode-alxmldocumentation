@@ -45,6 +45,7 @@ All notable changes to the "AL XML Documentation" extension will be documented i
 
 - Removed procedure hover from prototype.
 
-## [0.2.3]
+## [0.3.0] - 2020-07-02
 
 - Allow underscore in Procedure Name [#1](https://github.com/365businessdev/vscode-alxmldocumentation/issues/1).
+- Hover `<summary>` information from xml documentation on procedures.
