@@ -80,6 +80,7 @@ The following configuration parameters are available:
 
 | Configuration Parameter | Description | Default Value |
 | --- | --- | --- |
+| `enableDocComments` | Specifies whether typing `///` will insert the xml documentation structure. | `true` |
 | `markdown_path` | Specifies the path where the markdown files should be created. | `doc` folder in workspace root directory |
 | `verbose` | Specifies whether detailed information should be output during markdown creation. | `false` | 
 | `exportScope` | Specifies whether only global procedures (config value: `global`) or whether all procedures (config value: `all`) should be exported as markdown. | `global` |

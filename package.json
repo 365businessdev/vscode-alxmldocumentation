@@ -70,6 +70,12 @@
 							"All procedures are recognized in markdown export."
 						]
 					},
+					"bdev-al-xml-doc.enableDocComments": {
+						"type": "boolean",
+						"scope": "resource",
+						"default": true,
+						"description": "Specifies whether typing '///' will insert the xml documentation structure."
+					},
 					"bdev-al-xml-doc.enableSummaryHover": {
 						"type": "boolean",
 						"scope": "resource",

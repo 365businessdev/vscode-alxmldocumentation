@@ -119,6 +119,10 @@ export class DoComment {
     private IsDoCommentTrigger(): boolean {
         this.isEnterKey = false;
 
+        if (!workspace.getConfiguration("bdev-al-xml-doc").enableDocComments) {
+            return false;
+        }
+
         if (isNullOrUndefined(this.event)) {
             return false;
         }

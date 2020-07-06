@@ -2,6 +2,7 @@ export type AlXmlDocConfig = {
 	markdown_path: string;
 	verbose: boolean;
 	exportScope: string;
+	enableDocComments: boolean;
 	enableSummaryHover: boolean;
 	enableSignatureHover: boolean;
 };
