@@ -41,7 +41,16 @@ export class ALSyntaxUtil {
             return true;
         }
 
+        return false;
+    }
 
+    public static IsBeginEnd(line: string): boolean {
+        if (line.toLowerCase().indexOf('begin') !== -1) {
+            return true;
+        }
+        if (line.toLowerCase().indexOf('end') !== -1) {
+            return true;
+        }
         return false;
     }
 

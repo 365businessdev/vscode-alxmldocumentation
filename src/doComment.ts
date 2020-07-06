@@ -182,6 +182,10 @@ export class DoComment {
                 continue;
             }
 
+            if (ALSyntaxUtil.IsBeginEnd(line)) {
+                return "";
+            }
+
             code += line + eol;
 
             if (ALSyntaxUtil.IsObject(line)) {
