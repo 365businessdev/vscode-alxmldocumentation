@@ -31,6 +31,11 @@ export class ALSyntaxUtil {
             return true;
         }
 
+        const isInternalProcedure: boolean = line.trim().startsWith('internal procedure');
+        if (isInternalProcedure) {
+            return true;
+        }
+
         const isLocalProcedure: boolean = line.trim().startsWith('local procedure');
         if (isLocalProcedure) {
             return true;
