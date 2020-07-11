@@ -49,3 +49,9 @@ All notable changes to the "AL XML Documentation" extension will be documented i
 
 - Allow underscore in Procedure Name [#1](https://github.com/365businessdev/vscode-alxmldocumentation/issues/1).
 - Hover `<summary>` information from xml documentation on procedures.
+
+## [0.3.1] - 2020-07-08
+
+- Fixed Issue [#10](https://github.com/365businessdev/vscode-alxmldocumentation/issues/10) - Supporting documentation for `internal procedure`.
+- Added configuration setting `enableDocComments` to disable documentation feature [#9](https://github.com/365businessdev/vscode-alxmldocumentation/issues/9).
+- Fixed Issue [#8](https://github.com/365businessdev/vscode-alxmldocumentation/issues/8) - Documentation gets triggered inside procedures.
