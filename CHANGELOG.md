@@ -55,3 +55,7 @@ All notable changes to the "AL XML Documentation" extension will be documented i
 - Fixed Issue [#10](https://github.com/365businessdev/vscode-alxmldocumentation/issues/10) - Supporting documentation for `internal procedure`.
 - Added configuration setting `enableDocComments` to disable documentation feature [#9](https://github.com/365businessdev/vscode-alxmldocumentation/issues/9).
 - Fixed Issue [#8](https://github.com/365businessdev/vscode-alxmldocumentation/issues/8) - Documentation gets triggered inside procedures.
+
+## [0.3.2] - 2020-07-11
+
+- Fixed Issue [#11](https://github.com/365businessdev/vscode-alxmldocumentation/issues/11) - Allow special characters in object names.
