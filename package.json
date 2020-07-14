@@ -68,7 +68,8 @@
 						"enumDescriptions": [
 							"Only global procedures are recognized in markdown export.",
 							"All procedures are recognized in markdown export."
-						]
+						],
+						"description": "Specifies the accessibility level (scope) of the procedures to be exported as markdown."
 					},
 					"bdev-al-xml-doc.enableDocComments": {
 						"type": "boolean",
