@@ -81,39 +81,7 @@ export class DoComment {
         if (this.vsCodeApi.ReadLine(this.vsCodeApi.GetNextLine()).trim().startsWith('///')) {
             return;
         }
-
-        let xmlDocumentation = "";
-
-        const code: string = this.GetCode();
-        switch (+this.codeType) {
-            case CodeType.Procedure:
-                var procedureDefinition = ALSyntaxUtil.AnalyzeProcedureDefinition(code);
-                if (isNullOrUndefined(procedureDefinition)) {
-                    return;
-                }        
-                var groups = procedureDefinition.groups;
-                if (isNullOrUndefined(groups)) {
-                    return;
-                }   
-
-                xmlDocumentation = ALDocCommentUtil.GenerateProcedureDocString(groups);
-                break;            
-            case CodeType.Object:
-                var objectDefinition = ALSyntaxUtil.AnalyzeObjectDefinition(code);
-                if (isNullOrUndefined(objectDefinition)) {
-                    return;
-                }        
-                var groups = objectDefinition.groups;
-                if (isNullOrUndefined(groups)) {
-                    return;
-                }   
-
-                xmlDocumentation = ALDocCommentUtil.GenerateObjectDocString(groups);
-                break;
-            default:
-                return; // something unexpected
-        }   
-        this.WriteDocString(xmlDocumentation);
+        this.WriteDocString();
     }
 
     private IsDoCommentTrigger(): boolean {
@@ -161,9 +129,41 @@ export class DoComment {
         return true;
     }
 
-    private WriteDocString(docString: string) {
-        // remove starting "///"
-        docString = docString.substring(docString.indexOf("///") + 3);
+    public WriteDocString(docString: string = "") {
+        if (docString === "") {
+            const code: string = this.GetCode();
+            switch (+this.codeType) {
+                case CodeType.Procedure:
+                    var procedureDefinition = ALSyntaxUtil.AnalyzeProcedureDefinition(code);
+                    if (isNullOrUndefined(procedureDefinition)) {
+                        return;
+                    }        
+                    var groups = procedureDefinition.groups;
+                    if (isNullOrUndefined(groups)) {
+                        return;
+                    }   
+
+                    docString = ALDocCommentUtil.GenerateProcedureDocString(groups);
+                    break;            
+                case CodeType.Object:
+                    var objectDefinition = ALSyntaxUtil.AnalyzeObjectDefinition(code);
+                    if (isNullOrUndefined(objectDefinition)) {
+                        return;
+                    }        
+                    var groups = objectDefinition.groups;
+                    if (isNullOrUndefined(groups)) {
+                        return;
+                    }   
+
+                    docString = ALDocCommentUtil.GenerateObjectDocString(groups);
+                    break;
+                default:
+                    return; // something unexpected
+            }
+
+            // remove starting "///"
+            docString = docString.substring(docString.indexOf("///") + 3);
+        }
 
         const position: Position = this.vsCodeApi.GetActivePosition();
         this.activeEditor.insertSnippet(new SnippetString(docString), this.vsCodeApi.ShiftPositionChar(position, 1));

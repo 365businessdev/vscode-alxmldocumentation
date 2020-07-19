@@ -1,6 +1,7 @@
 import { HoverProvider, TextDocument, Position, CancellationToken, workspace, Hover } from "vscode";
 import { ALLangServerProxy } from "./ALLangServerProxy";
 import { ALSyntaxUtil } from "./ALSyntaxUtil";
+import { ALDocCommentUtil } from "./ALDocCommentUtil";
 import { isNullOrUndefined } from "util";
 
 export class ALHoverProvider implements HoverProvider {
@@ -28,32 +29,17 @@ export class ALHoverProvider implements HoverProvider {
             return;
         }
 
-        // transform xml to json
-        var parser = require('fast-xml-parser');
-        var options = {
-            attributeNamePrefix : "",
-            attrNodeName: "attr",
-            textNodeName : "value",
-            ignoreAttributes : false,
-            ignoreNameSpace : true,
-            parseAttributeValue : true
-        };
-        try {
-            var docJson = parser.parse(`<?xml version="1.0."?><root>${docBuffer}</root>`, options, true);
-        } catch(ex) {
-            return;
-        }
-
+        let jsonDocumentation = ALDocCommentUtil.GetJsonFromXmlDocumentation(docBuffer);
         // build hover text with summary
         let hoverText: string[] = [];
-        if ((docJson.root.summary) && (docJson.root.summary !== "")) {
-            hoverText.push(docJson.root.summary);
+        if ((jsonDocumentation.summary) && (jsonDocumentation.summary !== "")) {
+            hoverText.push(jsonDocumentation.summary);
         } else {
             return; // don't show w/o summary
         }
 
-        if ((docJson.root.remarks) && (docJson.root.remarks !== "")) {
-            hoverText.push(`**Remarks:** ${docJson.root.remarks}`);
+        if ((jsonDocumentation.remarks) && (jsonDocumentation.remarks !== "")) {
+            hoverText.push(`**Remarks:** ${jsonDocumentation.remarks}`);
         } 
 
         if (!isNullOrUndefined(hoverText)) {

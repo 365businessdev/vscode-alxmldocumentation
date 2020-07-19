@@ -1,6 +1,145 @@
 import { isNullOrUndefined } from "util";
+import { TextDocument, TextEditor } from "vscode";
+import { VSCodeApi } from "../api/VSCodeApi";
+import { ALSyntaxUtil } from "./ALSyntaxUtil";
 
 export class ALDocCommentUtil {
+    public static GetJsonFromXmlDocumentation(xmlDocumentation: string): any {        
+        // transform xml to json
+        var parser = require('fast-xml-parser');
+        var options = {
+            attributeNamePrefix : "",
+            attrNodeName: "attr",
+            textNodeName : "value",
+            ignoreAttributes : false,
+            ignoreNameSpace : true,
+            parseAttributeValue : true
+        };
+        try {
+            var jsonDocumentation = parser.parse(`<?xml version="1.0."?><root>${xmlDocumentation}</root>`, options, true);
+        } catch(ex) {
+            return;
+        }
+
+        return jsonDocumentation.root;
+    }
+
+    public static GetXmlDocumentationNode(xmlDocumentation: string, xmlNode: string, attrName: string = "", attrValue: string = ""): string {
+        let isTag: boolean = false;
+        let docNode: string = "";
+        xmlDocumentation.split("\n").forEach(line => {
+            if (attrName !== "") {
+                if (line.includes(`<${xmlNode} ${attrName}="${attrValue}">`)) {
+                    isTag = true;
+                }
+            } else {
+                if (line.includes(`<${xmlNode}>`)) {
+                    isTag = true;
+                }
+            }
+            if (isTag) {
+                if (docNode !== "") {
+                    docNode = `${docNode}\n`;
+                }
+                docNode = `${docNode}${line}`;
+            }
+            if (line.includes(`</${xmlNode}>`)) {
+                isTag = false;
+            }
+        });
+
+        return docNode;
+    }
+
+    public static GetXmlDocumentationNodeLineNo(editor: TextEditor, startingLineNo: number = -1, nodeName: string, attrName: string = "", attrValue: string = ""): number { 
+        let paramEndLineNo: number = -1;
+
+        if (startingLineNo === -1) {
+            let vsCodeApi = new VSCodeApi(editor); 
+            startingLineNo = vsCodeApi.GetActivePosition().line;
+        }
+
+        let alCode = editor.document.getText().split("\r\n");    
+        for (let lineNo = startingLineNo - 1; lineNo > 0; lineNo--) {
+            let line = alCode[lineNo];
+            switch (true) {
+                case ALSyntaxUtil.IsObject(line):
+                case ALSyntaxUtil.IsProcedure(line):
+                case ALSyntaxUtil.IsBeginEnd(line):
+                    return -1;
+                default:
+                    if (line.includes(`</${nodeName}>`)) {
+                        paramEndLineNo = lineNo;
+                    }
+
+                    if (attrName !== "") {
+                        if (line.includes(`<${nodeName} ${attrName}="${attrValue}">`)) {
+                            return paramEndLineNo + 1;
+                        }
+                    } else {
+                        if (line.includes(`<${nodeName}>`)) {
+                            return paramEndLineNo + 1;
+                        }
+                    }
+                    break;
+            }
+        }
+        return -1;
+    }
+
+    public static GetFirstXmlDocumentationLineNo(editor: TextEditor, startingLineNo: number = -1): number { 
+        if (startingLineNo === -1) {
+            let vsCodeApi = new VSCodeApi(editor); 
+            startingLineNo = vsCodeApi.GetActivePosition().line;
+        }
+
+        let isInsideDoc: boolean = false;
+        let alCode = editor.document.getText().split("\r\n");    
+        for (let lineNo = startingLineNo - 1; lineNo > 0; lineNo--) {
+            let line = alCode[lineNo];
+            switch (true) {
+                case ALSyntaxUtil.IsObject(line):
+                case ALSyntaxUtil.IsProcedure(line):
+                case ALSyntaxUtil.IsBeginEnd(line):
+                    if (!isInsideDoc) {
+                        return -1; // should never happen
+                    } else {
+                        return lineNo + 1;
+                    }
+                case line.includes('///'):
+                    isInsideDoc = true;
+                    break;
+                case !line.includes('///'):
+                    if (isInsideDoc) {
+                        return lineNo + 1;
+                    }
+                    break;
+            }
+        }
+        return -1;
+    }
+
+    public static GetLastXmlDocumentationLineNo(editor: TextEditor, startingLineNo: number = -1): number { 
+        if (startingLineNo === -1) {
+            let vsCodeApi = new VSCodeApi(editor); 
+            startingLineNo = vsCodeApi.GetActivePosition().line;
+        }
+
+        let alCode = editor.document.getText().split("\r\n");    
+        for (let lineNo = startingLineNo - 1; lineNo > 0; lineNo--) {
+            let line = alCode[lineNo];
+            if (line.includes('///')) {
+                return lineNo + 1;
+            }
+        }
+        return -1;
+    }
+
+    public static GetLineStartPosition(document: TextDocument, lineNo: number): number {
+        let alCode = document.getText().split("\r\n");
+        return ((alCode[lineNo].length) - (alCode[lineNo].trim().length));
+    }
+
     public static GenerateObjectDocString(groups: { [key: string]: string; }): string {
         let docString = "";
 
@@ -55,20 +194,20 @@ export class ALDocCommentUtil {
 
         if (!isNullOrUndefined(groups['ReturnType'])) {
             placeholderIdx++;
-            let returnTypeDefintion = groups['ReturnType'].split(':');
+            let returnTypeDefinition = groups['ReturnType'].split(':');
             
             docString += "\n";
             docString += "/// ";
             docString += "<returns>";
             docString += "${" + placeholderIdx + ":";
-            if ((!isNullOrUndefined(returnTypeDefintion[0])) && (returnTypeDefintion[0] !== "")) {
-                docString += "Return variable \"" + returnTypeDefintion[0].trim() + "\"";
+            if ((!isNullOrUndefined(returnTypeDefinition[0])) && (returnTypeDefinition[0] !== "")) {
+                docString += "Return variable \"" + returnTypeDefinition[0].trim() + "\"";
             } else {
                 docString += "Return value";
             }
 
-            if ((!isNullOrUndefined(returnTypeDefintion[1])) && (returnTypeDefintion[1] !== "")) {
-                docString += " of type " + returnTypeDefintion[1].trim();
+            if ((!isNullOrUndefined(returnTypeDefinition[1])) && (returnTypeDefinition[1] !== "")) {
+                docString += " of type " + returnTypeDefinition[1].trim();
             }
             docString += ".}";
             docString += "</returns>";
