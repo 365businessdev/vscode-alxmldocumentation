@@ -106,7 +106,7 @@ export class ALSyntaxUtil {
 
     public static FindProcedures(code: string): any {
         let procedures: { procedureName : string, lineNo: number }[] = [];
-        code.match(/(trigger|(?!local)procedure|(?!internal)procedure)\s+([A-Za-z0-9_]+)\b[^\(]*\)*/g)?.forEach(match => {
+        code.match(/(?<!\/\/\/\s*)(((?!local)procedure|(?!internal)procedure)\s+([A-Za-z0-9_]+)\b[^\(]*\)*.+)/g)?.forEach(match => {
             procedures.push({
                 procedureName: match,
                 lineNo: this.GetProcedureLineNo(match, code)
@@ -120,7 +120,7 @@ export class ALSyntaxUtil {
         let codeLines = code.split("\r\n");
         let pos: number = -1;
         codeLines.filter((x) => {
-            if (x.includes(" " + procedureName + "(")) {
+            if (x.includes(procedureName)) {
                 pos = codeLines.indexOf(x);
             }
         });

@@ -65,3 +65,7 @@ All notable changes to the "AL XML Documentation" extension will be documented i
 - Fixed Issue [#12](https://github.com/365businessdev/vscode-alxmldocumentation/issues/12) - Fixed Inside code detection (begin-end).
 - Added `exportScope` description.
 - Added diagnostic information and quick fix actions.
+
+## [0.4.1] - 2020-07-20
+- Fixed Issue [#14](https://github.com/365businessdev/vscode-alxmldocumentation/issues/14) - Fixed procedure overload support for diagnostics.
+- Removed `trigger`-procedures from diagnostics.
