@@ -44,6 +44,10 @@ export class VSCodeApi
         return this.GetActivePosition().line;
     }
 
+    public GetActiveLineStartPosition(): Position {
+        return new Position(this.GetActiveLine(), (this.ReadLine(this.GetActiveLine()).length - this.ReadLine(this.GetActiveLine()).trim().length));
+    }
+
     public GetActivePosition(): Position {
         return this.activeEditor.selection.active;
     }
