@@ -60,7 +60,8 @@ All notable changes to the "AL XML Documentation" extension will be documented i
 
 - Fixed Issue [#11](https://github.com/365businessdev/vscode-alxmldocumentation/issues/11) - Allow special characters in object names.
 
-## [0.3.3]
+## [0.4.0] - 2020-07-20
 
 - Fixed Issue [#12](https://github.com/365businessdev/vscode-alxmldocumentation/issues/12) - Fixed Inside code detection (begin-end).
 - Added `exportScope` description.
+- Added diagnostic information and quick fix actions.
