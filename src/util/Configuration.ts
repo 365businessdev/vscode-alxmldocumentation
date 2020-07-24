@@ -3,7 +3,7 @@ import { workspace, window, WorkspaceConfiguration, WorkspaceFolder } from "vsco
 export class Configuration {
     public static AskEnableCheckProcedureDocumentation() {  
         if (this.AskEnableCheckProcedureDocumentationIsEnabled()) {
-            if (workspace.getConfiguration(this.ExtensionIdent()).inspect('checkProcedureDocumentation')?.workspaceValue) {
+            if (this.ConfigurationHasChanged('checkProcedureDocumentation')) {
                 return; // do not ask again
             }
 
@@ -74,6 +74,21 @@ export class Configuration {
         }
 
         return config;
+    }
+    
+    private static ConfigurationHasChanged(configParam: string): boolean {
+        let config = workspace.getConfiguration(this.ExtensionIdent()).inspect(configParam);
+
+        if (config?.workspaceFolderValue !== undefined) {
+            return true;
+        }
+        if (config?.workspaceValue !== undefined) {
+            return true;
+        }        
+        if (config?.globalValue !== undefined) {
+            return true;
+        }
+        return false;
     }
 
     public dispose() {
