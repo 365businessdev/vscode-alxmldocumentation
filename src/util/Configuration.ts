@@ -1,4 +1,4 @@
-import { workspace, window, WorkspaceConfiguration } from "vscode";
+import { workspace, window, WorkspaceConfiguration, WorkspaceFolder } from "vscode";
 
 export class Configuration {
     public static AskEnableCheckProcedureDocumentation() {  
@@ -11,7 +11,7 @@ export class Configuration {
                 if (answer === undefined) {
                     return;
                 }
-                workspace.getConfiguration(this.ExtensionIdent()).update('checkProcedureDocumentation', (answer === "Yes"));
+                this.SetConfigurationValue('checkProcedureDocumentation', (answer === "Yes"));
             });
         }
     }
@@ -44,13 +44,33 @@ export class Configuration {
         return this.GetConfigurationValue('procedureTypes');
     }
 
+    private static SetConfigurationValue(configParam: string, configValue: any) {
+        let config: WorkspaceConfiguration | undefined = this.GetConfiguration();
+        if (config === undefined) {
+            workspace.getConfiguration(this.ExtensionIdent()).update(configParam, configValue);
+            return;
+        }
+
+        config.update(configParam, configValue);
+    }
+
     private static GetConfigurationValue(configParam: string): any {
-        let workspaceFolder = workspace.getWorkspaceFolder(window.activeTextEditor!.document.uri); // workspace.workspaceFolders[].uri
+        let config: WorkspaceConfiguration | undefined = this.GetConfiguration();
+        if (config === undefined) {
+            return;
+        }
+        return config.get(configParam);
+    }
+
+    private static GetConfiguration(): WorkspaceConfiguration | undefined {
         let config: WorkspaceConfiguration | undefined;
-        if (workspaceFolder !== undefined) {
-            config = workspace.getConfiguration(this.ExtensionIdent(), workspaceFolder).get(configParam);
+        let activeDocument = (window.activeTextEditor !== undefined) ? window.activeTextEditor.document : undefined;
+        let workspaceFolder: WorkspaceFolder | undefined = undefined;
+        if (activeDocument !== undefined) {
+            workspaceFolder = workspace.getWorkspaceFolder(activeDocument.uri);
+            config = workspace.getConfiguration(this.ExtensionIdent(), workspaceFolder);
         } else {
-            config = workspace.getConfiguration(this.ExtensionIdent()).get(configParam);
+            config = workspace.getConfiguration(this.ExtensionIdent());
         }
 
         return config;
