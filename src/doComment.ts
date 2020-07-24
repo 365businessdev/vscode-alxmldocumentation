@@ -88,7 +88,7 @@ export class DoComment {
     private IsDoCommentTrigger(): boolean {
         this.isEnterKey = false;
 
-        if (!Configuration.DocumentationCommentsIsEnabled()) {
+        if (!Configuration.DocumentationCommentsIsEnabled(this.activeEditor.document.uri)) {
             return false;
         }
 

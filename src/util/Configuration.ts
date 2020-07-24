@@ -1,4 +1,4 @@
-import { workspace, window, WorkspaceConfiguration, WorkspaceFolder } from "vscode";
+import { workspace, window, WorkspaceConfiguration, WorkspaceFolder, Uri } from "vscode";
 
 export class Configuration {
     public static AskEnableCheckProcedureDocumentation() {  
@@ -20,8 +20,8 @@ export class Configuration {
         return "bdev-al-xml-doc";
     }
 
-    public static DocumentationCommentsIsEnabled(): boolean {
-        return this.GetConfigurationValue('enableDocComments');
+    public static DocumentationCommentsIsEnabled(fileUri: Uri | undefined = undefined): boolean {
+        return this.GetConfigurationValue('enableDocComments', fileUri);
     }
 
     public static SummaryHoverIsEnabled(): boolean {
@@ -36,8 +36,8 @@ export class Configuration {
         return this.GetConfigurationValue('askEnableCheckProcedureDocumentation');
     }
 
-    public static CheckProcedureDocumentationIsEnabled(): boolean {
-        return this.GetConfigurationValue('checkProcedureDocumentation');
+    public static CheckProcedureDocumentationIsEnabled(fileUri: Uri | undefined = undefined): boolean {
+        return this.GetConfigurationValue('checkProcedureDocumentation', fileUri);
     }
 
     public static ProcedureTypes(): string[] {
@@ -54,23 +54,28 @@ export class Configuration {
         config.update(configParam, configValue);
     }
 
-    private static GetConfigurationValue(configParam: string): any {
-        let config: WorkspaceConfiguration | undefined = this.GetConfiguration();
+    private static GetConfigurationValue(configParam: string, fileUri: Uri | undefined = undefined): any {
+        let config: WorkspaceConfiguration | undefined = this.GetConfiguration(fileUri);
         if (config === undefined) {
             return;
         }
         return config.get(configParam);
     }
 
-    private static GetConfiguration(): WorkspaceConfiguration | undefined {
+    private static GetConfiguration(fileUri: Uri | undefined = undefined): WorkspaceConfiguration | undefined {
         let config: WorkspaceConfiguration | undefined;
-        let activeDocument = (window.activeTextEditor !== undefined) ? window.activeTextEditor.document : undefined;
-        let workspaceFolder: WorkspaceFolder | undefined = undefined;
-        if (activeDocument !== undefined) {
-            workspaceFolder = workspace.getWorkspaceFolder(activeDocument.uri);
-            config = workspace.getConfiguration(this.ExtensionIdent(), workspaceFolder);
+        if (fileUri === undefined) {
+            let activeDocument = (window.activeTextEditor !== undefined) ? window.activeTextEditor.document : undefined;
+            let workspaceFolder: WorkspaceFolder | undefined = undefined;
+            if (activeDocument !== undefined) {
+                workspaceFolder = workspace.getWorkspaceFolder(activeDocument.uri);
+                config = workspace.getConfiguration(this.ExtensionIdent(), workspaceFolder);
+            } else {
+                config = workspace.getConfiguration(this.ExtensionIdent());
+            }
         } else {
-            config = workspace.getConfiguration(this.ExtensionIdent());
+            let workspaceFolder = workspace.getWorkspaceFolder(fileUri);
+            config = workspace.getConfiguration(this.ExtensionIdent(), workspaceFolder);
         }
 
         return config;

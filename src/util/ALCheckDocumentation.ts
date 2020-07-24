@@ -18,7 +18,7 @@ export class ALCheckDocumentation {
         this.UpdateDiagnostics();
 
         // check configuration
-        if (!Configuration.CheckProcedureDocumentationIsEnabled()) {
+        if (!Configuration.CheckProcedureDocumentationIsEnabled(document.uri)) {
             return;
         }
 
