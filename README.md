@@ -96,11 +96,13 @@ The following configuration parameters are available:
 
 | Configuration Parameter | Description | Default Value |
 | --- | --- | --- |
+| `procedureTypes` | Sets the list of procedure types (e.g. event publisher, tests) checked. | `not defined` (all procedures activated) |
 | `enableDocComments` | Specifies whether typing `///` will insert the xml documentation structure. | `true` |
 | `markdown_path` | Specifies the path where the markdown files should be created. | `doc` folder in workspace root directory |
 | `verbose` | Specifies whether detailed information should be output during markdown creation. | `false` | 
 | `exportScope` | Specifies whether only global procedures (config value: `global`) or whether all procedures (config value: `all`) should be exported as markdown. | `global` |
-| `enableSummaryHover` | Specifies whether `<summary>` description should be shown on procedures as tooltip. | `true` | 
+| `enableSummaryHover` | Specifies whether `<summary>` description should be shown on procedures as tooltip. | `true` |
+| `askEnableCheckProcedureDocumentation` | Specifies whether a confirmation will appear to enable procedure documentation for each workspace. | `false` | 
 | `checkProcedureDocumentation` | Specifies whether xml documentation should be checked inside current workspace. | `true` | 
 
 > **Important**<br>The object directory (e.g. `doc\mycodeunit.codeunit.al\`) will be deleted if already exist.
@@ -108,10 +110,16 @@ The following configuration parameters are available:
 ### settings.json
 ```json 
 {
+    "bdev-al-xml-doc.procedureTypes": [
+        "Global Procedures",
+        "Local Procedures",
+        "Internal Procedures"
+    ],   
     "bdev-al-xml-doc.markdown_path": "C:/Documentation/",
     "bdev-al-xml-doc.verbose": true,
     "bdev-al-xml-doc.exportScope": "all",
-    "bdev-al-xml-doc.enableSummaryHover": true    
+    "bdev-al-xml-doc.enableSummaryHover": true,
+    "bdev-al-xml-doc.askEnableCheckProcedureDocumentation": true    
 }
 ```
 
