@@ -72,6 +72,40 @@
 						],
 						"description": "Specifies the accessibility level (scope) of the procedures to be exported as markdown."
 					},
+					"bdev-al-xml-doc.procedureTypes": {
+						"type": "array",
+						"items": {
+							"anyOf": [
+								{
+									"type": "string",
+									"enum": [
+										"Global Procedures",
+										"Local Procedures",
+										"Internal Procedures",
+										"Event Publisher",
+										"Event Subscriber",
+										"Trigger Procedures",
+										"Test Procedures"
+									],
+									"enumDescriptions": [
+										"Global procedures.",
+										"Local procedures.",
+										"Internal procedures.",
+										"Procedures with [BusinessEvent], [IntegrationEvent] or [InternalEvent] declaration.",
+										"Procedures with [EventSubscriber] declaration.",
+										"Trigger procedures (e.g. OnAfterGetRecord()).",
+										"Procedures in Test codeunits with [Test] declaration."
+									]
+								},
+								{
+									"type": "string"
+								}
+							]
+						},
+						"uniqueItems": true,
+						"description": "Sets the list of procedure types (e.g. event publisher, tests) checked.",
+						"scope": "resource"
+					},
 					"bdev-al-xml-doc.enableDocComments": {
 						"type": "boolean",
 						"scope": "resource",

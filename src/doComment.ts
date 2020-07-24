@@ -194,7 +194,7 @@ export class DoComment {
                 return code.trim();
             }
 
-            if (ALSyntaxUtil.IsProcedure(line)) {
+            if (ALSyntaxUtil.IsProcedure(line, (i >= 0) ? this.vsCodeApi.ReadLine(i) : '')) {
                 this.codeType = CodeType.Procedure;
                 return code.trim();
             }

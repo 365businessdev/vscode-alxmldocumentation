@@ -1,5 +1,6 @@
 import { isNullOrUndefined } from "util";
 import { TextDocument, Range, Position } from "vscode";
+import { Configuration } from "./Configuration";
 
 export class ALSyntaxUtil {
     public static IsObject(line: string): boolean {
@@ -22,28 +23,54 @@ export class ALSyntaxUtil {
         return true;
     }
 
-    public static IsProcedure(line: string): boolean {
+    public static IsProcedure(line: string, prevLine: string): boolean {
         if (line === null) {
             return false;
         }
 
+        let procedureTypes = Configuration.ProcedureTypes();
+
+        const isEventPublisher: boolean = (prevLine.trim().startsWith('[BusinessEvent')) || (prevLine.trim().startsWith('[IntegrationEvent')) || (prevLine.trim().startsWith('[InternalEvent')) ;
+        if (isEventPublisher) {
+            if ((procedureTypes.length === 0) || (procedureTypes.includes('Event Publisher'))) {
+                return true;
+            }
+            return false;
+        }
+
+        const isEventSubscriber: boolean = prevLine.trim().startsWith('[EventSubscriber');
+        if (isEventSubscriber) {
+            if ((procedureTypes.length === 0) || (procedureTypes.includes('Event Subscriber'))) {
+                return true;
+            }
+            return false;
+        }
+        
+        const isTestProcedure: boolean = prevLine.trim().startsWith('[Test');
+        if (isTestProcedure) {
+            if ((procedureTypes.length === 0) || (procedureTypes.includes('Test Procedures'))) {
+                return true;
+            }
+            return false;
+        }
+
         const isProcedure: boolean = line.trim().startsWith('procedure');
-        if (isProcedure) {
+        if ((isProcedure) && ((procedureTypes.length === 0) || (procedureTypes.includes('Global Procedures')))) {
             return true;
         }
 
         const isInternalProcedure: boolean = line.trim().startsWith('internal procedure');
-        if (isInternalProcedure) {
+        if ((isInternalProcedure) && ((procedureTypes.length === 0) || (procedureTypes.includes('Internal Procedures')))) {
             return true;
         }
 
         const isLocalProcedure: boolean = line.trim().startsWith('local procedure');
-        if (isLocalProcedure) {
+        if ((isLocalProcedure) && ((procedureTypes.length === 0) || (procedureTypes.includes('Local Procedures')))) {
             return true;
         }
 
         const isTriggerProcedure: boolean = line.trim().startsWith('trigger');
-        if (isTriggerProcedure) {
+        if ((isTriggerProcedure) && ((procedureTypes.length === 0) || (procedureTypes.includes('Trigger Procedures')))) {
             return true;
         }
 
@@ -71,7 +98,7 @@ export class ALSyntaxUtil {
             let line = alCode[lineNo];
             switch (true)
             {
-                case ALSyntaxUtil.IsProcedure(line):
+                case ALSyntaxUtil.IsProcedure(line, (lineNo > 0) ? alCode[lineNo - 1] : ""):
                     if (alProcedureState !== null ){
                         return alProcedureState;
                     }

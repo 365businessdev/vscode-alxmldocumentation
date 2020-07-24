@@ -64,7 +64,7 @@ export class ALDocCommentUtil {
             let line = alCode[lineNo];
             switch (true) {
                 case ALSyntaxUtil.IsObject(line):
-                case ALSyntaxUtil.IsProcedure(line):
+                case ALSyntaxUtil.IsProcedure(line, (lineNo > 0) ? alCode[lineNo - 1] : ""):
                 case ALSyntaxUtil.IsBeginEnd(line):
                     return -1;
                 default:
@@ -99,7 +99,7 @@ export class ALDocCommentUtil {
             let line = alCode[lineNo];
             switch (true) {
                 case ALSyntaxUtil.IsObject(line):
-                case ALSyntaxUtil.IsProcedure(line):
+                case ALSyntaxUtil.IsProcedure(line, (lineNo > 0) ? alCode[lineNo - 1] : ""):
                 case ALSyntaxUtil.IsBeginEnd(line):
                     if (!isInsideDoc) {
                         return -1; // should never happen

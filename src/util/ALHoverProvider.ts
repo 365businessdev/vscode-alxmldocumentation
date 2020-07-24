@@ -21,7 +21,7 @@ export class ALHoverProvider implements HoverProvider {
             if (line.trim().startsWith('///')) {
                 docBuffer = `${line.replace('///','').trim()}\r\n${docBuffer}`;
             }
-            if ((ALSyntaxUtil.IsProcedure(line)) || (ALSyntaxUtil.IsObject(line))) {
+            if ((ALSyntaxUtil.IsProcedure(line, (i > 0) ? alSourceCodeLines[i - 1] : "")) || (ALSyntaxUtil.IsObject(line))) {
                 break;
             }
         }

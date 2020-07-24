@@ -1,9 +1,9 @@
 import { window, workspace, TextEditor, languages, commands, Position, SnippetString, TextDocument, Range } from "vscode";
 import { ALCheckDocumentation } from "./util/ALCheckDocumentation";
 import { ALFixDocumentation } from "./util/ALFixDocumentation";
-import { VSCodeApi } from "./api/VSCodeApi";
 import { ALDocCommentUtil } from "./util/ALDocCommentUtil";
 import { ALSyntaxUtil } from "./util/ALSyntaxUtil";
+import { Configuration } from "./util/Configuration";
 
 export class DoCheckDocumentation {  
     private activeEditor!: TextEditor;
@@ -31,6 +31,14 @@ export class DoCheckDocumentation {
             }
 
             this.alUpdateDecorations.CheckDocumentation(this.activeEditor.document);
+        });
+
+        workspace.onDidChangeConfiguration(event => {
+            let affected = event.affectsConfiguration(Configuration.ExtensionIdent());
+            if (affected) {
+                Configuration.AskEnableCheckProcedureDocumentation();
+                this.InitializeCheckDocumentation();
+            }
         });
 
         languages.registerCodeActionsProvider('al',

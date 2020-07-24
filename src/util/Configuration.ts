@@ -40,6 +40,10 @@ export class Configuration {
         return workspace.getConfiguration(this.ExtensionIdent()).checkProcedureDocumentation;
     }
 
+    public static ProcedureTypes(): string[] {
+        return workspace.getConfiguration(this.ExtensionIdent()).procedureTypes;
+    }
+
     public dispose() {
     }
 }
