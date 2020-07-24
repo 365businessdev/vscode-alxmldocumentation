@@ -1,4 +1,4 @@
-import { languages, workspace, Range, Diagnostic, DiagnosticCollection, TextDocument } from "vscode";
+import { languages, Range, Diagnostic, DiagnosticCollection, TextDocument } from "vscode";
 import { DiagnosticSeverity } from "vscode-languageclient";
 import { ALSyntaxUtil } from "./ALSyntaxUtil";
 import { ALDocCommentUtil } from "./ALDocCommentUtil";
@@ -40,14 +40,16 @@ export class ALCheckDocumentation {
             return;
         }
 
-        let warningMessage: string = "";
-        let warningCodes: string = "";     
+        let missingDocMessage: string = "";
+        let missingDocCode: string = "";     
+        let unnecessaryDocMessage: string = "";
+        let unnecessaryDocCode: string = "";     
         let documented = true;
 
         if (alProcedureState.documentation === "") {
             documented = false;
-            warningMessage = `The procedure ${alProcedureState.name} missing documentation.`;  
-            warningCodes = this.GetDiagnosticCode(ALXmlDocDiagnosticCode.XmlDocumentationMissing);
+            missingDocMessage = `The procedure ${alProcedureState.name} missing documentation.`;  
+            missingDocCode = this.GetDiagnosticCode(ALXmlDocDiagnosticCode.XmlDocumentationMissing);
         } else {
             let jsonDocumentation = ALDocCommentUtil.GetJsonFromXmlDocumentation(alProcedureState.documentation);
             if ((jsonDocumentation === undefined) || (jsonDocumentation === null)) {
@@ -56,8 +58,8 @@ export class ALCheckDocumentation {
             }
             if ((!jsonDocumentation.summary) || (jsonDocumentation.summary === "")) {
                 documented = false;
-                warningMessage = this.AddToStringList(warningMessage, 'Summary');
-                warningCodes = this.AddToStringList(warningCodes, this.GetDiagnosticCode(ALXmlDocDiagnosticCode.SummaryMissing));
+                missingDocMessage = this.AddToStringList(missingDocMessage, 'summary');
+                missingDocCode = this.AddToStringList(missingDocCode, this.GetDiagnosticCode(ALXmlDocDiagnosticCode.SummaryMissing));
             }
             if ((!(alProcedureState.definition['Params'] === null) || (alProcedureState.definition['Params'] === undefined)) && (alProcedureState.definition['Params'] !== "")) {
                 alProcedureState.definition['Params'].split(';').forEach(paramDefinition => {
@@ -73,6 +75,7 @@ export class ALCheckDocumentation {
                                 if (jsonDocumentation.param[i].attr.name === paramName) {
                                     if (jsonDocumentation.param[i].value !== "") {
                                         documented = true;
+                                        jsonDocumentation.param.splice(i, 1);
                                     }
                                     break;
                                 }
@@ -81,39 +84,65 @@ export class ALCheckDocumentation {
                             if (jsonDocumentation.param.attr.name === paramName) {
                                 if (jsonDocumentation.param.value !== "") {
                                     documented = true;
+                                    jsonDocumentation.param = undefined;
                                 }
                             }
                         }
                     }
-                    if (!documented) {                        
-                        warningMessage = this.AddToStringList(warningMessage, `Parameter '${paramName}'`);
-                        warningCodes = this.AddToStringList(warningCodes, this.GetDiagnosticCode(ALXmlDocDiagnosticCode.ParameterMissing));
+                    if (!documented) {
+                        missingDocMessage = this.AddToStringList(missingDocMessage, `parameter '${paramName}'`);
+                        missingDocCode = this.AddToStringList(missingDocCode, this.GetDiagnosticCode(ALXmlDocDiagnosticCode.ParameterMissing));
                     }
                 });
             }
-            if (alProcedureState.definition['ReturnType'] !== undefined) {
-                if ((!jsonDocumentation.returns) || (jsonDocumentation.returns === "")) {
-                    documented = false;
-                    warningMessage = this.AddToStringList(warningMessage, 'Return Value');
-                    warningCodes = this.AddToStringList(warningCodes, this.GetDiagnosticCode(ALXmlDocDiagnosticCode.ReturnTypeMissing));
+
+            if (jsonDocumentation.param !== undefined) {
+                if (jsonDocumentation.param.length !== undefined) {
+                    jsonDocumentation.param.forEach((param: { attr: { name: string; }; }) => {
+                        unnecessaryDocMessage = this.AddToStringList(unnecessaryDocMessage, `parameter '${param.attr.name}'`);
+                        unnecessaryDocCode = this.AddToStringList(unnecessaryDocCode, this.GetDiagnosticCode(ALXmlDocDiagnosticCode.ParameterUnnecessary));                    
+                    });
+                } else {
+                    unnecessaryDocMessage = this.AddToStringList(unnecessaryDocMessage, `parameter '${jsonDocumentation.param.attr.name}'`);
+                    unnecessaryDocCode = this.AddToStringList(unnecessaryDocCode, this.GetDiagnosticCode(ALXmlDocDiagnosticCode.ParameterUnnecessary));
                 }
             }
 
-            if (warningMessage !== "") {                
-                warningMessage = `The procedure ${alProcedureState.name} is missing documentation for ${warningMessage}.`;
+            if (alProcedureState.definition['ReturnType'] !== undefined) {
+                if ((!jsonDocumentation.returns) || (jsonDocumentation.returns === "")) {
+                    documented = false;
+                    missingDocMessage = this.AddToStringList(missingDocMessage, 'return value');
+                    missingDocCode = this.AddToStringList(missingDocCode, this.GetDiagnosticCode(ALXmlDocDiagnosticCode.ReturnTypeMissing));
+                }
+            }
+
+            if (missingDocMessage !== "") {                
+                missingDocMessage = `The procedure ${alProcedureState.name} is missing documentation for ${missingDocMessage}.`;
+            }
+            if (unnecessaryDocMessage !== "") {                
+                unnecessaryDocMessage = `The ${unnecessaryDocMessage} are described in documentation for procedure ${alProcedureState.name} but do not exist.`;
             }
         }
 
         // if not fully documented add to missing documentations
-        if (warningMessage !== "") {
-            let diagnostic = new Diagnostic(alProcedureState.position, warningMessage, DiagnosticSeverity.Warning);
+        if (missingDocMessage !== "") {
+            let diagnostic = new Diagnostic(alProcedureState.position, missingDocMessage, DiagnosticSeverity.Warning);
             diagnostic.source = ALXmlDocDiagnosticPrefix;
-            diagnostic.code = warningCodes;
+            diagnostic.code = missingDocCode;
             this.diagnostics.push(diagnostic);
         }    
+        if (unnecessaryDocMessage !== "") {
+            let diagnostic = new Diagnostic(alProcedureState.position, unnecessaryDocMessage, DiagnosticSeverity.Warning);
+            diagnostic.source = ALXmlDocDiagnosticPrefix;
+            diagnostic.code = unnecessaryDocCode;
+            this.diagnostics.push(diagnostic);
+        }
     }
 
     private AddToStringList(baseString: string, append: string): string {
+        if (baseString.includes(append)) {
+            return baseString;
+        }
         if (baseString !== "") {
             baseString = `${baseString}, `;
         }
