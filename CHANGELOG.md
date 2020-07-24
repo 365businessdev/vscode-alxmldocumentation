@@ -76,5 +76,5 @@ All notable changes to the "AL XML Documentation" extension will be documented i
 - Fixed Issue [#20](https://github.com/365businessdev/vscode-alxmldocumentation/issues/20) - Shows warning even when the function is documented.
 - Fixed Issue [#18](https://github.com/365businessdev/vscode-alxmldocumentation/issues/18) - Documentation and var parameters.
 - Added configuration `askEnableCheckProcedureDocumentation` [#19](https://github.com/365businessdev/vscode-alxmldocumentation/issues/19).
-- Added configuration `procedureTypes` [#17] - Missing documentation non public functions
+- Added configuration `procedureTypes` [#17](https://github.com/365businessdev/vscode-alxmldocumentation/issues/17) - Missing documentation non public functions
 - Added check for unused parameter documentations in diagnostics.
