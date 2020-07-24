@@ -1,4 +1,4 @@
-import { workspace, window } from "vscode";
+import { workspace, window, WorkspaceConfiguration } from "vscode";
 
 export class Configuration {
     public static AskEnableCheckProcedureDocumentation() {  
@@ -21,27 +21,39 @@ export class Configuration {
     }
 
     public static DocumentationCommentsIsEnabled(): boolean {
-        return workspace.getConfiguration(this.ExtensionIdent()).enableDocComments;
+        return this.GetConfigurationValue('enableDocComments');
     }
 
     public static SummaryHoverIsEnabled(): boolean {
-        return workspace.getConfiguration(this.ExtensionIdent()).enableSummaryHover;
+        return this.GetConfigurationValue('enableSummaryHover');
     }
 
     public static SignatureHoverIsEnabled(): boolean {
-        return workspace.getConfiguration(this.ExtensionIdent()).enableSignatureHover;
+        return this.GetConfigurationValue('enableSignatureHover');
     }
 
     public static AskEnableCheckProcedureDocumentationIsEnabled(): boolean {
-        return workspace.getConfiguration(this.ExtensionIdent()).askEnableCheckProcedureDocumentation;
+        return this.GetConfigurationValue('askEnableCheckProcedureDocumentation');
     }
 
     public static CheckProcedureDocumentationIsEnabled(): boolean {
-        return workspace.getConfiguration(this.ExtensionIdent()).checkProcedureDocumentation;
+        return this.GetConfigurationValue('checkProcedureDocumentation');
     }
 
     public static ProcedureTypes(): string[] {
-        return workspace.getConfiguration(this.ExtensionIdent()).procedureTypes;
+        return this.GetConfigurationValue('procedureTypes');
+    }
+
+    private static GetConfigurationValue(configParam: string): any {
+        let workspaceFolder = workspace.getWorkspaceFolder(window.activeTextEditor!.document.uri); // workspace.workspaceFolders[].uri
+        let config: WorkspaceConfiguration | undefined;
+        if (workspaceFolder !== undefined) {
+            config = workspace.getConfiguration(this.ExtensionIdent(), workspaceFolder).get(configParam);
+        } else {
+            config = workspace.getConfiguration(this.ExtensionIdent()).get(configParam);
+        }
+
+        return config;
     }
 
     public dispose() {
