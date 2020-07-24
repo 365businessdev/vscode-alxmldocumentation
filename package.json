@@ -90,6 +90,12 @@
 						"default": true,
 						"description": "Specifies whether <param> description should be shown on procedure signatures."
 					},
+					"bdev-al-xml-doc.askEnableCheckProcedureDocumentation": {
+						"type": "boolean",
+						"scope": "resource",
+						"default": true,
+						"description": "Specifies whether a confirmation will appear to enable procedure documentation for each workspace."
+					},
 					"bdev-al-xml-doc.checkProcedureDocumentation": {
 						"type": "boolean",
 						"scope": "resource",
