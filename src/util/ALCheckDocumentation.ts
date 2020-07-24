@@ -40,16 +40,18 @@ export class ALCheckDocumentation {
             return;
         }
 
-        let missingDocMessage: string = "";
-        let missingDocCode: string = "";     
-        let unnecessaryDocMessage: string = "";
-        let unnecessaryDocCode: string = "";     
-        let documented = true;
+        let diag: { 
+            type: DiagnosticSeverity, 
+            diagnosticCode: ALXmlDocDiagnosticCode,
+            element: string
+        }[] = [];
 
         if (alProcedureState.documentation === "") {
-            documented = false;
-            missingDocMessage = `The procedure ${alProcedureState.name} missing documentation.`;  
-            missingDocCode = this.GetDiagnosticCode(ALXmlDocDiagnosticCode.XmlDocumentationMissing);
+            diag.push({
+                type: DiagnosticSeverity.Warning,
+                diagnosticCode: ALXmlDocDiagnosticCode.XmlDocumentationMissing,
+                element: ''
+            });
         } else {
             let jsonDocumentation = ALDocCommentUtil.GetJsonFromXmlDocumentation(alProcedureState.documentation);
             if ((jsonDocumentation === undefined) || (jsonDocumentation === null)) {
@@ -57,9 +59,11 @@ export class ALCheckDocumentation {
                 return;
             }
             if ((!jsonDocumentation.summary) || (jsonDocumentation.summary === "")) {
-                documented = false;
-                missingDocMessage = this.AddToStringList(missingDocMessage, 'summary');
-                missingDocCode = this.AddToStringList(missingDocCode, this.GetDiagnosticCode(ALXmlDocDiagnosticCode.SummaryMissing));
+                diag.push({
+                    type: DiagnosticSeverity.Warning,
+                    diagnosticCode: ALXmlDocDiagnosticCode.SummaryMissing,
+                    element: 'summary'
+                });
             }
             if ((!(alProcedureState.definition['Params'] === null) || (alProcedureState.definition['Params'] === undefined)) && (alProcedureState.definition['Params'] !== "")) {
                 alProcedureState.definition['Params'].split(';').forEach(paramDefinition => {
@@ -68,7 +72,7 @@ export class ALCheckDocumentation {
                         paramName = paramName.substring(paramName.indexOf('var') + 4);
                     }
 
-                    documented = false;
+                    let documented = false;
                     if (jsonDocumentation.param !== undefined) {
                         if (jsonDocumentation.param.length !== undefined) {
                             for (let i = 0; i < jsonDocumentation.param.length; i++) {
@@ -90,8 +94,11 @@ export class ALCheckDocumentation {
                         }
                     }
                     if (!documented) {
-                        missingDocMessage = this.AddToStringList(missingDocMessage, `parameter '${paramName}'`);
-                        missingDocCode = this.AddToStringList(missingDocCode, this.GetDiagnosticCode(ALXmlDocDiagnosticCode.ParameterMissing));
+                        diag.push({
+                            type: DiagnosticSeverity.Warning,
+                            diagnosticCode: ALXmlDocDiagnosticCode.ParameterMissing,
+                            element: paramName
+                        });
                     }
                 });
             }
@@ -99,52 +106,104 @@ export class ALCheckDocumentation {
             if (jsonDocumentation.param !== undefined) {
                 if (jsonDocumentation.param.length !== undefined) {
                     jsonDocumentation.param.forEach((param: { attr: { name: string; }; }) => {
-                        unnecessaryDocMessage = this.AddToStringList(unnecessaryDocMessage, `parameter '${param.attr.name}'`);
-                        unnecessaryDocCode = this.AddToStringList(unnecessaryDocCode, this.GetDiagnosticCode(ALXmlDocDiagnosticCode.ParameterUnnecessary));                    
+                        diag.push({
+                            type: DiagnosticSeverity.Warning,
+                            diagnosticCode: ALXmlDocDiagnosticCode.ParameterUnnecessary,
+                            element: param.attr.name
+                        });
                     });
                 } else {
-                    unnecessaryDocMessage = this.AddToStringList(unnecessaryDocMessage, `parameter '${jsonDocumentation.param.attr.name}'`);
-                    unnecessaryDocCode = this.AddToStringList(unnecessaryDocCode, this.GetDiagnosticCode(ALXmlDocDiagnosticCode.ParameterUnnecessary));
+                    diag.push({
+                        type: DiagnosticSeverity.Warning,
+                        diagnosticCode: ALXmlDocDiagnosticCode.ParameterUnnecessary,
+                        element: jsonDocumentation.param.attr.name
+                    });
                 }
             }
 
             if (alProcedureState.definition['ReturnType'] !== undefined) {
                 if ((!jsonDocumentation.returns) || (jsonDocumentation.returns === "")) {
-                    documented = false;
-                    missingDocMessage = this.AddToStringList(missingDocMessage, 'return value');
-                    missingDocCode = this.AddToStringList(missingDocCode, this.GetDiagnosticCode(ALXmlDocDiagnosticCode.ReturnTypeMissing));
+                    diag.push({
+                        type: DiagnosticSeverity.Warning,
+                        diagnosticCode: ALXmlDocDiagnosticCode.ReturnTypeMissing,
+                        element: 'return value'
+                    });
                 }
-            }
-
-            if (missingDocMessage !== "") {                
-                missingDocMessage = `The procedure ${alProcedureState.name} is missing documentation for ${missingDocMessage}.`;
-            }
-            if (unnecessaryDocMessage !== "") {                
-                unnecessaryDocMessage = `The ${unnecessaryDocMessage} are described in documentation for procedure ${alProcedureState.name} but do not exist.`;
             }
         }
 
-        // if not fully documented add to missing documentations
-        if (missingDocMessage !== "") {
-            let diagnostic = new Diagnostic(alProcedureState.position, missingDocMessage, DiagnosticSeverity.Warning);
+        let missingDoc = diag.filter(this.IsMissingDocumentationDiag);
+        if ((missingDoc !== undefined) && (missingDoc.length > 0)) {
+            let msg: string = "";
+            let code: string = "";
+            if (missingDoc[0].diagnosticCode !== ALXmlDocDiagnosticCode.XmlDocumentationMissing) {
+                missingDoc.forEach(diag => {
+                    switch (diag.diagnosticCode) {
+                        case ALXmlDocDiagnosticCode.ParameterMissing:
+                            diag.element = `parameter '${diag.element}'`;
+                        break;
+                    }
+                    msg = this.AppendString(msg, diag.element, ", ");
+                    code = this.AppendString(code, this.GetDiagnosticCode(diag.diagnosticCode), ", ");
+                });
+
+                msg = `The procedure ${alProcedureState.name} is missing documentation for ${msg}.`;
+            } else {
+                code = this.GetDiagnosticCode(missingDoc[0].diagnosticCode);
+                msg = `The procedure ${alProcedureState.name} missing documentation.`;
+            }
+            let diagnostic = new Diagnostic(alProcedureState.position, msg, DiagnosticSeverity.Warning);
             diagnostic.source = ALXmlDocDiagnosticPrefix;
-            diagnostic.code = missingDocCode;
+            diagnostic.code = code;
             this.diagnostics.push(diagnostic);
-        }    
-        if (unnecessaryDocMessage !== "") {
-            let diagnostic = new Diagnostic(alProcedureState.position, unnecessaryDocMessage, DiagnosticSeverity.Warning);
+        }
+        let unnecessaryDoc = diag.filter(this.IsUnnecessaryDocumentationDiag);
+        if ((unnecessaryDoc !== undefined) && (unnecessaryDoc.length > 0)) {
+            let msg: string = "";
+            let code: string = "";
+            unnecessaryDoc.forEach(diag => {
+                switch (diag.diagnosticCode) {
+                    case ALXmlDocDiagnosticCode.ParameterUnnecessary:
+                        diag.element = `parameter '${diag.element}'`;
+                    break;
+                }
+                msg = this.AppendString(msg, diag.element, ", ");
+                code = this.AppendString(code, diag.diagnosticCode, ", ");
+            });
+
+            let subMsg: string = "";
+            if (unnecessaryDoc.length > 1) {
+                subMsg = "are";
+            } else {
+                subMsg = "is";
+            }
+            msg = `The ${msg} ${subMsg} described in documentation for procedure ${alProcedureState.name} but do not exist.`;
+
+            let diagnostic = new Diagnostic(alProcedureState.position, msg, DiagnosticSeverity.Warning);
             diagnostic.source = ALXmlDocDiagnosticPrefix;
-            diagnostic.code = unnecessaryDocCode;
+            diagnostic.code = code;
             this.diagnostics.push(diagnostic);
         }
     }
 
-    private AddToStringList(baseString: string, append: string): string {
+    private IsMissingDocumentationDiag(element: { diagnosticCode: ALXmlDocDiagnosticCode; }, index: any, array: any) {
+        return (
+            (element.diagnosticCode === ALXmlDocDiagnosticCode.XmlDocumentationMissing) || 
+            (element.diagnosticCode === ALXmlDocDiagnosticCode.SummaryMissing) ||
+            (element.diagnosticCode === ALXmlDocDiagnosticCode.ParameterMissing) || 
+            (element.diagnosticCode === ALXmlDocDiagnosticCode.ReturnTypeMissing) || 
+            (element.diagnosticCode === ALXmlDocDiagnosticCode.RemarkMissing));
+    }
+
+    private IsUnnecessaryDocumentationDiag(element: { diagnosticCode: ALXmlDocDiagnosticCode; }, index: any, array: any) {
+        return ((element.diagnosticCode === ALXmlDocDiagnosticCode.ParameterUnnecessary));
+    }
+    private AppendString(baseString: string, append: string, concatString: string = ""): string {
         if (baseString.includes(append)) {
             return baseString;
         }
         if (baseString !== "") {
-            baseString = `${baseString}, `;
+            baseString = `${baseString}${concatString}`;
         }
         baseString = `${baseString}${append}`;
 
