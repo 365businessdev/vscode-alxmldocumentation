@@ -51,7 +51,7 @@ export class ALSyntaxUtil {
     }
 
     public static IsBeginEnd(line: string): boolean {
-        return (line.toLowerCase().match(/\bbegin|\bend/) !== null);
+        return (line.toLowerCase().match(/\bbegin\b|\bend\b/) !== null);
     }
 
     private static AnalyzeDefinition(regExResult: RegExpMatchArray | null) : RegExpMatchArray | null {
