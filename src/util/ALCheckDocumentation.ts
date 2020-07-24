@@ -3,6 +3,7 @@ import { DiagnosticSeverity } from "vscode-languageclient";
 import { ALSyntaxUtil } from "./ALSyntaxUtil";
 import { ALDocCommentUtil } from "./ALDocCommentUtil";
 import { ALXmlDocDiagnosticCode, ALXmlDocDiagnosticPrefix } from "../types";
+import { Configuration } from "./Configuration";
 
 export class ALCheckDocumentation { 
     private document!: TextDocument;
@@ -17,7 +18,7 @@ export class ALCheckDocumentation {
         this.UpdateDiagnostics();
 
         // check configuration
-        if (!workspace.getConfiguration("bdev-al-xml-doc").checkProcedureDocumentation) {
+        if (!Configuration.CheckProcedureDocumentationIsEnabled()) {
             return;
         }
 

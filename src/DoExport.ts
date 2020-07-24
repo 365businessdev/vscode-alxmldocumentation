@@ -1,6 +1,7 @@
 import { workspace, window, commands, TextEditor, TextDocument, extensions, OutputChannel, Extension, TextEditorVisibleRangesChangeEvent, WorkspaceConfiguration } from "vscode";
 import { isNullOrUndefined } from "util";
 import path = require("path");
+import { Configuration } from "./util/Configuration";
 
 export class DoExport {
 
@@ -43,7 +44,7 @@ export class DoExport {
     }
 
     private getConfiguration():WorkspaceConfiguration {
-        return workspace.getConfiguration("bdev-al-xml-doc");
+        return workspace.getConfiguration(Configuration.ExtensionIdent());
     }
 
     private VerifyPrerequisite(): boolean {

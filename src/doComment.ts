@@ -5,6 +5,7 @@ import { ALDocCommentUtil } from './util/ALDocCommentUtil';
 import { VSCodeApi } from './api/VSCodeApi';
 import { CodeType } from './types';
 import { isNullOrUndefined } from 'util';
+import { Configuration } from './util/Configuration';
 
 export class DoComment {
     private disposable: Disposable;
@@ -87,7 +88,7 @@ export class DoComment {
     private IsDoCommentTrigger(): boolean {
         this.isEnterKey = false;
 
-        if (!workspace.getConfiguration("bdev-al-xml-doc").enableDocComments) {
+        if (!Configuration.DocumentationCommentsIsEnabled()) {
             return false;
         }
 
