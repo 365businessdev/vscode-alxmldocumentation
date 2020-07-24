@@ -127,7 +127,7 @@
 					"bdev-al-xml-doc.askEnableCheckProcedureDocumentation": {
 						"type": "boolean",
 						"scope": "resource",
-						"default": true,
+						"default": false,
 						"description": "Specifies whether a confirmation will appear to enable procedure documentation for each workspace."
 					},
 					"bdev-al-xml-doc.checkProcedureDocumentation": {
