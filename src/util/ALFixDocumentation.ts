@@ -16,7 +16,7 @@ export class ALFixDocumentation implements CodeActionProvider {
 
         let quickFixActions: CodeAction[] = [];
         context.diagnostics.filter(diagnostic => diagnostic.source === ALXmlDocDiagnosticPrefix).forEach(diagnostic => {
-            let procedureDefinition = ALSyntaxUtil.AnalyzeProcedureDefinition(document.getText().split("\r\n")[procedureState!.position.start.line])?.groups;
+            let procedureDefinition = ALSyntaxUtil.AnalyzeProcedureDefinition(document.getText().replace('\r','').split('\n')[procedureState!.position.start.line])?.groups;
             if (procedureDefinition) {
                 if (procedureState!.documentation === "") {
                     let action = new CodeAction('Add documentation', CodeActionKind.QuickFix);

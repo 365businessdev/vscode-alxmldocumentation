@@ -89,7 +89,7 @@ export class ALSyntaxUtil {
     }
 
     public static GetALProcedureState(document: TextDocument, procedureLineNo: number = 0): { name: string; position: Range; definition: { [key: string]: string; }; documentation: string } | null {        
-        let alCode = document.getText().split('\r\n');
+        let alCode = document.getText().replace('\r','').split('\n');
         if (procedureLineNo === 0) {
             procedureLineNo = alCode.length - 1;
         }
@@ -133,7 +133,7 @@ export class ALSyntaxUtil {
 
     public static FindProcedures(code: string): any {
         let procedures: { procedureName : string, lineNo: number }[] = [];
-        code.match(/(?<!\/\/\/\s*)(((?!local)procedure|(?!internal)procedure)\s+([A-Za-z0-9_]+)\b[^\(]*\)*.+)/g)?.forEach(match => {
+        code.match(/(?<!\/\/\/.*)(((?!local)procedure|(?!internal)procedure)\s+([A-Za-z0-9_]+)\b[^\(]*\)*.+)/g)?.forEach(match => {
             procedures.push({
                 procedureName: match,
                 lineNo: this.GetProcedureLineNo(match, code)
@@ -144,7 +144,7 @@ export class ALSyntaxUtil {
     }
 
     private static GetProcedureLineNo(procedureName: string, code: string): number {        
-        let codeLines = code.split("\r\n");
+        let codeLines = code.replace('\r','').split('\n');
         let pos: number = -1;
         codeLines.filter((x) => {
             if (x.includes(procedureName)) {
