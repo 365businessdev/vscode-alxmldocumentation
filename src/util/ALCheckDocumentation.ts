@@ -198,6 +198,7 @@ export class ALCheckDocumentation {
     private IsUnnecessaryDocumentationDiag(element: { diagnosticCode: ALXmlDocDiagnosticCode; }, index: any, array: any) {
         return ((element.diagnosticCode === ALXmlDocDiagnosticCode.ParameterUnnecessary));
     }
+    
     private AppendString(baseString: string, append: string, concatString: string = ""): string {
         if (baseString.includes(append)) {
             return baseString;
