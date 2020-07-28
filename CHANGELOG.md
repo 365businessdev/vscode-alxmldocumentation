@@ -78,3 +78,6 @@ All notable changes to the "AL XML Documentation" extension will be documented i
 - Added configuration `askEnableCheckProcedureDocumentation` [#19](https://github.com/365businessdev/vscode-alxmldocumentation/issues/19).
 - Added configuration `procedureTypes` [#17](https://github.com/365businessdev/vscode-alxmldocumentation/issues/17) - Missing documentation non public functions
 - Added check for unused parameter documentations in diagnostics.
+- Fixed Issue [#21(1)](https://github.com/365businessdev/vscode-alxmldocumentation/issues/21) - Support for quoted procedure names.
+- Fixed Issue [#21(2)](https://github.com/365businessdev/vscode-alxmldocumentation/issues/21) - Fixed keywords in documentation.
+- Support placeholder `${workspaceFolder}` in `markdown_path` configuration [#18](https://github.com/365businessdev/vscode-alxmldocumentation/issues/21).
