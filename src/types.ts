@@ -5,7 +5,8 @@ export type AlXmlDocConfig = {
 	enableDocComments: boolean;
 	enableSummaryHover: boolean;
 	enableSignatureHover: boolean;
-	checkProcedureDocumentation: string;
+	checkProcedureDocumentation: boolean;
+	askEnableCheckProcedureDocumentation: boolean;
 };
 
 export enum CodeType {

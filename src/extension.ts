@@ -3,8 +3,11 @@ import { DoComment } from "./DoComment";
 import { DoExport } from "./DoExport";
 import { DoHover } from "./DoHover";
 import { DoCheckDocumentation } from "./DoCheckDocumentation";
+import { Configuration } from "./util/Configuration";
 
-export function activate(context: ExtensionContext) {
+export function activate(context: ExtensionContext) {	
+	Configuration.AskEnableCheckProcedureDocumentation();
+
 	const doComment = new DoComment();
 	const doExport = new DoExport();
 	const doHover = new DoHover();

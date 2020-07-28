@@ -5,6 +5,7 @@ import { ALDocCommentUtil } from './util/ALDocCommentUtil';
 import { VSCodeApi } from './api/VSCodeApi';
 import { CodeType } from './types';
 import { isNullOrUndefined } from 'util';
+import { Configuration } from './util/Configuration';
 
 export class DoComment {
     private disposable: Disposable;
@@ -87,7 +88,7 @@ export class DoComment {
     private IsDoCommentTrigger(): boolean {
         this.isEnterKey = false;
 
-        if (!workspace.getConfiguration("bdev-al-xml-doc").enableDocComments) {
+        if (!Configuration.DocumentationCommentsIsEnabled(this.activeEditor.document.uri)) {
             return false;
         }
 
@@ -193,7 +194,7 @@ export class DoComment {
                 return code.trim();
             }
 
-            if (ALSyntaxUtil.IsProcedure(line)) {
+            if (ALSyntaxUtil.IsProcedure(line, (i >= 0) ? this.vsCodeApi.ReadLine(i) : '')) {
                 this.codeType = CodeType.Procedure;
                 return code.trim();
             }

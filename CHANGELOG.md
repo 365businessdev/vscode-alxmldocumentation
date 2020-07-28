@@ -67,5 +67,18 @@ All notable changes to the "AL XML Documentation" extension will be documented i
 - Added diagnostic information and quick fix actions.
 
 ## [0.4.1] - 2020-07-20
+
 - Fixed Issue [#14](https://github.com/365businessdev/vscode-alxmldocumentation/issues/14) - Fixed procedure overload support for diagnostics.
 - Removed `trigger`-procedures from diagnostics.
+
+## [0.4.2] - 2020-07-28
+
+- Fixed Issue [#20](https://github.com/365businessdev/vscode-alxmldocumentation/issues/20) - Shows warning even when the function is documented.
+- Fixed Issue [#18](https://github.com/365businessdev/vscode-alxmldocumentation/issues/18) - Documentation and var parameters.
+- Added configuration `askEnableCheckProcedureDocumentation` [#19](https://github.com/365businessdev/vscode-alxmldocumentation/issues/19).
+- Added configuration `procedureTypes` [#17](https://github.com/365businessdev/vscode-alxmldocumentation/issues/17) - Missing documentation non public functions
+- Added check for unused parameter documentations in diagnostics.
+- Fixed Issue [#21(1)](https://github.com/365businessdev/vscode-alxmldocumentation/issues/21) - Support for quoted procedure names.
+- Fixed Issue [#21(2)](https://github.com/365businessdev/vscode-alxmldocumentation/issues/21) - Fixed keywords in documentation.
+- Support placeholder `${workspaceFolder}` in `markdown_path` configuration [#18](https://github.com/365businessdev/vscode-alxmldocumentation/issues/21).
+- Added object name to markdown `index.md`.

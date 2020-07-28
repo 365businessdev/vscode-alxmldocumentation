@@ -1,9 +1,9 @@
 import { window, workspace, TextEditor, languages, commands, Position, SnippetString, TextDocument, Range } from "vscode";
 import { ALCheckDocumentation } from "./util/ALCheckDocumentation";
 import { ALFixDocumentation } from "./util/ALFixDocumentation";
-import { VSCodeApi } from "./api/VSCodeApi";
 import { ALDocCommentUtil } from "./util/ALDocCommentUtil";
 import { ALSyntaxUtil } from "./util/ALSyntaxUtil";
+import { Configuration } from "./util/Configuration";
 
 export class DoCheckDocumentation {  
     private activeEditor!: TextEditor;
@@ -31,6 +31,14 @@ export class DoCheckDocumentation {
             }
 
             this.alUpdateDecorations.CheckDocumentation(this.activeEditor.document);
+        });
+
+        workspace.onDidChangeConfiguration(event => {
+            let affected = event.affectsConfiguration(Configuration.ExtensionIdent());
+            if (affected) {
+                Configuration.AskEnableCheckProcedureDocumentation();
+                this.InitializeCheckDocumentation();
+            }
         });
 
         languages.registerCodeActionsProvider('al',
@@ -72,7 +80,7 @@ export class DoCheckDocumentation {
         
         editor.insertSnippet(new SnippetString(
             ALDocCommentUtil.GenerateProcedureDocString(
-                ALSyntaxUtil.AnalyzeProcedureDefinition(editor.document.getText().split("\r\n")[procedureState!.position.start.line])!.groups!) + "\n"), 
+                ALSyntaxUtil.AnalyzeProcedureDefinition(editor.document.getText().replace('\r', '').split('\n')[procedureState!.position.start.line])!.groups!) + '\n'), 
                 new Position(procedureState!.position.start.line, ALDocCommentUtil.GetLineStartPosition(editor.document, procedureState!.position.start.line))); //vsCodeApi.GetActiveLineStartPosition());
     }
 
@@ -82,13 +90,13 @@ export class DoCheckDocumentation {
         }
 
         try { 
-            let procedureDocumentation = ALDocCommentUtil.GenerateProcedureDocString(ALSyntaxUtil.AnalyzeProcedureDefinition(editor.document.getText().split("\r\n")[procedureState!.position.start.line])!.groups!);
+            let procedureDocumentation = ALDocCommentUtil.GenerateProcedureDocString(ALSyntaxUtil.AnalyzeProcedureDefinition(editor.document.getText().replace('\r', '').split('\n')[procedureState!.position.start.line])!.groups!);
             
             let lineNo = ALDocCommentUtil.GetFirstXmlDocumentationLineNo(editor, procedureState!.position.start.line);
             if (lineNo === -1) {
                 return;
             }
-            editor.insertSnippet(new SnippetString(ALDocCommentUtil.GetXmlDocumentationNode(procedureDocumentation, 'summary') + "\n"), 
+            editor.insertSnippet(new SnippetString(ALDocCommentUtil.GetXmlDocumentationNode(procedureDocumentation, 'summary') + '\n'), 
                 new Position(lineNo, ALDocCommentUtil.GetLineStartPosition(editor.document, lineNo)));                    
         } catch {
             return;
@@ -101,18 +109,26 @@ export class DoCheckDocumentation {
         }
 
         try {
-            let procedureDefinition = ALSyntaxUtil.AnalyzeProcedureDefinition(editor.document.getText().split("\r\n")[procedureState!.position.start.line])!.groups!;
+            let procedureDefinition = ALSyntaxUtil.AnalyzeProcedureDefinition(editor.document.getText().replace('\r', '').split('\n')[procedureState!.position.start.line])!.groups!;
             let procedureDocumentation = ALDocCommentUtil.GenerateProcedureDocString(procedureDefinition);
 
             let jsonDocumentation = ALDocCommentUtil.GetJsonFromXmlDocumentation(procedureDocumentation);
             let parameters: { name: string; documentation: string; insertAtLineNo: number }[] = [];
-            jsonDocumentation.param.forEach((param: { attr: { name: string; }; value: string; }) => {
+            if (jsonDocumentation.param.length === undefined) {
                 parameters.push({
-                    name: param.attr.name,
-                    documentation: param.value,
-                    insertAtLineNo: ALDocCommentUtil.GetXmlDocumentationNodeLineNo(editor, procedureState!.position.start.line, 'param', 'name', param.attr.name)
+                    name: jsonDocumentation.param.attr.name,
+                    documentation: jsonDocumentation.param.value,
+                    insertAtLineNo: ALDocCommentUtil.GetXmlDocumentationNodeLineNo(editor, procedureState!.position.start.line, 'param', 'name', jsonDocumentation.param.attr.name)
                 });
-            });
+            } else {
+                jsonDocumentation.param.forEach((param: { attr: { name: string; }; value: string; }) => {
+                    parameters.push({
+                        name: param.attr.name,
+                        documentation: param.value,
+                        insertAtLineNo: ALDocCommentUtil.GetXmlDocumentationNodeLineNo(editor, procedureState!.position.start.line, 'param', 'name', param.attr.name)
+                    });
+                });
+            }
 
             let i = 0;
             let j = 0;
@@ -123,7 +139,7 @@ export class DoCheckDocumentation {
                     } else {
                         parameter.insertAtLineNo = parameters[i-1].insertAtLineNo + j;
                     }
-                    editor.insertSnippet(new SnippetString(ALDocCommentUtil.GetXmlDocumentationNode(procedureDocumentation, 'param', 'name', parameter.name) + "\n"), 
+                    editor.insertSnippet(new SnippetString(ALDocCommentUtil.GetXmlDocumentationNode(procedureDocumentation, 'param', 'name', parameter.name) + '\n'), 
                         new Position(parameter.insertAtLineNo, ALDocCommentUtil.GetLineStartPosition(editor.document, parameter.insertAtLineNo)));
                     j++;
                 }
@@ -139,13 +155,13 @@ export class DoCheckDocumentation {
             return;
         }
         try {
-            let procedureDocumentation = ALDocCommentUtil.GenerateProcedureDocString(ALSyntaxUtil.AnalyzeProcedureDefinition(editor.document.getText().split("\r\n")[procedureState!.position.start.line])!.groups!);
+            let procedureDocumentation = ALDocCommentUtil.GenerateProcedureDocString(ALSyntaxUtil.AnalyzeProcedureDefinition(editor.document.getText().replace('\r', '').split('\n')[procedureState!.position.start.line])!.groups!);
             
             let lineNo = ALDocCommentUtil.GetLastXmlDocumentationLineNo(editor, procedureState!.position.start.line);
             if (lineNo === -1) {
                 return;
             }
-            editor.insertSnippet(new SnippetString(ALDocCommentUtil.GetXmlDocumentationNode(procedureDocumentation, 'returns') + "\n"), 
+            editor.insertSnippet(new SnippetString(ALDocCommentUtil.GetXmlDocumentationNode(procedureDocumentation, 'returns') + '\n'), 
                 new Position(lineNo, ALDocCommentUtil.GetLineStartPosition(editor.document, lineNo)));    
         } catch {
             return;

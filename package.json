@@ -3,7 +3,7 @@
 	"displayName": "AL XML Documentation",
 	"description": "Generate AL XML documentation comments and create Markdown documentation from your source code.",
 	"publisher": "365businessdevelopment",
-	"version": "0.4.1",
+	"version": "0.4.2",
 	"icon": "res/icon.png",
 	"author": {
 		"name": "Christoph Krieg",
@@ -72,6 +72,40 @@
 						],
 						"description": "Specifies the accessibility level (scope) of the procedures to be exported as markdown."
 					},
+					"bdev-al-xml-doc.procedureTypes": {
+						"type": "array",
+						"items": {
+							"anyOf": [
+								{
+									"type": "string",
+									"enum": [
+										"Global Procedures",
+										"Local Procedures",
+										"Internal Procedures",
+										"Event Publisher",
+										"Event Subscriber",
+										"Trigger Procedures",
+										"Test Procedures"
+									],
+									"enumDescriptions": [
+										"Global procedures.",
+										"Local procedures.",
+										"Internal procedures.",
+										"Procedures with [BusinessEvent], [IntegrationEvent] or [InternalEvent] declaration.",
+										"Procedures with [EventSubscriber] declaration.",
+										"Trigger procedures (e.g. OnAfterGetRecord()).",
+										"Procedures in Test codeunits with [Test] declaration."
+									]
+								},
+								{
+									"type": "string"
+								}
+							]
+						},
+						"uniqueItems": true,
+						"description": "Sets the list of procedure types (e.g. event publisher, tests) checked.",
+						"scope": "resource"
+					},
 					"bdev-al-xml-doc.enableDocComments": {
 						"type": "boolean",
 						"scope": "resource",
@@ -89,6 +123,12 @@
 						"scope": "resource",
 						"default": true,
 						"description": "Specifies whether <param> description should be shown on procedure signatures."
+					},
+					"bdev-al-xml-doc.askEnableCheckProcedureDocumentation": {
+						"type": "boolean",
+						"scope": "resource",
+						"default": false,
+						"description": "Specifies whether a confirmation will appear to enable procedure documentation for each workspace."
 					},
 					"bdev-al-xml-doc.checkProcedureDocumentation": {
 						"type": "boolean",

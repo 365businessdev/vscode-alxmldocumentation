@@ -59,12 +59,12 @@ export class ALDocCommentUtil {
             startingLineNo = vsCodeApi.GetActivePosition().line;
         }
 
-        let alCode = editor.document.getText().split("\r\n");    
+        let alCode = editor.document.getText().replace('\r','').split('\n');    
         for (let lineNo = startingLineNo - 1; lineNo > 0; lineNo--) {
             let line = alCode[lineNo];
             switch (true) {
                 case ALSyntaxUtil.IsObject(line):
-                case ALSyntaxUtil.IsProcedure(line):
+                case ALSyntaxUtil.IsProcedure(line, (lineNo > 0) ? alCode[lineNo - 1] : ""):
                 case ALSyntaxUtil.IsBeginEnd(line):
                     return -1;
                 default:
@@ -94,12 +94,12 @@ export class ALDocCommentUtil {
         }
 
         let isInsideDoc: boolean = false;
-        let alCode = editor.document.getText().split("\r\n");    
+        let alCode = editor.document.getText().replace('\r','').split('\n');    
         for (let lineNo = startingLineNo - 1; lineNo > 0; lineNo--) {
             let line = alCode[lineNo];
             switch (true) {
                 case ALSyntaxUtil.IsObject(line):
-                case ALSyntaxUtil.IsProcedure(line):
+                case ALSyntaxUtil.IsProcedure(line, (lineNo > 0) ? alCode[lineNo - 1] : ""):
                 case ALSyntaxUtil.IsBeginEnd(line):
                     if (!isInsideDoc) {
                         return -1; // should never happen
@@ -125,7 +125,7 @@ export class ALDocCommentUtil {
             startingLineNo = vsCodeApi.GetActivePosition().line;
         }
 
-        let alCode = editor.document.getText().split("\r\n");    
+        let alCode = editor.document.getText().replace('\r','').split('\n');    
         for (let lineNo = startingLineNo - 1; lineNo > 0; lineNo--) {
             let line = alCode[lineNo];
             if (line.includes('///')) {
@@ -136,7 +136,7 @@ export class ALDocCommentUtil {
     }
 
     public static GetLineStartPosition(document: TextDocument, lineNo: number): number {
-        let alCode = document.getText().split("\r\n");
+        let alCode = document.getText().replace('\r','').split('\n');
         return ((alCode[lineNo].length) - (alCode[lineNo].trim().length));
     }
 
@@ -186,7 +186,7 @@ export class ALDocCommentUtil {
                 let paramDataType = param[1].trim();
 
                 docString += "\n";
-                docString += "/// <param name=\"" + paramName + "\">";
+                docString += "/// <param name=\"" + paramName.replace(/"/g,"") + "\">";
                 docString += "${" + placeholderIdx + ":Parameter of type " + paramDataType + ".}";
                 docString += "</param>";
             });
