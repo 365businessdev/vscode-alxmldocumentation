@@ -71,7 +71,7 @@ All notable changes to the "AL XML Documentation" extension will be documented i
 - Fixed Issue [#14](https://github.com/365businessdev/vscode-alxmldocumentation/issues/14) - Fixed procedure overload support for diagnostics.
 - Removed `trigger`-procedures from diagnostics.
 
-## [0.4.2] - 2020-07-24
+## [0.4.2] - 2020-07-28
 
 - Fixed Issue [#20](https://github.com/365businessdev/vscode-alxmldocumentation/issues/20) - Shows warning even when the function is documented.
 - Fixed Issue [#18](https://github.com/365businessdev/vscode-alxmldocumentation/issues/18) - Documentation and var parameters.
