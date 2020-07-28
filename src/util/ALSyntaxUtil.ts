@@ -133,7 +133,7 @@ export class ALSyntaxUtil {
 
     public static FindProcedures(code: string): any {
         let procedures: { procedureName : string, lineNo: number }[] = [];
-        code.match(/(?<!\/\/\/.*)(((?!local)procedure|(?!internal)procedure)\s+([A-Za-z0-9_]+)\b[^\(]*\)*.+)/g)?.forEach(match => {
+        code.match(/(?<!\/\/\/.*)((procedure)\s+(\")?(.+)\b(\")?[\(]*\)*.+)/g)?.forEach(match => {
             procedures.push({
                 procedureName: match,
                 lineNo: this.GetProcedureLineNo(match, code)
