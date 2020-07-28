@@ -186,7 +186,7 @@ export class ALDocCommentUtil {
                 let paramDataType = param[1].trim();
 
                 docString += "\n";
-                docString += "/// <param name=\"" + paramName + "\">";
+                docString += "/// <param name=\"" + paramName.replace(/"/g,"") + "\">";
                 docString += "${" + placeholderIdx + ":Parameter of type " + paramDataType + ".}";
                 docString += "</param>";
             });
