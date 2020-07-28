@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v3.0": {
-      "ALCodeCommentMarkdownCreator/1.3.3": {
+      "ALCodeCommentMarkdownCreator/1.3.4": {
         "dependencies": {
           "CommandLineParser": "2.7.82"
         },
@@ -25,7 +25,7 @@
     }
   },
   "libraries": {
-    "ALCodeCommentMarkdownCreator/1.3.3": {
+    "ALCodeCommentMarkdownCreator/1.3.4": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
