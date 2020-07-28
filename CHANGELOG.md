@@ -81,3 +81,4 @@ All notable changes to the "AL XML Documentation" extension will be documented i
 - Fixed Issue [#21(1)](https://github.com/365businessdev/vscode-alxmldocumentation/issues/21) - Support for quoted procedure names.
 - Fixed Issue [#21(2)](https://github.com/365businessdev/vscode-alxmldocumentation/issues/21) - Fixed keywords in documentation.
 - Support placeholder `${workspaceFolder}` in `markdown_path` configuration [#18](https://github.com/365businessdev/vscode-alxmldocumentation/issues/21).
+- Added object name to markdown `index.md`.
