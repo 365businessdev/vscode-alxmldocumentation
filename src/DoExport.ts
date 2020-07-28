@@ -105,6 +105,10 @@ export class DoExport {
                     return;
                 }
                 markdownPath = path.join(workspaceRoot, "doc");			
+            } else {
+                if (workspace.workspaceFolders) {
+                    markdownPath = markdownPath.replace('${workspaceFolder}', this.getDirectoryName(workspace.workspaceFolders[0].uri.toString()));
+                }
             }
             console.debug("Using export path: " + markdownPath);
         } catch (ex) {
