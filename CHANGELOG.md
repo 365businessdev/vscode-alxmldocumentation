@@ -82,3 +82,7 @@ All notable changes to the "AL XML Documentation" extension will be documented i
 - Fixed Issue [#21(2)](https://github.com/365businessdev/vscode-alxmldocumentation/issues/21) - Fixed keywords in documentation.
 - Support placeholder `${workspaceFolder}` in `markdown_path` configuration [#18](https://github.com/365businessdev/vscode-alxmldocumentation/issues/21).
 - Added object name to markdown `index.md`.
+
+## [0.4.3] - 2020-07-29
+
+- Fixed Issue [#23](https://github.com/365businessdev/vscode-alxmldocumentation/issues/23) - Fixed exception in markdown creation.
