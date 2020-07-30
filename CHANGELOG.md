@@ -86,3 +86,7 @@ All notable changes to the "AL XML Documentation" extension will be documented i
 ## [0.4.3] - 2020-07-29
 
 - Fixed Issue [#23](https://github.com/365businessdev/vscode-alxmldocumentation/issues/23) - Fixed exception in markdown creation.
+
+## [0.4.4] - 2020-07-30
+
+- Upgrade to ALCodeCommentMarkdownCreator 1.3.5 - Issue [#24](https://github.com/365businessdev/vscode-alxmldocumentation/issues/24)
