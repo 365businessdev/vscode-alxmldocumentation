@@ -59,7 +59,7 @@ export class ALDocCommentUtil {
             startingLineNo = vsCodeApi.GetActivePosition().line;
         }
 
-        let alCode = editor.document.getText().replace('\r','').split('\n');    
+        let alCode = editor.document.getText().replace(/\r/g,'').split('\n');    
         for (let lineNo = startingLineNo - 1; lineNo > 0; lineNo--) {
             let line = alCode[lineNo];
             switch (true) {
@@ -94,7 +94,7 @@ export class ALDocCommentUtil {
         }
 
         let isInsideDoc: boolean = false;
-        let alCode = editor.document.getText().replace('\r','').split('\n');    
+        let alCode = editor.document.getText().replace(/\r/g,'').split('\n');    
         for (let lineNo = startingLineNo - 1; lineNo > 0; lineNo--) {
             let line = alCode[lineNo];
             switch (true) {
@@ -125,7 +125,7 @@ export class ALDocCommentUtil {
             startingLineNo = vsCodeApi.GetActivePosition().line;
         }
 
-        let alCode = editor.document.getText().replace('\r','').split('\n');    
+        let alCode = editor.document.getText().replace(/\r/g,'').split('\n');    
         for (let lineNo = startingLineNo - 1; lineNo > 0; lineNo--) {
             let line = alCode[lineNo];
             if (line.includes('///')) {
@@ -136,7 +136,7 @@ export class ALDocCommentUtil {
     }
 
     public static GetLineStartPosition(document: TextDocument, lineNo: number): number {
-        let alCode = document.getText().replace('\r','').split('\n');
+        let alCode = document.getText().replace(/\r/g,'').split('\n');
         return ((alCode[lineNo].length) - (alCode[lineNo].trim().length));
     }
 
