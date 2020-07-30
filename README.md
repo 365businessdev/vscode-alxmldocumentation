@@ -52,6 +52,7 @@ Currently the following diagnostic codes and associated actions are implemented:
 | DOC0001 | XML documentation for procedure is missing. | Add documentation |
 | DOC0002 | `<summary>` documentation for procedure is missing. | Add `<summary>` documentation |
 | DOC0010 | `<param>` documentation for procedure is missing. | Add `<param>` documentation |
+| DOC0011 | `<param>` documentation exist but referred parameter does not exist. | _no quick fix available_ |
 | DOC0020 | `<returns>` documentation for procedure is missing. | Add `<returns>` documentation |
 
 ### Snippets
@@ -123,6 +124,8 @@ The following configuration parameters are available:
 }
 ```
 
+> **Note**<br>`markdown_path` does support `${workspaceFolder}` as an placeholder.<br><br>_Example_<br>`"bdev-al-xml-doc.markdown_path": "${workspaceFolder}/documentations/src/"`<br><br>
+
 ## Supported Languages
 This extension is only processing AL language source code files.
 
@@ -171,6 +174,6 @@ This extension is licensed under the [MIT License](https://github.com/365busines
 [GenerateXmlDoc]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/AddXmlDocComment.gif?raw=true "Generate context aware XML documentation comments"
 [GenerateMDDoc]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/GenerateMarkdownDoc.gif?raw=true  "Generate markdown files from XML documentation comments"
 [SummaryHover]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/HoverProcedureDescription.gif?raw=true  "Generate markdown files from XML documentation comments"
-[DiagnosticsQuickFix]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/dev/doc/ALCheckDocumentationDiagnosticsQuickFix.gif?raw=true  "Diagnostics and Quick Fix"
+[DiagnosticsQuickFix]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/ALCheckDocumentationDiagnosticsQuickFix.gif?raw=true  "Diagnostics and Quick Fix"
 [Supported]: https://cdn4.iconfinder.com/data/icons/icocentre-free-icons/137/f-check_256-16.png "Supported"
 [NotSupport]: https://cdn2.iconfinder.com/data/icons/circular%20icons/no.png "Not Supported"
