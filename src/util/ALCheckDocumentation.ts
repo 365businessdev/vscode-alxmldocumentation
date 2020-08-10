@@ -150,7 +150,7 @@ export class ALCheckDocumentation {
                 msg = `The procedure ${alProcedureState.name} is missing documentation for ${msg}.`;
             } else {
                 code = this.GetDiagnosticCode(missingDoc[0].diagnosticCode);
-                msg = `The procedure ${alProcedureState.name} missing documentation.`;
+                msg = `Procedure documentation for ${alProcedureState.name} is missing.`;
             }
             let diagnostic = new Diagnostic(alProcedureState.position, msg, DiagnosticSeverity.Warning);
             diagnostic.source = ALXmlDocDiagnosticPrefix;
