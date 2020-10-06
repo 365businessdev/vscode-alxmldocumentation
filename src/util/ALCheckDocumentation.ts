@@ -5,7 +5,7 @@ import { ALDocCommentUtil } from "./ALDocCommentUtil";
 import { ALXmlDocDiagnosticCode, ALXmlDocDiagnosticPrefix } from "../types";
 import { Configuration } from "./Configuration";
 
-export class ALCheckDocumentation { 
+export class ALCheckDocumentation {
     private document!: TextDocument;
     private diagnosticsCollection: DiagnosticCollection = languages.createDiagnosticCollection('al-xml-doc');
     private diagnostics: Diagnostic[] = [];
@@ -23,25 +23,25 @@ export class ALCheckDocumentation {
         }
 
         // retrieve all procedures in current document
-        let alProcedures = ALSyntaxUtil.FindProcedures(this.document.getText());
+        let alProcedures: Array<{ procedureName: string, lineNo: number }> = ALSyntaxUtil.FindProcedures(this.document.getText());
         if (!alProcedures) {
             return;
         }
 
         // check documentation
-        alProcedures.forEach((alProcedure: { procedureName : string, lineNo: number }) => {
+        for (let alProcedure of alProcedures) {
             this.UpdateMissingDocumentations(ALSyntaxUtil.GetALProcedureState(this.document, alProcedure.lineNo));
-        });        
+        };
         this.UpdateDiagnostics();
     }
 
-    private UpdateMissingDocumentations(alProcedureState: { name: string; position: Range; definition: { [key: string]: string; }; documentation: string } | null) {      
+    private UpdateMissingDocumentations(alProcedureState: { name: string; position: Range; definition: { [key: string]: string; }; documentation: string } | null) {
         if ((alProcedureState === null) || (alProcedureState === undefined)) {
             return;
         }
 
-        let diag: { 
-            type: DiagnosticSeverity, 
+        let diag: {
+            type: DiagnosticSeverity,
             diagnosticCode: ALXmlDocDiagnosticCode,
             element: string
         }[] = [];
@@ -141,7 +141,7 @@ export class ALCheckDocumentation {
                     switch (diag.diagnosticCode) {
                         case ALXmlDocDiagnosticCode.ParameterMissing:
                             diag.element = `parameter '${diag.element}'`;
-                        break;
+                            break;
                     }
                     msg = this.AppendString(msg, diag.element, ", ");
                     code = this.AppendString(code, this.GetDiagnosticCode(diag.diagnosticCode), ", ");
@@ -165,7 +165,7 @@ export class ALCheckDocumentation {
                 switch (diag.diagnosticCode) {
                     case ALXmlDocDiagnosticCode.ParameterUnnecessary:
                         diag.element = `parameter '${diag.element}'`;
-                    break;
+                        break;
                 }
                 msg = this.AppendString(msg, diag.element, ", ");
                 code = this.AppendString(code, diag.diagnosticCode, ", ");
@@ -188,17 +188,17 @@ export class ALCheckDocumentation {
 
     private IsMissingDocumentationDiag(element: { diagnosticCode: ALXmlDocDiagnosticCode; }, index: any, array: any) {
         return (
-            (element.diagnosticCode === ALXmlDocDiagnosticCode.XmlDocumentationMissing) || 
+            (element.diagnosticCode === ALXmlDocDiagnosticCode.XmlDocumentationMissing) ||
             (element.diagnosticCode === ALXmlDocDiagnosticCode.SummaryMissing) ||
-            (element.diagnosticCode === ALXmlDocDiagnosticCode.ParameterMissing) || 
-            (element.diagnosticCode === ALXmlDocDiagnosticCode.ReturnTypeMissing) || 
+            (element.diagnosticCode === ALXmlDocDiagnosticCode.ParameterMissing) ||
+            (element.diagnosticCode === ALXmlDocDiagnosticCode.ReturnTypeMissing) ||
             (element.diagnosticCode === ALXmlDocDiagnosticCode.RemarkMissing));
     }
 
     private IsUnnecessaryDocumentationDiag(element: { diagnosticCode: ALXmlDocDiagnosticCode; }, index: any, array: any) {
         return ((element.diagnosticCode === ALXmlDocDiagnosticCode.ParameterUnnecessary));
     }
-    
+
     private AppendString(baseString: string, append: string, concatString: string = ""): string {
         if (baseString.includes(append)) {
             return baseString;
@@ -219,7 +219,7 @@ export class ALCheckDocumentation {
         if (this.diagnostics === []) {
             this.diagnosticsCollection.clear();
         }
-        
+
         this.diagnosticsCollection.set(this.document.uri, this.diagnostics);
     }
 

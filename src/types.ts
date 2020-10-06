@@ -22,5 +22,6 @@ export enum ALXmlDocDiagnosticCode {
 	SummaryMissing = "DOC0002", // Summary is missing
 	ParameterMissing = "DOC0010", // Parameter documentation is missing
 	ParameterUnnecessary = "DOC0011", // Parameter documentation is unnecessary
-	ReturnTypeMissing = "DOC0020"  // Return Type documentation is missing
+	ReturnTypeMissing = "DOC0020",  // Return Type documentation is missing
+	RemarkMissing = "DOC0099" // ??? It was missing and gave compilation failure, temporarily set to 99
 }

@@ -1,11 +1,12 @@
-import { window, workspace, TextEditor, languages, commands, Position, SnippetString, TextDocument, Range } from "vscode";
+import { window, workspace, TextEditor, languages, commands, Position, SnippetString, Range, ProgressLocation, RelativePattern, Uri } from "vscode";
 import { ALCheckDocumentation } from "./util/ALCheckDocumentation";
 import { ALFixDocumentation } from "./util/ALFixDocumentation";
 import { ALDocCommentUtil } from "./util/ALDocCommentUtil";
 import { ALSyntaxUtil } from "./util/ALSyntaxUtil";
 import { Configuration } from "./util/Configuration";
+import { readFile } from "fs-extra";
 
-export class DoCheckDocumentation {  
+export class DoCheckDocumentation {
     private activeEditor!: TextEditor;
     private alUpdateDecorations: ALCheckDocumentation = new ALCheckDocumentation();
 
@@ -19,7 +20,7 @@ export class DoCheckDocumentation {
             this.alUpdateDecorations.CheckDocumentation(this.activeEditor.document);
         });
 
-        workspace.onDidChangeTextDocument(event => {   
+        workspace.onDidChangeTextDocument(event => {
             if (!this.activeEditor) {
                 if (window.activeTextEditor?.document === event.document) {
                     this.activeEditor = window.activeTextEditor;
@@ -43,8 +44,8 @@ export class DoCheckDocumentation {
 
         languages.registerCodeActionsProvider('al',
             new ALFixDocumentation(), {
-                providedCodeActionKinds: ALFixDocumentation.providedCodeActionKinds
-            });
+            providedCodeActionKinds: ALFixDocumentation.providedCodeActionKinds
+        });
 
         // quick fix commands
         commands.registerCommand("bdev-al-xml-doc.fixDocumentation", (procedureState: { name: string; position: Range; definition: { [key: string]: string; }; documentation: string } | null) => {
@@ -60,50 +61,98 @@ export class DoCheckDocumentation {
             this.FixReturnTypeDocumentation(window.activeTextEditor, procedureState);
         });
 
-        this.InitializeCheckDocumentation();
-    }    
+        //this.InitializeCheckDocumentation();
+    }
 
-    private InitializeCheckDocumentation() {
-        workspace.findFiles('**/*.al').then(allFiles => {
-            allFiles.forEach(file => {
-                workspace.openTextDocument(file.fsPath).then(document => {
-                    this.alUpdateDecorations.CheckDocumentation(document);
+    async InitializeCheckDocumentation() {
+        let workspacePaths = workspace.workspaceFolders;
+        if (!workspacePaths) {
+            return;
+        }
+
+        let validWorkspacePaths = workspacePaths.filter(f => Configuration.CheckProcedureDocumentationIsEnabled(f.uri));
+        if (validWorkspacePaths.length == 0) {
+            return;
+        }
+
+        await window.withProgress({
+            location: ProgressLocation.Window,
+            title: 'AL XML Documentation check in progress...',
+        }, async (progress, token) => {
+
+            for (let validPath of validWorkspacePaths) {
+                let allFiles = await workspace.findFiles(new RelativePattern(validPath, '**/*.al'), undefined, undefined, token);
+                let relevantFileTasks = allFiles.map(async (file: Uri) => {
+                    let content = await readFile(file.fsPath, 'utf-8');
+                    if (content.match(/(procedure)\s+(.*?)\(/gm)) {
+                        return { uri: file, content: content };
+                    }
+
+                    return undefined;
                 });
-            });
+
+                let relevantFiles = await Promise.all(relevantFileTasks);
+                relevantFiles = relevantFiles.filter(f => f);
+
+                let tasks: Array<Promise<void>> = [];
+                let task = async (file: { uri: Uri, content: string }) => {
+                    let document = Object.assign({});
+                    document.uri = file.uri;
+                    document.getText = () => file.content;
+                    document.filename = file.uri.fsPath;
+                    this.alUpdateDecorations.CheckDocumentation(document as any);
+                };
+                let max = relevantFiles.length;
+                for (let i = 0; i < max; i++) {
+                    let file = relevantFiles[i];
+                    tasks.push(task(file!));
+
+                    if (i % 500 == 0) {
+                        await Promise.all(tasks);
+                        tasks = [];
+                    }
+                }
+
+                if (tasks.length > 0) {
+                    await Promise.all(tasks);
+                }
+            }
+
+            return true;
         });
     }
-        
-    private FixDocumentation(editor: TextEditor | undefined, procedureState: { name: string; position: Range; definition: { [key: string]: string; }; documentation: string } | null) {    
+
+    private FixDocumentation(editor: TextEditor | undefined, procedureState: { name: string; position: Range; definition: { [key: string]: string; }; documentation: string } | null) {
         if (!editor) {
             return;
         }
-        
+
         editor.insertSnippet(new SnippetString(
             ALDocCommentUtil.GenerateProcedureDocString(
-                ALSyntaxUtil.AnalyzeProcedureDefinition(editor.document.getText().replace('\r', '').split('\n')[procedureState!.position.start.line])!.groups!) + '\n'), 
-                new Position(procedureState!.position.start.line, ALDocCommentUtil.GetLineStartPosition(editor.document, procedureState!.position.start.line))); //vsCodeApi.GetActiveLineStartPosition());
+                ALSyntaxUtil.AnalyzeProcedureDefinition(editor.document.getText().replace('\r', '').split('\n')[procedureState!.position.start.line])!.groups!) + '\n'),
+            new Position(procedureState!.position.start.line, ALDocCommentUtil.GetLineStartPosition(editor.document, procedureState!.position.start.line))); //vsCodeApi.GetActiveLineStartPosition());
     }
 
-    private FixSummaryDocumentation(editor: TextEditor | undefined, procedureState: { name: string; position: Range; definition: { [key: string]: string; }; documentation: string } | null) {    
+    private FixSummaryDocumentation(editor: TextEditor | undefined, procedureState: { name: string; position: Range; definition: { [key: string]: string; }; documentation: string } | null) {
         if (!editor) {
             return;
         }
 
-        try { 
+        try {
             let procedureDocumentation = ALDocCommentUtil.GenerateProcedureDocString(ALSyntaxUtil.AnalyzeProcedureDefinition(editor.document.getText().replace('\r', '').split('\n')[procedureState!.position.start.line])!.groups!);
-            
+
             let lineNo = ALDocCommentUtil.GetFirstXmlDocumentationLineNo(editor, procedureState!.position.start.line);
             if (lineNo === -1) {
                 return;
             }
-            editor.insertSnippet(new SnippetString(ALDocCommentUtil.GetXmlDocumentationNode(procedureDocumentation, 'summary') + '\n'), 
-                new Position(lineNo, ALDocCommentUtil.GetLineStartPosition(editor.document, lineNo)));                    
+            editor.insertSnippet(new SnippetString(ALDocCommentUtil.GetXmlDocumentationNode(procedureDocumentation, 'summary') + '\n'),
+                new Position(lineNo, ALDocCommentUtil.GetLineStartPosition(editor.document, lineNo)));
         } catch {
             return;
         }
     }
 
-    private FixParameterDocumentation(editor: TextEditor | undefined, procedureState: { name: string; position: Range; definition: { [key: string]: string; }; documentation: string } | null) {    
+    private FixParameterDocumentation(editor: TextEditor | undefined, procedureState: { name: string; position: Range; definition: { [key: string]: string; }; documentation: string } | null) {
         if (!editor) {
             return;
         }
@@ -134,35 +183,35 @@ export class DoCheckDocumentation {
             let j = 0;
             parameters.forEach(parameter => {
                 if (parameter.insertAtLineNo === -1) {
-                    if ((i === 0) || (parameters[i-1].insertAtLineNo === -1)) {
+                    if ((i === 0) || (parameters[i - 1].insertAtLineNo === -1)) {
                         parameter.insertAtLineNo = ALDocCommentUtil.GetXmlDocumentationNodeLineNo(editor, procedureState!.position.start.line, 'summary');
                     } else {
-                        parameter.insertAtLineNo = parameters[i-1].insertAtLineNo + j;
+                        parameter.insertAtLineNo = parameters[i - 1].insertAtLineNo + j;
                     }
-                    editor.insertSnippet(new SnippetString(ALDocCommentUtil.GetXmlDocumentationNode(procedureDocumentation, 'param', 'name', parameter.name) + '\n'), 
+                    editor.insertSnippet(new SnippetString(ALDocCommentUtil.GetXmlDocumentationNode(procedureDocumentation, 'param', 'name', parameter.name) + '\n'),
                         new Position(parameter.insertAtLineNo, ALDocCommentUtil.GetLineStartPosition(editor.document, parameter.insertAtLineNo)));
                     j++;
                 }
                 i++;
-            });        
+            });
         } catch {
             return;
         }
     }
 
-    private FixReturnTypeDocumentation(editor: TextEditor | undefined, procedureState: { name: string; position: Range; definition: { [key: string]: string; }; documentation: string } | null) {    
+    private FixReturnTypeDocumentation(editor: TextEditor | undefined, procedureState: { name: string; position: Range; definition: { [key: string]: string; }; documentation: string } | null) {
         if (!editor) {
             return;
         }
         try {
             let procedureDocumentation = ALDocCommentUtil.GenerateProcedureDocString(ALSyntaxUtil.AnalyzeProcedureDefinition(editor.document.getText().replace('\r', '').split('\n')[procedureState!.position.start.line])!.groups!);
-            
+
             let lineNo = ALDocCommentUtil.GetLastXmlDocumentationLineNo(editor, procedureState!.position.start.line);
             if (lineNo === -1) {
                 return;
             }
-            editor.insertSnippet(new SnippetString(ALDocCommentUtil.GetXmlDocumentationNode(procedureDocumentation, 'returns') + '\n'), 
-                new Position(lineNo, ALDocCommentUtil.GetLineStartPosition(editor.document, lineNo)));    
+            editor.insertSnippet(new SnippetString(ALDocCommentUtil.GetXmlDocumentationNode(procedureDocumentation, 'returns') + '\n'),
+                new Position(lineNo, ALDocCommentUtil.GetLineStartPosition(editor.document, lineNo)));
         } catch {
             return;
         }

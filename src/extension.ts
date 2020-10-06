@@ -5,14 +5,19 @@ import { DoHover } from "./DoHover";
 import { DoCheckDocumentation } from "./DoCheckDocumentation";
 import { Configuration } from "./util/Configuration";
 
-export function activate(context: ExtensionContext) {	
+export async function activate(context: ExtensionContext) {	
 	Configuration.AskEnableCheckProcedureDocumentation();
 
 	const doComment = new DoComment();
 	const doExport = new DoExport();
 	const doHover = new DoHover();
 	const doCheckDocumentation = new DoCheckDocumentation();
-
+	let startTime = Date.now();
+	doCheckDocumentation.InitializeCheckDocumentation().then(() => {
+		let endDate = Date.now();
+		console.log(`AL XML Documentation full-scan finished in ${endDate - startTime}ms`);
+	});
+	
 	context.subscriptions.push(doComment);
 	context.subscriptions.push(doExport);
 	context.subscriptions.push(doHover);
