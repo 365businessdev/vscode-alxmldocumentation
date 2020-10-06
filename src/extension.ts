@@ -1,22 +1,19 @@
-import { ExtensionContext } from "vscode";
-import { DoComment } from "./DoComment";
-import { DoExport } from "./DoExport";
-import { DoHover } from "./DoHover";
-import { DoCheckDocumentation } from "./DoCheckDocumentation";
-import { Configuration } from "./util/Configuration";
+import { ExtensionContext, Disposable, workspace, window } from "vscode";
+import {ALSyntaxUtil} from "./util/ALSyntaxUtil";
 
 export function activate(context: ExtensionContext) {	
-	Configuration.AskEnableCheckProcedureDocumentation();
+	// const subscriptions: Disposable[] = [];
+	// let disposable: Disposable;
 
-	const doComment = new DoComment();
-	const doExport = new DoExport();
-	const doHover = new DoHover();
-	const doCheckDocumentation = new DoCheckDocumentation();
+	workspace.onDidChangeTextDocument(event => {
+		const activeEditor = window.activeTextEditor;
 
-	context.subscriptions.push(doComment);
-	context.subscriptions.push(doExport);
-	context.subscriptions.push(doHover);
-	context.subscriptions.push(doCheckDocumentation);
+		if (activeEditor && event.document === activeEditor.document) {
+			ALSyntaxUtil.GetObject(event.document);
+		}
+	});
+	
+	// disposable = Disposable.from(...subscriptions);
 
 	console.log("AL XML Documentation Extension has been activated.");
 }

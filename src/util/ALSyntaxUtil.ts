@@ -1,170 +1,472 @@
-import { isNullOrUndefined } from "util";
-import { TextDocument, Range, Position } from "vscode";
-import { Configuration } from "./Configuration";
+import { TextDocument } from "vscode";
+import { ALObject } from "../al-types/ALObject";
+import { ALAccessLevel, ALObjectType, ALCodeunitType, ALObsoleteState, ALProcedureType, ALProcedureSubtype } from "../types";
+import { ALProcedure } from "../al-types/ALProcedure";
+import { ALParameter } from "../al-types/ALParameter";
+import { FindALProceduresRegEx, ALProcedureDefinitionRegEx, ALProcedureAccessRegEx, FindALObjectWithoutIdRegExp, FindALObjectRegEx, FindBeginEndKeywordRegEx } from "./ALRegEx";
+import { performance } from "perf_hooks";
 
 export class ALSyntaxUtil {
-    public static IsObject(line: string): boolean {
-        if (line === null) {
-            return false;
-        }
 
-        var objectDef = this.AnalyzeObjectDefinition(line);
-        if (isNullOrUndefined(objectDef)) {
-            return false;
-        }        
-        var groups = objectDef.groups;
-        if (isNullOrUndefined(groups)) {
-            return false;
-        }
-        if (isNullOrUndefined(groups['ObjectType'])) {
-            return false;
-        }
+    /**
+     * Get ALObject from currently loaded text document object.
+     * @param document TextDocument to be analyzed.
+     */
+    public static GetObject(document: TextDocument): ALObject|null {
+        let t0 = performance.now();
+        let alObject: ALObject = new ALObject();
 
-        return true;
-    }
+        try {            
+            // get AL file properties
+            alObject.FileName = document.fileName.replace(/^.*[\\\/]/, "");
+            alObject.Path = document.fileName.replace(alObject.FileName, "");
 
-    public static IsProcedure(line: string, prevLine: string): boolean {
-        if (line === null) {
-            return false;
-        }
-
-        let procedureTypes = Configuration.ProcedureTypes();
-
-        const isEventPublisher: boolean = (prevLine.trim().startsWith('[BusinessEvent')) || (prevLine.trim().startsWith('[IntegrationEvent')) || (prevLine.trim().startsWith('[InternalEvent')) ;
-        if (isEventPublisher) {
-            if ((procedureTypes.length === 0) || (procedureTypes.includes('Event Publisher'))) {
-                return true;
+            // get AL object definition
+            let alObjectDefinition = this.GetObjectDefinition(document.getText());
+            if ((alObjectDefinition?.groups === null) || (alObjectDefinition?.groups === undefined)) {
+                console.debug(`Fatal error: Could not analyze ${alObject.FileName}. Please report this error at https://github.com/365businessdev/vscode-alxmldocumentation/issues.`);
+                return null;
             }
-            return false;
-        }
-
-        const isEventSubscriber: boolean = prevLine.trim().startsWith('[EventSubscriber');
-        if (isEventSubscriber) {
-            if ((procedureTypes.length === 0) || (procedureTypes.includes('Event Subscriber'))) {
-                return true;
+            alObject.Type = this.SelectALObjectType(alObjectDefinition.groups["ObjectType"]);
+            if (!((alObjectDefinition.groups["ObjectID"] === null) || (alObjectDefinition.groups["ObjectID"] === undefined))) {
+                alObject.ID = parseInt(alObjectDefinition.groups["ObjectID"]);
             }
-            return false;
+            alObject.Name = alObjectDefinition.groups["ObjectName"];
+
+            // get AL object properties
+            this.GetALObjectProperties(alObject, document.getText());
+
+            // get AL procedures
+            alObject.Procedures = this.GetALObjectProcedures(document.getText());
+
+            console.debug(alObject);
+            
+            let t1 = performance.now();
+            console.debug("Processing time for object " + alObject.Name + ": " + (t1 - t0) + " milliseconds.");
+
+            return alObject;   
         }
-        
-        const isTestProcedure: boolean = prevLine.trim().startsWith('[Test');
-        if (isTestProcedure) {
-            if ((procedureTypes.length === 0) || (procedureTypes.includes('Test Procedures'))) {
-                return true;
-            }
-            return false;
-        }
-
-        const isProcedure: boolean = line.trim().startsWith('procedure');
-        if ((isProcedure) && ((procedureTypes.length === 0) || (procedureTypes.includes('Global Procedures')))) {
-            return true;
-        }
-
-        const isInternalProcedure: boolean = line.trim().startsWith('internal procedure');
-        if ((isInternalProcedure) && ((procedureTypes.length === 0) || (procedureTypes.includes('Internal Procedures')))) {
-            return true;
-        }
-
-        const isLocalProcedure: boolean = line.trim().startsWith('local procedure');
-        if ((isLocalProcedure) && ((procedureTypes.length === 0) || (procedureTypes.includes('Local Procedures')))) {
-            return true;
-        }
-
-        const isTriggerProcedure: boolean = line.trim().startsWith('trigger');
-        if ((isTriggerProcedure) && ((procedureTypes.length === 0) || (procedureTypes.includes('Trigger Procedures')))) {
-            return true;
-        }
-
-        return false;
-    }
-
-    public static IsBeginEnd(line: string): boolean {
-        return (line.toLowerCase().match(/\bbegin\b|\bend\b/) !== null);
-    }
-
-    private static AnalyzeDefinition(regExResult: RegExpMatchArray | null) : RegExpMatchArray | null {
-        if (isNullOrUndefined(regExResult)) {
+        catch (ex)
+        {
+            console.error(`${ex} Please report this error at https://github.com/365businessdev/vscode-alxmldocumentation/issues.`);
             return null;
         }
-        return regExResult;
     }
 
-    public static GetALProcedureState(document: TextDocument, procedureLineNo: number = 0): { name: string; position: Range; definition: { [key: string]: string; }; documentation: string } | null {        
-        let alCode = document.getText().replace(/\r/g,'').split('\n');
-        if (procedureLineNo === 0) {
-            procedureLineNo = alCode.length - 1;
-        }
-        let alProcedureState = null;
-        for (let lineNo = procedureLineNo; lineNo > 0; lineNo--) {
-            let line = alCode[lineNo];
-            switch (true)
-            {
-                case ALSyntaxUtil.IsProcedure(line, (lineNo > 0) ? alCode[lineNo - 1] : ""):
-                    if (alProcedureState !== null ){
-                        return alProcedureState;
-                    }
-    
-                    let procedureDefinition = ALSyntaxUtil.AnalyzeProcedureDefinition(line)?.groups;
-                    if ((procedureDefinition === undefined) || (procedureDefinition === null)) {
-                        continue;
-                    }
-    
-                    alProcedureState = {
-                        name: procedureDefinition['ProcedureName'],
-                        position: new Range(
-                            new Position(lineNo, (line.length - line.trim().length)), 
-                            new Position(lineNo, line.length)),
-                        definition: procedureDefinition,
-                        documentation: ""
-                    };
-                    break;
-                case ALSyntaxUtil.IsBeginEnd(line):
-                case ALSyntaxUtil.IsObject(line):
-                    return alProcedureState;
-                default:            
-                    if ((alProcedureState !== null) && (line.trim().startsWith('///'))) {
-                        alProcedureState.documentation = `${line.replace('///','').trim()}\r\n${alProcedureState.documentation}`;
-                    }
-                    break;
-            }
-        }
+    /**
+     * Retrieve AL procedures from AL source code.
+     * @param code AL Source Code.
+     */
+    private static GetALObjectProcedures(code: string): Array<ALProcedure>|undefined {
+        try
+        {
+            let alProcedures: Array<ALProcedure> = [];
 
-        return alProcedureState;
-    }
-
-    public static FindProcedures(code: string): any {
-        let procedures: { procedureName : string, lineNo: number }[] = [];
-        code.match(/(?<!\/\/\/.*)((procedure)\s+(\")?(.+)\b(\")?[\(]*\)*.+)/g)?.forEach(match => {
-            procedures.push({
-                procedureName: match,
-                lineNo: this.GetProcedureLineNo(match, code)
+            code.match(FindALProceduresRegEx)?.forEach(match => {
+                alProcedures.push(
+                    this.GetALObjectProcedureDefinition(code, match)    
+                );
             });
-        });
 
-        return procedures;
+            return alProcedures;
+        }
+        catch (ex)
+        {
+            console.debug(ex);
+            return undefined;
+        }
     }
 
-    private static GetProcedureLineNo(procedureName: string, code: string): number {        
-        let codeLines = code.replace(/\r/g,'').split('\n');
-        let pos: number = -1;
-        codeLines.filter((x) => {
-            if (x.includes(procedureName)) {
-                pos = codeLines.indexOf(x);
+    /**
+     * Get procedure definition from AL source code.
+     * @param code AL Source Code.
+     * @param procedureName AL procedure name.
+     */
+    private static GetALObjectProcedureDefinition(code: string, procedureName: string): ALProcedure {
+        let alProcedure = new ALProcedure();
+
+        alProcedure.Name = procedureName;
+        alProcedure.LineNo = this.GetALObjectProcedureLineNo(code, procedureName);
+        
+        // let codeLines = code.replace(/\r/g,"").split("\n");
+        // alProcedure.Access = this.GetALProcedureAccessLevel(codeLines[alProcedure.LineNo]);
+
+        let alProcedureDefinition = procedureName.match(ALProcedureDefinitionRegEx)?.groups;
+        if ((alProcedureDefinition === undefined) || (alProcedureDefinition === null)) {
+            console.debug(`Failed to get procedure definition for ${alProcedure.Name}.`);
+        } else {
+            alProcedure.Name = alProcedureDefinition["ProcedureName"];
+            alProcedure.Access = this.GetALProcedureAccessLevel(alProcedureDefinition['Access']);
+            // get procedure type from procedure definition
+            switch (alProcedureDefinition["Type"].toLowerCase()) {
+                case "trigger":
+                    alProcedure.Type = ALProcedureType.Trigger;
+                    break;
+                case "procedure":
+                    alProcedure.Type = ALProcedureType.Procedure;
+                    break;
             }
-        });
+            // get parameters from procedure definition
+            if (alProcedureDefinition["Params"] !== undefined) {
+                let alProcedureParams: Array<string> = [];
+                if (alProcedureDefinition["Params"].indexOf(";") === -1) { // only one parameter
+                    alProcedureParams.push(alProcedureDefinition["Params"]);
+                } else { // multiple parameters
+                    alProcedureDefinition["Params"].split(";").forEach(param => {
+                        alProcedureParams.push(param);
+                    });
+                }
+
+                alProcedureParams.forEach(param => {
+                    let alParameter: ALParameter = new ALParameter();
+                    alParameter.CallByReference = (param.split(":")[0].match(/\bvar\s/) !== null);
+                    alParameter.Name = param.split(":")[0].trim();
+                    // remove var prefix for call-by-reference parameter
+                    if (alParameter.CallByReference) {
+                        alParameter.Name = alParameter.Name.substr(4).trim();
+                    }
+                    if (param.indexOf(":") !== -1) {
+                        if (param.split(":")[1].trim().indexOf(" ") === -1) {
+                            alParameter.Type = param.split(":")[1].trim();
+                        } else {
+                            alParameter.Type = param.split(":")[1].trim().split(" ")[0];
+                            // TODO: Find a smarter solution
+                            alParameter.Subtype = "";
+                            for (let i = 1; i <= param.split(":")[1].trim().split(" ").length - 1; i++) {
+                                alParameter.Subtype = `${alParameter.Subtype} ${param.split(":")[1].trim().split(" ")[i]}`;
+                            }
+                            alParameter.Subtype = alParameter.Subtype.trim();
+                        }
+                        alProcedure.Parameters.push(alParameter);
+                    }
+                });
+            }
+            // get return type from procedure definition
+            if (alProcedureDefinition["ReturnType"] !== undefined) {
+                if (alProcedureDefinition["ReturnType"].indexOf(":") === -1) {
+                    alProcedure.Return = {
+                        Name : "",
+                        Type : alProcedureDefinition["ReturnType"].trim()
+                    };
+                } else {
+                    alProcedure.Return = {
+                        Name : alProcedureDefinition["ReturnType"].split(":")[0].trim(),
+                        Type : alProcedureDefinition["ReturnType"].split(":")[1].trim()
+                    };
+                }     
+                if (alProcedure.Return.Type[alProcedure.Return.Type.length - 1] === "/") {
+                    alProcedure.Return.Type = alProcedure.Return.Type.substring(0, alProcedure.Return.Type.length - 2).trim();
+                }
+                if (alProcedure.Return.Type === "") {
+                    alProcedure.Return = undefined;
+                }
+            }
+        }
+
+        this.GetALProcedureProperties(alProcedure, code);
+
+        return alProcedure;
+    }
+
+    /**
+     * Analyze code lines prior to AL procedure declaration to get AL procedure properties.
+     * @param alProcedure ALProcedure object.
+     * @param code AL Source Code.
+     */
+    private static GetALProcedureProperties(alProcedure: ALProcedure, code: string) {
+        if ((alProcedure.Name === "") || (alProcedure.LineNo === 0)) {
+            return;
+        }
+
+        let codeLines = this.SplitALCodeToLines(code);
+        for (let lineNo: number = alProcedure.LineNo; lineNo >= 0; lineNo--) {
+            if (this.IsBeginEnd(codeLines[lineNo])) {
+                return;
+            }
+            // get TableNo property for OnRun trigger
+            if ((alProcedure.Type === ALProcedureType.Trigger) && (alProcedure.Name === "OnRun")) {                
+                let tableNoSubtype = codeLines[lineNo].match(/(?<!\/\/.*).*?TableNo\s\=(?<Subtype>.*)\;/);
+                if ((tableNoSubtype !== null) && (tableNoSubtype !== undefined) && (tableNoSubtype.groups !== undefined)) {
+                    
+                    let alParameter = new ALParameter();
+                    alParameter.Name = "Rec";
+                    alParameter.Type = "Record";
+                    alParameter.Subtype = tableNoSubtype.groups['Subtype'].trim();
+                    alProcedure.Parameters.push(alParameter);  
+                }
+            }
+
+            // check for TryFunction Property
+            if (codeLines[lineNo].match(/(?<!\/\/.*).*?\[TryFunction\]/) !== null) {
+                alProcedure.TryFunction = true;
+            }
+            // check for EventSubscriber Subtype
+            if (codeLines[lineNo].match(/(?<!\/\/.*).*?\[EventSubscriber\(.*\]/) !== null) {
+                this.SetALProcedureSubtype(alProcedure, ALProcedureSubtype.EventSubscriber);
+            }
+            // check for EventPublisher Subtype
+            if (codeLines[lineNo].match(/(?<!\/\/.*).*?\[IntegrationEvent\(.*\]/) !== null) {
+                this.SetALProcedureSubtype(alProcedure, ALProcedureSubtype.EventPublisher);
+            }
+            if (codeLines[lineNo].match(/(?<!\/\/.*).*?\[BusinessEvent\(.*\]/) !== null) {
+                this.SetALProcedureSubtype(alProcedure, ALProcedureSubtype.EventPublisher);
+            }
+            // check for Test Subtype
+            if (codeLines[lineNo].match(/(?<!\/\/.*).*?\[Test\(.*\]/) !== null) {
+                this.SetALProcedureSubtype(alProcedure, ALProcedureSubtype.Test);
+            }
+            // check for ObsoleteState
+            let obsoleteReason = codeLines[lineNo].match(/(?<!\/\/.*).*?\[Obsolete\((?<ObsoleteReason>.*)\)\]/);
+            if ((obsoleteReason !== null) && (obsoleteReason !== undefined) && (obsoleteReason.groups !== undefined)) {
+                alProcedure.ObsoleteState = ALObsoleteState.Pending;
+                alProcedure.ObsoleteReason = obsoleteReason.groups['ObsoleteReason'];
+            }
+        }
+    }
+
+    /**
+     * Set ALProcedureSubtype in ALProcedure object.
+     * @param alProcedure ALProcedure object.
+     * @param subtype ALProcedureSubtype object to be assigned.
+     */
+    private static SetALProcedureSubtype(alProcedure: ALProcedure, subtype: ALProcedureSubtype) {
+        if (alProcedure.Subtype !== ALProcedureSubtype.Normal) {
+            console.debug(`WARNING: Procedure ${alProcedure.Name} has already been assigned to ${alProcedure.Subtype}, but now ${subtype} subtype has been found.`);
+        }
+        alProcedure.Subtype = ALProcedureSubtype.EventPublisher;
+    }
+
+    /**
+     * Get Access Modifier from AL procedure.
+     * @param code AL Source Code.
+     */
+    private static GetALProcedureAccessLevel(accessLevel: string | undefined): ALAccessLevel {
+        try {
+            if (accessLevel === undefined) {
+                return ALAccessLevel.Public;
+            }
+
+            switch(accessLevel.trim().toLowerCase()) {
+                case "internal":
+                    return ALAccessLevel.Internal;
+                case "local":
+                    return ALAccessLevel.Local;
+                case "protected":
+                    return ALAccessLevel.Protected;
+                default:
+                    throw new Error(`Unexpected Access Modifier ${accessLevel}.`);
+            }
+        }
+        catch (ex)
+        {
+            console.debug(`[GetALProcedureAccessLevel] - ${ex}`);
+            return ALAccessLevel.Public;
+        }
+    }
+
+    /**
+     * Get line number of the AL procedure.
+     * @param code AL Source Code.
+     * @param procedureName Name of the AL procedure.
+     */
+    private static GetALObjectProcedureLineNo(code: string, procedureName: string): number {        
+        let pos: number = -1;
+
+        code = code.substring(0, code.indexOf(procedureName));
+        let newLinesInCode: RegExpMatchArray | null = code.match(/\n/g); // count occurance of newline char
+        if (newLinesInCode === null) {
+            pos = 0;
+        } else {
+            pos = newLinesInCode.length;
+        }
 
         return pos;
     }
 
-    public static AnalyzeProcedureDefinition(code: string): RegExpMatchArray | null {
-        //return this.AnalyzeDefinition(code.match(/(trigger|(?!local)procedure)\s+(?<ProcedureName>[A-Za-z0-9_]+)\b[^\(]*\((?<Params>.*)\)(?<ReturnType>((.*\:\s*)[A-Za-z0-9\s\""\.\[\]]+))?/));
-        return this.AnalyzeDefinition(code.match(/(?<!\/\/\/.*)(?<Type>(procedure|trigger))\s+(\")?(?<ProcedureName>.+)\b[^\(]*\((?<Params>.*)\)((\s*(return)?\:\s*)(?<ReturnType>[A-Za-z0-9\s\""\.\[\]]+))?/));
+    /**
+     * Retrieve AL Object properties.
+     * @param alObject ALObject object.
+     * @param code AL Source Code.
+     */
+    private static GetALObjectProperties(alObject: ALObject, code: string) {
+        alObject.Access = this.GetALObjectAccessLevel(code);
+        alObject.Subtype = this.GetALObjectSubtype(code);
+        alObject.ObsoleteState = this.GetALObjectObsoleteState(code);
+        alObject.ObsoleteReason = this.GetALObjectObsoleteReason(code);
     }
 
-    public static AnalyzeObjectDefinition(code: string): RegExpMatchArray | null {
-        if ((code.startsWith('interface')) || (code.startsWith('controladdin'))) {
-            return this.AnalyzeDefinition(code.match(/^(?<ObjectType>[A-Za-z]*)\b\s(?<ObjectName>"(?:[^"\\]|\\.)*"|([A-Za-z0-9]+))/));
-        } else {
-            return this.AnalyzeDefinition(code.match(/^(?<ObjectType>[A-Za-z]*)\b\s+(?<ObjectID>[0-9]+)\b\s(?<ObjectName>"(?:[^"\\]|\\.)*"|([A-Za-z0-9]+))/));
+    /**
+     * Retrieve AL Object ObsoleteReason Property from Source Code.
+     * @param code AL Source Code.
+     */
+    private static GetALObjectObsoleteReason(code: string): string {
+        let obsoleteReason = code.match(/ObsoleteReason = (.*);/m);
+        try 
+        {
+            if ((obsoleteReason === null) || (obsoleteReason[1] === undefined)) {
+                return "";
+            }
+            return obsoleteReason[1];
         }
+        catch(ex)
+        {
+            console.debug(`[GetALObjectObsoleteReason] - ${ex}`);
+            return "";
+        }
+    }
+
+    /**
+     * Retrieve AL Object ObsoleteState Property from Source Code.
+     * @param code AL Source Code.
+     */
+    private static GetALObjectObsoleteState(code: string): ALObsoleteState {
+        let obsoleteState = code.match(/ObsoleteState = (.*);/m);
+        try 
+        {
+            if ((obsoleteState === null) || (obsoleteState[1] === undefined)) {
+                return ALObsoleteState.No;
+            }
+            
+            switch(obsoleteState[1].toLowerCase()) {
+                case "no":
+                    return ALObsoleteState.No;
+                case "pending":
+                    return ALObsoleteState.Pending;
+                default:
+                    throw new Error(`Unexpected ObsoleteState: ${obsoleteState[1]}.`);
+            }
+        }
+        catch(ex)
+        {
+            console.debug(`[GetALObjectObsoleteState] - ${ex}`);
+            return ALObsoleteState.No;
+        }
+    }
+
+    /**
+     * Retrieve AL Object Subtype Property from Source Code.
+     * @param code AL Source Code.
+     */
+    private static GetALObjectSubtype(code: string): ALCodeunitType {
+        let subtype = code.match(/Subtype = (.*);/m);
+        try 
+        {
+            if ((subtype === null) || (subtype[1] === undefined)) {
+                return ALCodeunitType.Normal;
+            }
+            
+            switch(subtype[1].toLowerCase()) {
+                case "normal":
+                    return ALCodeunitType.Normal;
+                case "install":
+                    return ALCodeunitType.Install;            
+                case "upgrade":
+                    return ALCodeunitType.Upgrade;
+                case "test":
+                    return ALCodeunitType.Test;
+                case "testrunner":
+                    return ALCodeunitType.TestRunner;
+                default:
+                    throw new Error(`Unexpected Subtype: ${subtype[1]}.`);
+            }
+        }
+        catch(ex)
+        {
+            console.debug(`[GetALObjectSubtype] - ${ex}`);
+            return ALCodeunitType.Normal;
+        }
+    }
+
+    /**
+     * Retrieve AL Object Access Property from Source Code.
+     * @param code AL Source Code.
+     */
+    private static GetALObjectAccessLevel(code: string): ALAccessLevel {
+        let accessLevel = code.match(/Access = (.*);/m);
+        try 
+        {
+            if ((accessLevel === null) || (accessLevel[1] === undefined)) {
+                return ALAccessLevel.Public;;
+            }
+
+            switch(accessLevel[1].toLowerCase()) {
+                case "internal":
+                    return ALAccessLevel.Internal;
+                case "public":
+                    return ALAccessLevel.Public;
+                default:
+                    throw new Error(`Unexpected Access Modifier: ${accessLevel[1]}.`);
+            }
+        }
+        catch(ex)
+        {
+            console.debug(`[GetALObjectAccessLevel] - ${ex}`);
+            return ALAccessLevel.Public;
+        }
+    }
+
+    /**
+     * Select ALObjectType Enum based on given AL Keyword (e.g. tableextension).
+     * @param alKeyword AL keyword from source code.
+     */
+    private static SelectALObjectType(alKeyword: string): ALObjectType|undefined {
+        switch (alKeyword) {
+            case "codeunit":
+                return ALObjectType.Codeunit;
+            case "table":
+                return ALObjectType.Table;
+            case "tableextension":
+                return ALObjectType.TableExtension;
+            case "page": 
+                return ALObjectType.Page;
+            case "pageextension":
+                return ALObjectType.PageExtension;
+            case "report":
+                return ALObjectType.Report;
+            case "query":
+                return ALObjectType.Query;
+            case "xmlport":
+                return ALObjectType.XmlPort;
+            case "controladdin":
+                return ALObjectType.ControlAddIn;
+            case "enum":
+                return ALObjectType.Enum;
+            case "enumextension":
+                return ALObjectType.EnumExtension;
+            case "interface":
+                return ALObjectType.Interface;
+            default:
+                console.debug(`Fatal error: Unknown AL object keyword received ${alKeyword}!`);
+                return undefined;
+        }
+    }
+
+    /**
+     * Get object definition from AL source code.
+     * @param code AL Source Code.
+     */
+    private static GetObjectDefinition(code: string): RegExpMatchArray | null {
+        // TODO: This does not work when prior to keyword any lines exist.
+        if ((code.startsWith("interface")) || (code.startsWith("controladdin"))) {
+            return code.match(FindALObjectWithoutIdRegExp);
+        } else {
+            return code.match(FindALObjectRegEx);
+        }
+    }
+
+    /**
+     * Split string object, containing AL Source Code, in string array per line.
+     * @param code AL Source Code.
+     */
+    private static SplitALCodeToLines(code: string): Array<string> {
+        return code.replace(/\r/g,"").split("\n");
+    }
+
+    /**
+     * Test current AL Source Code line for containing "begin" or "end;" keyword.
+     * @param line AL Source Code line.
+     */
+    private static IsBeginEnd(line: string): boolean {
+        return (line.toLowerCase().match(FindBeginEndKeywordRegEx) !== null);
     }
 }

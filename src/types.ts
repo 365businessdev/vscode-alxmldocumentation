@@ -1,22 +1,76 @@
-export type AlXmlDocConfig = {
-	markdown_path: string;
-	verbose: boolean;
-	exportScope: string;
-	enableDocComments: boolean;
-	enableSummaryHover: boolean;
-	enableSignatureHover: boolean;
-	checkProcedureDocumentation: boolean;
-	askEnableCheckProcedureDocumentation: boolean;
+/**
+ * AL Object Types.
+ */
+export enum ALObjectType {
+	Codeunit,
+	Table,
+    Page,
+	Query,
+	Report,
+	XmlPort,
+	Enum,
+	TableExtension,
+	PageExtension,
+	EnumExtension,
+	Interface,
+	ControlAddIn
 };
 
-export enum CodeType {
-	Undefined = 0,
-    Procedure = 1,
-    Object = 2
-};
+/**
+ * AL Codeunit Types.
+ */
+export enum ALCodeunitType {
+	Normal,
+	Test,
+	TestRunner,
+	Install,
+	Upgrade
+}
 
+/**
+ * AL Access Level.
+ */
+export enum ALAccessLevel {
+	Public,
+	Internal,
+	Local,
+	Protected
+}
+
+/**
+ * AL Obsolete State.
+ */
+export enum ALObsoleteState {
+	No,
+	Pending
+}
+
+/**
+ * AL Procedure Types.
+ */
+export enum ALProcedureType {
+	Procedure,
+	Trigger
+}
+
+/**
+ * AL Procedure Subtype.
+ */
+export enum ALProcedureSubtype {
+	Normal,
+	Test,
+	EventPublisher,
+	EventSubscriber
+}
+
+/**
+ * General prefix used for diagnostics.
+ */
 export const ALXmlDocDiagnosticPrefix = "AL-XML-DOC";
 
+/**
+ * Diagnostics codes.
+ */
 export enum ALXmlDocDiagnosticCode {
 	XmlDocumentationMissing = "DOC0001", // XML documentation is missing
 	SummaryMissing = "DOC0002", // Summary is missing
