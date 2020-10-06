@@ -1,21 +1,20 @@
 import { ExtensionContext, Disposable, workspace, window } from "vscode";
-import {ALSyntaxUtil} from "./util/ALSyntaxUtil";
+import { ALObject } from "./al-types/ALObject";
+import { ALXmlDoc } from "./ALXmlDoc";
 
-export function activate(context: ExtensionContext) {	
-	// const subscriptions: Disposable[] = [];
-	// let disposable: Disposable;
-
-	workspace.onDidChangeTextDocument(event => {
-		const activeEditor = window.activeTextEditor;
-
-		if (activeEditor && event.document === activeEditor.document) {
-			ALSyntaxUtil.GetObject(event.document);
-		}
-	});
+export async function activate(context: ExtensionContext) {	
+	const alXmlDoc = new ALXmlDoc();
 	
-	// disposable = Disposable.from(...subscriptions);
+	let startTime = Date.now();
+	let ALObjects: Array<ALObject> = [];
 
-	console.log("AL XML Documentation Extension has been activated.");
+	alXmlDoc.Initialize().then(alObjects => {
+		let endTime = Date.now();
+
+		ALObjects = alObjects;
+
+		console.log(`AL XML Documentation Extension has been activated in ${endTime - startTime}ms.`);
+	});
 }
 
 // this method is called when your extension is deactivated
