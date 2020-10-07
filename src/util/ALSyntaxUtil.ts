@@ -3,7 +3,7 @@ import { ALObject } from "../al-types/ALObject";
 import { ALAccessLevel, ALObjectType, ALCodeunitType, ALObsoleteState, ALProcedureType, ALProcedureSubtype } from "../types";
 import { ALProcedure } from "../al-types/ALProcedure";
 import { ALParameter } from "../al-types/ALParameter";
-import { FindALProceduresRegEx, ALProcedureDefinitionRegEx, ALProcedureAccessRegEx, FindALObjectWithoutIdRegExp, FindALObjectRegEx, FindBeginEndKeywordRegEx } from "./ALRegEx";
+import { FindALProceduresRegEx, ALProcedureDefinitionRegEx, FindALObjectRegEx, FindBeginEndKeywordRegEx } from "./ALRegEx";
 import { performance } from "perf_hooks";
 
 export class ALSyntaxUtil {
@@ -22,9 +22,9 @@ export class ALSyntaxUtil {
             alObject.Path = document.fileName.replace(alObject.FileName, "");
 
             // get AL object definition
-            let alObjectDefinition = this.GetObjectDefinition(document.getText());
+            let alObjectDefinition = document.getText().match(FindALObjectRegEx);
             if ((alObjectDefinition?.groups === null) || (alObjectDefinition?.groups === undefined)) {
-                console.debug(`Fatal error: Could not analyze ${alObject.FileName}. Please report this error at https://github.com/365businessdev/vscode-alxmldocumentation/issues.`);
+                console.error(`Fatal error: Could not analyze ${alObject.FileName}. Please report this error at https://github.com/365businessdev/vscode-alxmldocumentation/issues.`);
                 return null;
             }
             alObject.Type = this.SelectALObjectType(alObjectDefinition.groups["ObjectType"]);
@@ -42,7 +42,7 @@ export class ALSyntaxUtil {
             console.debug(alObject);
             
             let t1 = performance.now();
-            console.debug("Processing time for object " + alObject.Name + ": " + (t1 - t0) + " milliseconds.");
+            console.debug("Processing time for object " + alObject.Name + ": " + Math.round((t1 - t0) * 100 / 100) + " milliseconds.");
 
             return alObject;   
         }
@@ -438,19 +438,6 @@ export class ALSyntaxUtil {
             default:
                 console.debug(`Fatal error: Unknown AL object keyword received ${alKeyword}!`);
                 return undefined;
-        }
-    }
-
-    /**
-     * Get object definition from AL source code.
-     * @param code AL Source Code.
-     */
-    private static GetObjectDefinition(code: string): RegExpMatchArray | null {
-        // TODO: This does not work when prior to keyword any lines exist.
-        if ((code.startsWith("interface")) || (code.startsWith("controladdin"))) {
-            return code.match(FindALObjectWithoutIdRegExp);
-        } else {
-            return code.match(FindALObjectRegEx);
         }
     }
 

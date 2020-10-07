@@ -1,8 +1,7 @@
 /**
  * Regular Expressions to find AL Object in Source Code.
  */
-export const FindALObjectRegEx: RegExp = /^(?<ObjectType>[A-Za-z]*)\b\s+(?<ObjectID>[0-9]+)\b\s(?<ObjectName>"(?:[^"\\]|\\.)*"|([A-Za-z0-9]+))/m;
-export const FindALObjectWithoutIdRegExp: RegExp = /^(?<ObjectType>[A-Za-z]*)\b\s(?<ObjectName>"(?:[^"\\]|\\.)*"|([A-Za-z0-9]+))/m;
+export const FindALObjectRegEx: RegExp = /^(?<ObjectType>[A-Za-z]*)\b\s+((?<ObjectID>[0-9]+)\b\s)?(?<ObjectName>"(?:[^"\\]|\\.)*"|([A-Za-z0-9]+))/m;
 
 /**
  * Regular Expressions to find AL Procedures in Source Code.
