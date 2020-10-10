@@ -1,19 +1,24 @@
 import { ExtensionContext, Disposable, workspace, window } from "vscode";
-import { ALObject } from "./al-types/ALObject";
-import { ALXmlDoc } from "./ALXmlDoc";
+import { Controller } from "./Controller";
+import { ALSyntaxUtil } from "./util/ALSyntaxUtil";
 
 export async function activate(context: ExtensionContext) {	
-	const alXmlDoc = new ALXmlDoc();
+	const controller = new Controller();
 	
 	let startTime = Date.now();
-	let ALObjects: Array<ALObject> = [];
 
-	alXmlDoc.Initialize().then(alObjects => {
+	controller.Initialize().then(() => {
 		let endTime = Date.now();
 
-		ALObjects = alObjects;
+		console.log(`AL XML Documentation Extension has been activated. Initialization took ${Math.round((endTime - startTime) * 100 / 100)}ms.`);
+	});
 
-		console.log(`AL XML Documentation Extension has been activated in ${endTime - startTime}ms.`);
+	workspace.onDidChangeTextDocument(event => {
+		const activeEditor = window.activeTextEditor;
+
+		if (activeEditor && event.document === activeEditor.document) {
+			ALSyntaxUtil.GetObject(event.document);
+		}
 	});
 }
 
