@@ -3,23 +3,23 @@ import { workspace, window, ProgressLocation, RelativePattern, Uri } from "vscod
 import { readFile } from "fs-extra";
 import { ALSyntaxUtil } from "./util/ALSyntaxUtil";
 
-export class ALXmlDoc {
+export class Controller {
 
     constructor() {
 
     }
 
-    public async Initialize(): Promise<Array<ALObject>> {
-        let alObjects: Array<ALObject> = [];
+    public async Initialize() {
         try 
         {
             await window.withProgress({
                 location: ProgressLocation.Window,
                 title: 'AL XML Documentation initialization in progress...',
             }, async (progress, token) => {
+                // TODO: Respect configuration
                 let workspacePaths = workspace.workspaceFolders;
                 if ((!workspacePaths) || (workspacePaths === undefined)) {
-                    throw new Error("Workspace folders could not be retreived.");
+                    throw new Error("Workspace folders could not be retrieved.");
                 }
     
                 for (let validPath of workspacePaths) {
@@ -40,13 +40,11 @@ export class ALXmlDoc {
                         let document = Object.assign({});
                         document.uri = file.uri;
                         document.getText = () => file.content;
-                        document.filename = file.uri.fsPath;
+                        document.fileName = file.uri.fsPath;
                         
                         let alObject: ALObject|null = ALSyntaxUtil.GetObject(document as any);
                         if (alObject !== null) {
-                            alObjects.push(alObject);
-                        } else {
-                            console.log(`${document.uri} could not be parsed.`);
+                            // TODO: Check documentation                            
                         }
                     };
                     let max = relevantFiles.length;
@@ -54,7 +52,7 @@ export class ALXmlDoc {
                         let file = relevantFiles[i];
                         tasks.push(task(file!));
     
-                        if (i % 500 == 0) {
+                        if (i % 500 === 0) {
                             await Promise.all(tasks);
                             tasks = [];
                         }
@@ -72,6 +70,5 @@ export class ALXmlDoc {
         {
             console.debug(ex);
         }
-        return alObjects;
     }
 }
