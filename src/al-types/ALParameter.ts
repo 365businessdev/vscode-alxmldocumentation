@@ -22,4 +22,9 @@ export class ALParameter {
      * @type {boolean}
      */
     public CallByReference: boolean = false;
+
+    /**
+     * XML Documentation.
+     */
+    public XmlDocumentation: string = "";
 }

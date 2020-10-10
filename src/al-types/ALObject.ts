@@ -1,4 +1,4 @@
-import { ALObjectType, ALCodeunitType, ALObsoleteState, ALAccessLevel } from "../types";
+import { ALObjectType, ALCodeunitType, ALObsoleteState, ALAccessLevel, ALObjectExtensionType } from "../types";
 import { ALProcedure } from "./ALProcedure";
 
 export class ALObject {
@@ -36,13 +36,23 @@ export class ALObject {
      * Type of the AL Object.
      * @type {ALObjectType}
      */
-    public Type: ALObjectType|undefined;
+    public Type: ALObjectType = ALObjectType.Unknown;
 
     /**
      * Subtype of the AL Object.
      * @type {ALCodeunitType}
      */
     public Subtype: ALCodeunitType = ALCodeunitType.Normal;
+
+    /**
+     * Type of object extension or undefined.
+     */
+    public ExtensionType: ALObjectExtensionType | undefined;
+
+    /**
+     * Name of the object implemented/extended or undefined.
+     */
+    public ExtensionObject: string | undefined;
 
     /**
      * Obsolete State of the AL Object.
@@ -60,5 +70,10 @@ export class ALObject {
      * List of procedures in the AL Object or undefined.
      * @type {Array<ALProcedure>|undefined}
      */
-    public Procedures: Array<ALProcedure>|undefined = undefined;
+    public Procedures: Array<ALProcedure>|undefined;
+
+    /**
+     * XML Documentation.
+     */
+    public XmlDocumentation: string = "";
 }

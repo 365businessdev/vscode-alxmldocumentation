@@ -1,5 +1,6 @@
 import { ALProcedureType, ALAccessLevel, ALProcedureSubtype, ALObsoleteState } from "../types";
 import { ALParameter } from "./ALParameter";
+import { ALProcedureReturn } from "./ALProcedureReturn";
 
 export class ALProcedure {
     /**
@@ -45,7 +46,7 @@ export class ALProcedure {
     public ObsoleteState: ALObsoleteState = ALObsoleteState.No;
 
     /**
-     * Obsolete Reasone for procedure.
+     * Obsolete Reason for procedure.
      * @type {string}
      */
     public ObsoleteReason: string = "";
@@ -58,7 +59,12 @@ export class ALProcedure {
 
     /**
      * Return value of the procedure.
-     * @type {{Name,Type}}
+     * @type {ALProcedureReturn}
      */
-    public Return: { Name: string, Type: string } | undefined = undefined;
+    public Return: ALProcedureReturn | undefined = undefined;
+
+    /**
+     * XML Documentation.
+     */
+    public XmlDocumentation: string = "";
 }

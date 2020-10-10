@@ -1,10 +1,12 @@
 import { TextDocument } from "vscode";
+import { ALAccessLevel, ALObjectType, ALCodeunitType, ALObsoleteState, ALProcedureType, ALProcedureSubtype, ALXmlDocDiagnosticCode, ALXmlDocDiagnosticMessage, ALObjectExtensionType } from "../types";
+import { FindALProceduresRegEx, ALProcedureDefinitionRegEx, FindALObjectRegEx, FindBeginEndKeywordRegEx } from "./ALRegEx";
 import { ALObject } from "../al-types/ALObject";
-import { ALAccessLevel, ALObjectType, ALCodeunitType, ALObsoleteState, ALProcedureType, ALProcedureSubtype } from "../types";
 import { ALProcedure } from "../al-types/ALProcedure";
 import { ALParameter } from "../al-types/ALParameter";
-import { FindALProceduresRegEx, ALProcedureDefinitionRegEx, FindALObjectRegEx, FindBeginEndKeywordRegEx } from "./ALRegEx";
+import { ALDocCommentUtil } from "./ALDocCommentUtil";
 import { performance } from "perf_hooks";
+import { ALProcedureReturn } from "../al-types/ALProcedureReturn";
 
 export class ALSyntaxUtil {
 
@@ -33,16 +35,31 @@ export class ALSyntaxUtil {
             }
             alObject.Name = alObjectDefinition.groups["ObjectName"];
 
+            if (!((alObjectDefinition.groups['ExtensionType'] === null) || (alObjectDefinition.groups['ExtensionType'] === undefined))) {
+                switch (alObjectDefinition.groups['ExtensionType']) {
+                    case "extends":
+                        alObject.ExtensionType = ALObjectExtensionType.Extend;
+                        break;
+                    case "implements":
+                        alObject.ExtensionType = ALObjectExtensionType.Implement;
+                        break;
+                }
+                alObject.ExtensionObject = alObjectDefinition.groups['ExtensionObject'].trim();
+            }
+
             // get AL object properties
             this.GetALObjectProperties(alObject, document.getText());
 
             // get AL procedures
-            alObject.Procedures = this.GetALObjectProcedures(document.getText());
+            this.GetALObjectProcedures(alObject, document.getText());
+
+            // get XML Documentation
+            ALDocCommentUtil.GenerateObjectDocString(alObject);
 
             console.debug(alObject);
             
             let t1 = performance.now();
-            console.debug("Processing time for object " + alObject.Name + ": " + Math.round((t1 - t0) * 100 / 100) + " milliseconds.");
+            console.debug("Processing time for object " + alObject.Name + ": " + Math.round((t1 - t0) * 100 / 100) + "ms.");
 
             return alObject;   
         }
@@ -55,9 +72,10 @@ export class ALSyntaxUtil {
 
     /**
      * Retrieve AL procedures from AL source code.
+     * @param alObject ALObject object.
      * @param code AL Source Code.
      */
-    private static GetALObjectProcedures(code: string): Array<ALProcedure>|undefined {
+    private static GetALObjectProcedures(alObject: ALObject, code: string) {
         try
         {
             let alProcedures: Array<ALProcedure> = [];
@@ -68,12 +86,12 @@ export class ALSyntaxUtil {
                 );
             });
 
-            return alProcedures;
+            alObject.Procedures = alProcedures;
         }
         catch (ex)
         {
-            console.debug(ex);
-            return undefined;
+            console.error(`Unable to retrieve procedures from object ${alObject.Name}. Please report this error at https://github.com/365businessdev/vscode-alxmldocumentation/issues.`);
+            console.error(ex);
         }
     }
 
@@ -87,9 +105,6 @@ export class ALSyntaxUtil {
 
         alProcedure.Name = procedureName;
         alProcedure.LineNo = this.GetALObjectProcedureLineNo(code, procedureName);
-        
-        // let codeLines = code.replace(/\r/g,"").split("\n");
-        // alProcedure.Access = this.GetALProcedureAccessLevel(codeLines[alProcedure.LineNo]);
 
         let alProcedureDefinition = procedureName.match(ALProcedureDefinitionRegEx)?.groups;
         if ((alProcedureDefinition === undefined) || (alProcedureDefinition === null)) {
@@ -137,33 +152,32 @@ export class ALSyntaxUtil {
                             }
                             alParameter.Subtype = alParameter.Subtype.trim();
                         }
+                        ALDocCommentUtil.GenerateParameterDocString(alParameter);
                         alProcedure.Parameters.push(alParameter);
                     }
                 });
             }
             // get return type from procedure definition
             if (alProcedureDefinition["ReturnType"] !== undefined) {
+                let alReturn: ALProcedureReturn = new ALProcedureReturn();
                 if (alProcedureDefinition["ReturnType"].indexOf(":") === -1) {
-                    alProcedure.Return = {
-                        Name : "",
-                        Type : alProcedureDefinition["ReturnType"].trim()
-                    };
+                    alReturn.Type = alProcedureDefinition["ReturnType"].trim();
                 } else {
-                    alProcedure.Return = {
-                        Name : alProcedureDefinition["ReturnType"].split(":")[0].trim(),
-                        Type : alProcedureDefinition["ReturnType"].split(":")[1].trim()
-                    };
+                    alReturn.Name = alProcedureDefinition["ReturnType"].split(":")[0].trim();
+                    alReturn.Type = alProcedureDefinition["ReturnType"].split(":")[1].trim();
                 }     
-                if (alProcedure.Return.Type[alProcedure.Return.Type.length - 1] === "/") {
-                    alProcedure.Return.Type = alProcedure.Return.Type.substring(0, alProcedure.Return.Type.length - 2).trim();
+                if (alReturn.Type[alReturn.Type.length - 1] === "/") {
+                    alReturn.Type = alReturn.Type.substring(0, alReturn.Type.length - 2).trim();
                 }
-                if (alProcedure.Return.Type === "") {
+                if (alReturn.Type === "") {
                     alProcedure.Return = undefined;
                 }
+                ALDocCommentUtil.GenerateProcedureReturnDocString(alReturn);
+                alProcedure.Return = alReturn;
             }
         }
-
         this.GetALProcedureProperties(alProcedure, code);
+        ALDocCommentUtil.GenerateProcedureDocString(alProcedure);
 
         return alProcedure;
     }
@@ -192,6 +206,8 @@ export class ALSyntaxUtil {
                     alParameter.Name = "Rec";
                     alParameter.Type = "Record";
                     alParameter.Subtype = tableNoSubtype.groups['Subtype'].trim();
+
+                    ALDocCommentUtil.GenerateParameterDocString(alParameter);
                     alProcedure.Parameters.push(alParameter);  
                 }
             }
@@ -409,7 +425,7 @@ export class ALSyntaxUtil {
      * Select ALObjectType Enum based on given AL Keyword (e.g. tableextension).
      * @param alKeyword AL keyword from source code.
      */
-    private static SelectALObjectType(alKeyword: string): ALObjectType|undefined {
+    private static SelectALObjectType(alKeyword: string): ALObjectType {
         switch (alKeyword) {
             case "codeunit":
                 return ALObjectType.Codeunit;
@@ -437,7 +453,7 @@ export class ALSyntaxUtil {
                 return ALObjectType.Interface;
             default:
                 console.debug(`Fatal error: Unknown AL object keyword received ${alKeyword}!`);
-                return undefined;
+                return ALObjectType.Unknown;
         }
     }
 
@@ -456,4 +472,92 @@ export class ALSyntaxUtil {
     private static IsBeginEnd(line: string): boolean {
         return (line.toLowerCase().match(FindBeginEndKeywordRegEx) !== null);
     }
+    
+
+    /**
+     * Get AL Procedure documentation.
+     * @param code AL Source Code.
+     * @param alProcedure ALProcedure object.
+     */
+    // private static GetALProcedureDocumentation(code: string, startingLineNo: number): ALDocumentation {
+    //     let sourceCodeLines = this.SplitALCodeToLines(code);
+    //     let alDocumentation = new ALDocumentation();
+    //     for (let lineNo = startingLineNo - 1; lineNo >= 0; lineNo--) {
+    //         if (this.IsBeginEnd(sourceCodeLines[lineNo])) {
+    //             break;
+    //         }
+    //         if (sourceCodeLines[lineNo].match(FindALObjectRegEx) !== null) {
+    //             break;
+    //         }
+    //         if (sourceCodeLines[lineNo].match(FindALProceduresRegEx) !== null) {
+    //             break;
+    //         }
+    //         if (sourceCodeLines[lineNo].trim().startsWith("///")) {
+    //             alDocumentation.XmlDocumentation = `${sourceCodeLines[lineNo].replace("///","".trim())}\r\n${alDocumentation.XmlDocumentation}`;
+    //         }
+    //     }
+    //     alDocumentation.IsDocumented = (alDocumentation.XmlDocumentation !== "");        
+
+    //     return alDocumentation;
+    // }
+
+    // private static CheckALProcedureDocumentation(code: string, alProcedure: ALProcedure) {
+    //     alProcedure.ALDocumentation = this.GetALProcedureDocumentation(code, alProcedure.LineNo);
+    //     alProcedure.ALDocumentation.SuggestedXmlDocumentation = ALDocCommentUtil.GenerateProcedureDocString(alProcedure, 1);
+    //     if (!alProcedure.ALDocumentation.IsDocumented) {
+    //         return;
+    //     }
+
+    //     // check procedure documentation.
+    //     let documentationAsJson = ALDocCommentUtil.GetJsonFromXmlDocumentation(alProcedure.ALDocumentation.XmlDocumentation);
+    //     if ((documentationAsJson === undefined) || (documentationAsJson === null)) {
+    //         console.error(`${alProcedure.Name} could not be analyzed. Please report this error at https://github.com/365businessdev/vscode-alxmldocumentation/issues`);
+    //         return;
+    //     }
+
+    //     // check summary description
+    //     if ((!documentationAsJson.summary) || (documentationAsJson.summary === "")) {
+    //         alProcedure.ALDocumentation.IsDocumented = false;
+    //         alProcedure.ALDocumentation.DocumentationHints.push(
+    //             new ALDocumentationHints(
+    //                 ALXmlDocDiagnosticCode.SummaryMissing, 
+    //                 ALXmlDocDiagnosticMessage.SummaryMissing));
+    //     }
+
+    //     alProcedure.Parameters.forEach(function(alParameter: ALParameter, index: number) {
+    //         // attach initialized AL Documentation object to AL Procedure.
+    //         alParameter.ALDocumentation = ALSyntaxUtil.GetALProcedureDocumentation(code, alProcedure.LineNo);
+    //         alParameter.ALDocumentation.SuggestedXmlDocumentation = ALDocCommentUtil.GenerateParameterDocString(alParameter, 1);
+    //         alParameter.ALDocumentation.IsDocumented = false;
+    //         if (documentationAsJson.param !== undefined) {
+    //             if (documentationAsJson.param.length !== undefined) {
+    //                 for (let i = 0; i < documentationAsJson.param.length; i++) {
+    //                     if (documentationAsJson.param[i].attr.name === alParameter.Name) {
+    //                         if (documentationAsJson.param[i].value !== "") {
+    //                             alParameter.ALDocumentation.IsDocumented = true;
+    //                             documentationAsJson.param.splice(i, 1);
+    //                         }
+    //                         break;
+    //                     }
+    //                 }
+    //             } else {
+    //                 if (documentationAsJson.param.value !== "") {
+    //                     alParameter.ALDocumentation.IsDocumented = true;
+    //                     documentationAsJson.param = undefined;
+    //                 }
+    //             }
+    //         }            
+
+    //         if (!alParameter.ALDocumentation.IsDocumented) {
+    //             alParameter.ALDocumentation.DocumentationHints.push(
+    //                     new ALDocumentationHints(
+    //                         ALXmlDocDiagnosticCode.ParameterMissing, 
+    //                         ALXmlDocDiagnosticMessage.ParameterMissing));
+    //         }
+
+    //         // reassign parameter to object
+    //         alProcedure.Parameters[index] = alParameter;
+    //     });
+    // }
+
 }
