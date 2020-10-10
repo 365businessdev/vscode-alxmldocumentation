@@ -99,7 +99,7 @@ export class ALDocCommentUtil {
             docString += "VAR ";
         }
         docString += alParameter.Type;
-        if (alParameter.Subtype !== "") {
+        if ((alParameter.Subtype !== "") && (alParameter.Subtype !== undefined)) {
             docString += " " + alParameter.Subtype;
         }
         docString += ".}";
