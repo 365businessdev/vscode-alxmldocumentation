@@ -6,9 +6,7 @@ export const FindALObjectRegEx: RegExp = /^(?<ObjectType>[A-Za-z]*)\b\s+((?<Obje
 /**
  * Regular Expressions to find AL Procedures in Source Code.
  */
-//export const FindALProceduresRegEx: RegExp = /(?<!\/\/\/.*)((procedure|trigger)\s+(\")?(.+)\b(\")?[\(]*\)*.+)/g;
 export const FindALProceduresRegEx: RegExp = /(?<!\/\/\/.*)((local|internal|protected)\s*)?(procedure|trigger)\s+(\")?(.+)\b(\")?\((.*|[^)]+)\).*(?<!\/\/.*)/mg;
-export const ALProcedureAccessRegEx: RegExp = /(?<!\/\/\/.*)(?<Access>(local procedure|internal procedure|protected procedure|procedure|trigger))\s*/m;
 export const ALProcedureDefinitionRegEx: RegExp = /(?<!\/\/\/.*)(?<Access>(local|internal|protected)\s*)?(?<Type>(procedure|trigger))\s+(?<ProcedureName>(\")?(.+)\b(\")?)\((?<Params>(.*|[^)]+))\)(?<ReturnType>.*)(?<!\/\/.*)/m;
 
 /**
