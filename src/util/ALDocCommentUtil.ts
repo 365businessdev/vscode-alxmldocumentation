@@ -49,19 +49,19 @@ export class ALDocCommentUtil {
 
         placeholderIdx++;
 
-        docString += this.GenerateProcedureDocString(alProcedure, placeholderIdx);
+        docString += alProcedure.XmlDocumentation.replace("__idx__",placeholderIdx.toString());
 
         if ((alProcedure.Parameters !== undefined) && (alProcedure.Parameters.length !== 0)) {
             alProcedure.Parameters.forEach(alParameter => {
                 placeholderIdx++;
                 docString += "\n";
-                docString += this.GenerateParameterDocString(alParameter, placeholderIdx);
+                docString += alParameter.XmlDocumentation.replace("__idx__",placeholderIdx.toString());
             });
         }
         if (alProcedure.Return !== undefined) {
             placeholderIdx++;
             docString += "\n";
-            docString += this.GenerateProcedureReturnDocString(alProcedure.Return, placeholderIdx);
+            docString += alProcedure.Return.XmlDocumentation.replace("__idx__",placeholderIdx.toString());
         }
 
         return docString;
