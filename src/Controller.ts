@@ -9,6 +9,9 @@ export class Controller {
 
     }
 
+    /**
+     * Initialize AL XML Documentation.
+     */
     public async Initialize() {
         try 
         {
