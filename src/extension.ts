@@ -3,7 +3,7 @@ import { Controller } from "./Controller";
 import { ALSyntaxUtil } from "./util/ALSyntaxUtil";
 
 export async function activate(context: ExtensionContext) {	
-	const controller = new Controller();
+	const controller = new Controller(context);
 	
 	let startTime = Date.now();
 

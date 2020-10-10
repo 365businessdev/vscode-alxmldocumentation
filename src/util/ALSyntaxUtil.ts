@@ -473,10 +473,9 @@ export class ALSyntaxUtil {
      * Test current AL Source Code line for containing "begin" or "end;" keyword.
      * @param line AL Source Code line.
      */
-    private static IsBeginEnd(line: string): boolean {
+    public static IsBeginEnd(line: string): boolean {
         return (line.toLowerCase().match(FindBeginEndKeywordRegEx) !== null);
     }
-    
 
     /**
      * Get AL Procedure documentation.

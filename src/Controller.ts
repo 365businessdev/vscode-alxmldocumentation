@@ -1,12 +1,15 @@
 import { ALObject } from "./al-types/ALObject";
-import { workspace, window, ProgressLocation, RelativePattern, Uri } from "vscode";
+import { workspace, window, ProgressLocation, RelativePattern, Uri, ExtensionContext } from "vscode";
 import { readFile } from "fs-extra";
 import { ALSyntaxUtil } from "./util/ALSyntaxUtil";
+import { DoComment } from "./doComment";
 
 export class Controller {
+    constructor(context: ExtensionContext) {
 
-    constructor() {
+        const doComment = new DoComment();
 
+        context.subscriptions.push(doComment);
     }
 
     /**
