@@ -24,6 +24,11 @@ export class ALParameter {
     public CallByReference: boolean = false;
 
     /**
+     * Specifies whether parameter is temporary or not.
+     */
+    public Temporary: boolean = false;
+
+    /**
      * XML Documentation.
      */
     public XmlDocumentation: string = "";

@@ -92,6 +92,9 @@ export class ALDocCommentUtil {
         let docString: string = "/// ";
         docString += "<param name=\"" + alParameter.Name + "\">";
         docString += "${" + ((idx === -1) ? "__idx__" : idx) + ":";
+        if (alParameter.Temporary) {
+            docString += "Temporary ";
+        }
         if (alParameter.CallByReference) {
             docString += "VAR ";
         }

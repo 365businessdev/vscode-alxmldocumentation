@@ -151,6 +151,10 @@ export class ALSyntaxUtil {
                                 alParameter.Subtype = `${alParameter.Subtype} ${param.split(":")[1].trim().split(" ")[i]}`;
                             }
                             alParameter.Subtype = alParameter.Subtype.trim();
+                            if ((alParameter.Type === "Record") && (alParameter.Subtype.trim().match(/\btemporary\b/) !== null)) {
+                                alParameter.Temporary = true;
+                                alParameter.Subtype = alParameter.Subtype.replace(/\btemporary\b/,"").trim();
+                            }
                         }
                         ALDocCommentUtil.GenerateParameterDocString(alParameter);
                         alProcedure.Parameters.push(alParameter);
@@ -158,7 +162,7 @@ export class ALSyntaxUtil {
                 });
             }
             // get return type from procedure definition
-            if (alProcedureDefinition["ReturnType"] !== undefined) {
+            if ((alProcedureDefinition["ReturnType"] !== undefined) && (alProcedureDefinition["ReturnType"].trim() !== "")) {
                 let alReturn: ALProcedureReturn = new ALProcedureReturn();
                 if (alProcedureDefinition["ReturnType"].indexOf(":") === -1) {
                     alReturn.Type = alProcedureDefinition["ReturnType"].trim();
