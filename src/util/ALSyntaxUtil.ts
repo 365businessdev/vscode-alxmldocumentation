@@ -438,7 +438,7 @@ export class ALSyntaxUtil {
      * @param alKeyword AL keyword from source code.
      */
     private static SelectALObjectType(alKeyword: string): ALObjectType {
-        switch (alKeyword) {
+        switch (alKeyword.toLowerCase()) {
             case "codeunit":
                 return ALObjectType.Codeunit;
             case "table":
