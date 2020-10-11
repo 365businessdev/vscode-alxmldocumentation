@@ -299,7 +299,7 @@ export class ALSyntaxUtil {
         let pos: number = -1;
 
         code = code.substring(0, code.indexOf(procedureName));
-        let newLinesInCode: RegExpMatchArray | null = code.match(/\n/g); // count occurance of newline char
+        let newLinesInCode: RegExpMatchArray | null = code.match(/\n/g); // count occurrence of newline char
         if (newLinesInCode === null) {
             pos = 0;
         } else {
