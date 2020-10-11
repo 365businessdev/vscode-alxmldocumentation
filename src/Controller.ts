@@ -1,4 +1,4 @@
-import { ALObject } from "./al-types/ALObject";
+import { ALObject } from "./types/ALObject";
 import { workspace, window, ProgressLocation, RelativePattern, Uri, ExtensionContext } from "vscode";
 import { readFile } from "fs-extra";
 import { ALSyntaxUtil } from "./util/ALSyntaxUtil";

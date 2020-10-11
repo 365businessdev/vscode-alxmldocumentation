@@ -3,7 +3,7 @@ import { StringUtil } from './util/StringUtil';
 import { ALSyntaxUtil } from './util/ALSyntaxUtil';
 import { ALDocCommentUtil } from './util/ALDocCommentUtil';
 import { VSCodeApi } from './api/VSCodeApi';
-import { ALObject } from './al-types/ALObject';
+import { ALObject } from './types/ALObject';
 import { FindALObjectRegEx, FindALProceduresRegEx } from './util/ALRegEx';
 
 export class DoComment {

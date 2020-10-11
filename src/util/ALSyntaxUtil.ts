@@ -1,12 +1,18 @@
 import { TextDocument } from "vscode";
-import { ALAccessLevel, ALObjectType, ALCodeunitType, ALObsoleteState, ALProcedureType, ALProcedureSubtype, ALXmlDocDiagnosticCode, ALXmlDocDiagnosticMessage, ALObjectExtensionType } from "../types";
 import { FindALProceduresRegEx, ALProcedureDefinitionRegEx, FindALObjectRegEx, FindBeginEndKeywordRegEx } from "./ALRegEx";
-import { ALObject } from "../al-types/ALObject";
-import { ALProcedure } from "../al-types/ALProcedure";
-import { ALParameter } from "../al-types/ALParameter";
+import { ALObject } from "../types/ALObject";
+import { ALProcedure } from "../types/ALProcedure";
+import { ALParameter } from "../types/ALParameter";
 import { ALDocCommentUtil } from "./ALDocCommentUtil";
 import { performance } from "perf_hooks";
-import { ALProcedureReturn } from "../al-types/ALProcedureReturn";
+import { ALProcedureReturn } from "../types/ALProcedureReturn";
+import { ALAccessLevel } from "../types/ALAccessLevel";
+import { ALCodeunitType } from "../types/ALCodeunitType";
+import { ALObjectExtensionType } from "../types/ALObjectExtensionType";
+import { ALObjectType } from "../types/ALObjectType";
+import { ALObsoleteState } from "../types/ALObsoleteState";
+import { ALProcedureSubtype } from "../types/ALProcedureSubtype";
+import { ALProcedureType } from "../types/ALProcedureType";
 
 export class ALSyntaxUtil {
 

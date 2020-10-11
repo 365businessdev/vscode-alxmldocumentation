@@ -1,8 +1,9 @@
-import { ALObjectExtensionType, ALObjectType } from "../types";
-import { ALObject } from "../al-types/ALObject";
-import { ALProcedure } from "../al-types/ALProcedure";
-import { ALParameter } from "../al-types/ALParameter";
-import { ALProcedureReturn } from "../al-types/ALProcedureReturn";
+import { ALObject } from "../types/ALObject";
+import { ALProcedure } from "../types/ALProcedure";
+import { ALParameter } from "../types/ALParameter";
+import { ALProcedureReturn } from "../types/ALProcedureReturn";
+import { ALObjectExtensionType } from "../types/ALObjectExtensionType";
+import { ALObjectType } from "../types/ALObjectType";
 
 export class ALDocCommentUtil {
     /**

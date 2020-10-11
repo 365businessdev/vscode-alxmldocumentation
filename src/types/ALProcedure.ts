@@ -1,6 +1,9 @@
-import { ALProcedureType, ALAccessLevel, ALProcedureSubtype, ALObsoleteState } from "../types";
+import { ALAccessLevel } from "./ALAccessLevel";
+import { ALObsoleteState } from "./ALObsoleteState";
 import { ALParameter } from "./ALParameter";
 import { ALProcedureReturn } from "./ALProcedureReturn";
+import { ALProcedureSubtype } from "./ALProcedureSubtype";
+import { ALProcedureType } from "./ALProcedureType";
 
 export class ALProcedure {
     /**

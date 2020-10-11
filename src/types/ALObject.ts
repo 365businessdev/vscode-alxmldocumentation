@@ -1,4 +1,8 @@
-import { ALObjectType, ALCodeunitType, ALObsoleteState, ALAccessLevel, ALObjectExtensionType } from "../types";
+import { ALAccessLevel } from "./ALAccessLevel";
+import { ALCodeunitType } from "./ALCodeunitType";
+import { ALObjectExtensionType } from "./ALObjectExtensionType";
+import { ALObjectType } from "./ALObjectType";
+import { ALObsoleteState } from "./ALObsoleteState";
 import { ALProcedure } from "./ALProcedure";
 
 export class ALObject {
