@@ -358,6 +358,8 @@ export class ALSyntaxUtil {
                     return ALObsoleteState.No;
                 case "pending":
                     return ALObsoleteState.Pending;
+                case "removed":
+                    return ALObsoleteState.Removed;
                 default:
                     throw new Error(`Unexpected ObsoleteState: ${obsoleteState[1]}.`);
             }
