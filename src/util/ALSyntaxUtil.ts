@@ -326,7 +326,7 @@ export class ALSyntaxUtil {
      * @param code AL Source Code.
      */
     private static GetALObjectObsoleteReason(code: string): string {
-        let obsoleteReason = code.match(/ObsoleteReason = (.*);/m);
+        let obsoleteReason = code.match(/^ObsoleteReason = (.*);/m);
         try 
         {
             if ((obsoleteReason === null) || (obsoleteReason[1] === undefined)) {
@@ -346,7 +346,7 @@ export class ALSyntaxUtil {
      * @param code AL Source Code.
      */
     private static GetALObjectObsoleteState(code: string): ALObsoleteState {
-        let obsoleteState = code.match(/ObsoleteState = (.*);/m);
+        let obsoleteState = code.match(/^ObsoleteState = (.*);/m);
         try 
         {
             if ((obsoleteState === null) || (obsoleteState[1] === undefined)) {
@@ -374,7 +374,7 @@ export class ALSyntaxUtil {
      * @param code AL Source Code.
      */
     private static GetALObjectSubtype(code: string): ALCodeunitType {
-        let subtype = code.match(/Subtype = (.*);/m);
+        let subtype = code.match(/^Subtype = (.*);/m);
         try 
         {
             if ((subtype === null) || (subtype[1] === undefined)) {
@@ -408,7 +408,7 @@ export class ALSyntaxUtil {
      * @param code AL Source Code.
      */
     private static GetALObjectAccessLevel(code: string): ALAccessLevel {
-        let accessLevel = code.match(/Access = (.*);/m);
+        let accessLevel = code.match(/^Access = (.*);/m);
         try 
         {
             if ((accessLevel === null) || (accessLevel[1] === undefined)) {
