@@ -170,7 +170,6 @@ export class DoComment {
         const lineCount: number = this.vsCodeApi.GetLineCount();
         const curLine: number = this.vsCodeApi.GetActiveLine();
 
-        let code = '';
         // find assoc. AL Source Code for documentation.
         for (let i: number = curLine; i < lineCount - 1; i++) {
             const line: string = this.vsCodeApi.ReadLine(i + 1);
@@ -184,13 +183,7 @@ export class DoComment {
                 return -1;
             }
 
-            code += line + '\n';
-
-            if (line.match(FindALObjectRegEx) !== null) {
-                return i + 1;
-            }
-
-            if (line.match(FindALProceduresRegEx) !== null) {
+            if ((ALSyntaxUtil.IsObjectDefinition(line)) || (ALSyntaxUtil.IsProcedureDefinition(line))) {
                 return i + 1;
             }
         }
