@@ -83,6 +83,7 @@ export class ALObject {
 
     /**
      * XML Documentation.
+     * @type {{ DocumentationExists: boolean, Documentation: string }}
      */
-    public XmlDocumentation: string = "";
+    public XmlDocumentation: { DocumentationExists: boolean, Documentation: string }  = { DocumentationExists: false, Documentation: ''};
 }
