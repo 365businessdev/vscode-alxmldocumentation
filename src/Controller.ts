@@ -3,13 +3,16 @@ import { workspace, window, ProgressLocation, RelativePattern, Uri, ExtensionCon
 import { readFile } from "fs-extra";
 import { ALSyntaxUtil } from "./util/ALSyntaxUtil";
 import { DoComment } from "./doComment";
+import { DoHover } from "./DoHover";
 
 export class Controller {
     constructor(context: ExtensionContext) {
 
         const doComment = new DoComment();
+        const doHover = new DoHover();
 
         context.subscriptions.push(doComment);
+        context.subscriptions.push(doHover);
     }
 
     /**
@@ -44,7 +47,7 @@ export class Controller {
                     let tasks: Array<Promise<void>> = [];
                     let task = async (file: { uri: Uri, content: string }) => {
                         let document = Object.assign({});
-                        document.uri = file.uri;
+                        // document.uri = file.uri;
                         document.getText = () => file.content;
                         document.fileName = file.uri.fsPath;
                         

@@ -26,8 +26,10 @@ export class ALSyntaxUtil {
 
         try {            
             // get AL file properties
-            alObject.FileName = document.fileName.replace(/^.*[\\\/]/, "");
-            alObject.Path = document.fileName.replace(alObject.FileName, "");
+            if (document.fileName !== "__symbol__") {
+                alObject.FileName = document.fileName.replace(/^.*[\\\/]/, "");
+                alObject.Path = document.fileName.replace(alObject.FileName, "");
+            }
 
             // get AL object definition
             let alObjectDefinition = document.getText().match(FindALObjectRegEx);
@@ -473,7 +475,7 @@ export class ALSyntaxUtil {
      * Split string object, containing AL Source Code, in string array per line.
      * @param code AL Source Code.
      */
-    private static SplitALCodeToLines(code: string): Array<string> {
+    public static SplitALCodeToLines(code: string): Array<string> {
         return code.replace(/\r/g,"").split("\n");
     }
 
@@ -484,6 +486,23 @@ export class ALSyntaxUtil {
     public static IsBeginEnd(line: string): boolean {
         return (line.toLowerCase().match(FindBeginEndKeywordRegEx) !== null);
     }
+
+    /**
+     * Test current AL Source Code line for containing object definition match.
+     * @param line AL Source Code line.
+     */
+    public static IsObjectDefinition(line: string): boolean {
+        return (line.toLowerCase().match(FindALObjectRegEx) !== null);
+    }
+
+    /**
+     * Test current AL Source Code line for containing object definition match.
+     * @param line AL Source Code line.
+     */
+    public static IsProcedureDefinition(line: string): boolean {
+        return (line.toLowerCase().match(FindALProceduresRegEx) !== null);
+    }
+
 
     /**
      * Get AL Procedure documentation.

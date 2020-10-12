@@ -4,6 +4,8 @@ import { ALParameter } from "../types/ALParameter";
 import { ALProcedureReturn } from "../types/ALProcedureReturn";
 import { ALObjectExtensionType } from "../types/ALObjectExtensionType";
 import { ALObjectType } from "../types/ALObjectType";
+import { TextEditor, TextDocument } from "vscode";
+import { VSCodeApi } from "../api/VSCodeApi";
 
 export class ALDocCommentUtil {
     /**
@@ -132,5 +134,94 @@ export class ALDocCommentUtil {
         alProcedureReturn.XmlDocumentation = docString;
 
         return docString;
+    }
+    
+    /**
+     * Converts XML Documentation to JSON object.
+     * @param xmlDocumentation XML Documentation.
+     */
+    public static GetJsonFromXmlDocumentation(xmlDocumentation: string): any {        
+        // transform xml to json
+        var parser = require('fast-xml-parser');
+        var options = {
+            attributeNamePrefix : "",
+            attrNodeName: "attr",
+            textNodeName : "value",
+            ignoreAttributes : false,
+            ignoreNameSpace : true,
+            parseAttributeValue : true
+        };
+        try {
+            var jsonDocumentation = parser.parse(`<?xml version="1.0."?><root>${xmlDocumentation}</root>`, options, true);
+        } catch(ex) {
+            return;
+        }
+
+        return jsonDocumentation.root;
+    }
+
+    /**
+     * Get XML Documentation node from XML Documentation.
+     * @param xmlDocumentation XML Documentation.
+     * @param xmlNode Requested XML node.
+     * @param attrName Requested attribute (optional).
+     * @param attrValue Requested attribute value (optional).
+     */
+    public static GetXmlDocumentationNode(xmlDocumentation: string, xmlNode: string, attrName: string = "", attrValue: string = ""): string {
+        let isTag: boolean = false;
+        let docNode: string = "";
+        xmlDocumentation.split("\n").forEach(line => {
+            if (attrName !== "") {
+                if (line.includes(`<${xmlNode} ${attrName}="${attrValue}">`)) {
+                    isTag = true;
+                }
+            } else {
+                if (line.includes(`<${xmlNode}>`)) {
+                    isTag = true;
+                }
+            }
+            if (isTag) {
+                if (docNode !== "") {
+                    docNode = `${docNode}\n`;
+                }
+                docNode = `${docNode}${line}`;
+            }
+            if (line.includes(`</${xmlNode}>`)) {
+                isTag = false;
+            }
+        });
+
+        return docNode;
+    }
+
+    /**
+     * Get last XML Documentation line no.
+     * @param editor Current instance of TextEditor object.
+     * @param startingLineNo Line No. to start search from (optional).
+     */
+    public static GetLastXmlDocumentationLineNo(editor: TextEditor, startingLineNo: number = -1): number { 
+        if (startingLineNo === -1) {
+            let vsCodeApi = new VSCodeApi(editor); 
+            startingLineNo = vsCodeApi.GetActivePosition().line;
+        }
+
+        let alCode = editor.document.getText().replace(/\r/g,'').split('\n');    
+        for (let lineNo = startingLineNo - 1; lineNo > 0; lineNo--) {
+            let line = alCode[lineNo];
+            if (line.includes('///')) {
+                return lineNo + 1;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Get start position in current line.
+     * @param document TextDocument object.
+     * @param lineNo Current Line No.
+     */
+    public static GetLineStartPosition(document: TextDocument, lineNo: number): number {
+        let alCode = document.getText().replace(/\r/g,'').split('\n');
+        return ((alCode[lineNo].length) - (alCode[lineNo].trim().length));
     }
 }
