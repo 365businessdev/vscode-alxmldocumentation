@@ -4,6 +4,7 @@ import { ALParameter } from "./ALParameter";
 import { ALProcedureReturn } from "./ALProcedureReturn";
 import { ALProcedureSubtype } from "./ALProcedureSubtype";
 import { ALProcedureType } from "./ALProcedureType";
+import { XMLDocumentation } from "./XmlDocumentation";
 
 export class ALProcedure {
     /**
@@ -68,7 +69,7 @@ export class ALProcedure {
 
     /**
      * XML Documentation.
-     * @type {{ DocumentationExists: boolean, Documentation: string }}
+     * @type {XMLDocumentation}
      */
-    public XmlDocumentation: { DocumentationExists: boolean, Documentation: string }  = { DocumentationExists: false, Documentation: ''};
+    public XmlDocumentation: XMLDocumentation  = new XMLDocumentation();
 }

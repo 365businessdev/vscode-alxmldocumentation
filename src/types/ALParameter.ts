@@ -1,3 +1,5 @@
+import { XMLDocumentation } from "./XmlDocumentation";
+
 export class ALParameter {
     /**
      * Name of the procedure.
@@ -30,7 +32,7 @@ export class ALParameter {
 
     /**
      * XML Documentation.
-     * @type {{ DocumentationExists: boolean, Documentation: string }}
+     * @type {XMLDocumentation}
      */
-    public XmlDocumentation: { DocumentationExists: boolean, Documentation: string }  = { DocumentationExists: false, Documentation: ''};
+    public XmlDocumentation: XMLDocumentation  = new XMLDocumentation();
 }

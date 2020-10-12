@@ -13,6 +13,7 @@ import { ALObjectType } from "../types/ALObjectType";
 import { ALObsoleteState } from "../types/ALObsoleteState";
 import { ALProcedureSubtype } from "../types/ALProcedureSubtype";
 import { ALProcedureType } from "../types/ALProcedureType";
+import { XMLDocumentation } from "../types/XmlDocumentation";
 
 export class ALSyntaxUtil {
 
@@ -527,11 +528,8 @@ export class ALSyntaxUtil {
      * @param alObject ALObject object.
      * @param code AL Source Code.
      */
-    private static GetALObjectDocumentation(alObject: ALObject, code: string): { DocumentationExists: boolean, Documentation: string } {
-        let result: { DocumentationExists: boolean, Documentation: string } = {
-            DocumentationExists: false,
-            Documentation: ""
-        };
+    private static GetALObjectDocumentation(alObject: ALObject, code: string): XMLDocumentation {
+        let result: XMLDocumentation = new XMLDocumentation();
 
         try {
             let codeLines: Array<string>  = this.SplitALCodeToLines(code);
@@ -559,11 +557,8 @@ export class ALSyntaxUtil {
      * @param alProcedure ALProcedure object.
      * @param code AL Source Code.
      */
-    static GetALObjectProcedureDocumentation(alProcedure: ALProcedure, code: string): { DocumentationExists: boolean, Documentation: string } {
-        let result: { DocumentationExists: boolean, Documentation: string } = {
-            DocumentationExists: false,
-            Documentation: ""
-        };
+    static GetALObjectProcedureDocumentation(alProcedure: ALProcedure, code: string): XMLDocumentation {
+        let result: XMLDocumentation = new XMLDocumentation();
         
         try {
             let codeLines: Array<string> = this.SplitALCodeToLines(code);
@@ -604,11 +599,8 @@ export class ALSyntaxUtil {
      * @param alParameter ALParameter object.
      * @param code AL Source Code.
      */
-    static GetALObjectProcedureParameterDocumentation(alProcedure: ALProcedure, alParameter: ALParameter, code: string): { DocumentationExists: boolean, Documentation: string } {
-        let result: { DocumentationExists: boolean, Documentation: string } = {
-            DocumentationExists: false,
-            Documentation: ""
-        };
+    static GetALObjectProcedureParameterDocumentation(alProcedure: ALProcedure, alParameter: ALParameter, code: string): XMLDocumentation {
+        let result: XMLDocumentation = new XMLDocumentation();
         
         try {
             let codeLines: Array<string> = this.SplitALCodeToLines(code);
@@ -653,11 +645,8 @@ export class ALSyntaxUtil {
      * @param alReturn ALProcedureReturn object.
      * @param code AL Source Code.
      */
-    static GetALObjectProcedureReturnDocumentation(alProcedure: ALProcedure, alReturn: ALProcedureReturn, code: string): { DocumentationExists: boolean, Documentation: string } {
-        let result: { DocumentationExists: boolean, Documentation: string } = {
-            DocumentationExists: false,
-            Documentation: ""
-        };
+    static GetALObjectProcedureReturnDocumentation(alProcedure: ALProcedure, alReturn: ALProcedureReturn, code: string): XMLDocumentation {
+        let result: XMLDocumentation = new XMLDocumentation();
         
         try {
             let codeLines: Array<string> = this.SplitALCodeToLines(code);

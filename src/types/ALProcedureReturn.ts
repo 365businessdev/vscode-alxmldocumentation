@@ -1,3 +1,5 @@
+import { XMLDocumentation } from "./XmlDocumentation";
+
 export class ALProcedureReturn {
     /**
      * Name of the return variable, if set.
@@ -11,7 +13,7 @@ export class ALProcedureReturn {
 
     /**
      * XML Documentation.
-     * @type {{ DocumentationExists: boolean, Documentation: string }}
+     * @type {XMLDocumentation}
      */
-    public XmlDocumentation: { DocumentationExists: boolean, Documentation: string }  = { DocumentationExists: false, Documentation: ''};
+    public XmlDocumentation: XMLDocumentation  = new XMLDocumentation();
 }

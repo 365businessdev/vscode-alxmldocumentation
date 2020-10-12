@@ -4,6 +4,7 @@ import { ALObjectExtensionType } from "./ALObjectExtensionType";
 import { ALObjectType } from "./ALObjectType";
 import { ALObsoleteState } from "./ALObsoleteState";
 import { ALProcedure } from "./ALProcedure";
+import { XMLDocumentation } from "./XmlDocumentation";
 
 export class ALObject {
     /**
@@ -83,7 +84,7 @@ export class ALObject {
 
     /**
      * XML Documentation.
-     * @type {{ DocumentationExists: boolean, Documentation: string }}
+     * @type {XMLDocumentation}
      */
-    public XmlDocumentation: { DocumentationExists: boolean, Documentation: string }  = { DocumentationExists: false, Documentation: ''};
+    public XmlDocumentation: XMLDocumentation  = new XMLDocumentation();
 }
