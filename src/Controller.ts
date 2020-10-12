@@ -47,7 +47,6 @@ export class Controller {
                     let tasks: Array<Promise<void>> = [];
                     let task = async (file: { uri: Uri, content: string }) => {
                         let document = Object.assign({});
-                        // document.uri = file.uri;
                         document.getText = () => file.content;
                         document.fileName = file.uri.fsPath;
                         
