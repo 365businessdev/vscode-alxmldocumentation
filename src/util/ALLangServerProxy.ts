@@ -12,11 +12,17 @@ export class ALLangServerProxy {
     public extensionPath : string | undefined;
     public alEditorService: any;
 
+    /**
+     * ALLangServerProxy constructor.
+     */
     constructor() {
         this.langClient = undefined;
         this.alEditorService = undefined;
     }
 
+    /**
+     * Get actual AL Language extension.
+     */
     public GetALExtension() : Extension<any> | undefined {
         let storeVersion = extensions.getExtension('ms-dynamics-smb.al'); 
         let vsixVersion = extensions.getExtension('Microsoft.al');
@@ -38,6 +44,10 @@ export class ALLangServerProxy {
         return vsixVersion;
     }
 
+    /**
+     * Initialize Language Client
+     * @returns False, if language client could not be loaded.
+     */
     protected IsALLanguageClient() : boolean {
         if (!this.langClient) {
             let alExtension = this.GetALExtension();
@@ -78,6 +88,9 @@ export class ALLangServerProxy {
         return true;
     }
 
+    /**
+     * Retrieve first launch configuration to retrieve symbols from.
+     */
     async GetFirstLaunchConfiguration() : Promise<any|undefined> {
         if ((!workspace.workspaceFolders) || (workspace.workspaceFolders.length === 0)) {
             return undefined;
@@ -102,6 +115,11 @@ export class ALLangServerProxy {
         return undefined;
     }
 
+    /**
+     * Perform go-to-definition call.
+     * @param docUri URI of the source document.
+     * @param pos Position to perform go-to-definition on.
+     */
     async ALGoToDefinition(docUri: string, pos: Position) : Promise<Location | undefined> {
         let docPos : Location | undefined = undefined;
         try {
@@ -207,53 +225,5 @@ export class ALLangServerProxy {
             return undefined;
         }
 
-    }
-
-    async GetALSourceCode(docUri: string, pos: Position): Promise<{ value: string; pos: Position; } | undefined> {  
-        this.IsALLanguageClient();
-        if (!this.langClient) {
-            return undefined;
-        }
-
-        // get definition
-        let definitionDocPos: Location | undefined = await this.ALGoToDefinition(docUri, pos);
-        if ((!definitionDocPos) || ((definitionDocPos.range.start.character === 0) && (definitionDocPos.range.end.character === 0))) {
-            return undefined;
-        }
-        
-        try {
-            var __awaiter : any = (this && __awaiter) || function (thisArg: any, _arguments: any, P: PromiseConstructor, generator: { [x: string]: (arg0: any) => any; next: (arg0: any) => any; apply: any; }) {
-                function adopt(value: unknown) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-                return new (P || (P = Promise))(function (resolve, reject) {
-                    function fulfilled(value: any) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-                    function rejected(value: any) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-                    function step(result: any) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-                    step((generator = generator.apply(thisArg, _arguments || [])).next());
-                });
-            };
-
-            var alSourceCode = { 
-                "value": "", // just initialize
-                "pos": definitionDocPos.range.end
-            };
-
-            // if scheme is 'al-preview' try get the source code from language server
-            if (definitionDocPos.uri.scheme === 'al-preview') {            
-                const request = { Uri: definitionDocPos.uri.toString() };                        
-                alSourceCode.value = await this.langClient.sendRequest('al/previewDocument', request).then((result: any) => __awaiter(this, void 0, void 0, function* () {
-                    return Promise.resolve(result.content);
-                }));
-            } else {
-                alSourceCode.value = fs.readFileSync(definitionDocPos.uri.fsPath, 'utf8');
-            }
-            if (alSourceCode.value === "") {
-                return undefined;
-            } else {
-                return alSourceCode;
-            }
-        } catch (ex) {
-            console.debug(ex.message);
-            return undefined;
-        }
     }
 }
