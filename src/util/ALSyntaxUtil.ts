@@ -24,19 +24,12 @@ export class ALSyntaxUtil {
         let t0 = performance.now();
         let alObject: ALObject = new ALObject();
 
-        try {            
-            // get AL file properties
-            if (document.fileName !== "__symbol__") {
-                alObject.FileName = document.fileName.replace(/^.*[\\\/]/, "");
-                alObject.Path = document.fileName.replace(alObject.FileName, "");
-            }
-
+        try {
             // get AL object definition
             let alObjectDefinition = document.getText().match(FindALObjectRegEx);
             if ((alObjectDefinition?.groups === null) || (alObjectDefinition?.groups === undefined)) {
-                console.error(`Fatal error: Could not analyze ${alObject.FileName}. Please report this error at https://github.com/365businessdev/vscode-alxmldocumentation/issues.`);
-                return null;
-            }
+                throw new Error(`Fatal error: Could not analyze ${alObject.FileName}.`);
+            }            
 
             alObject.LineNo = this.GetALKeywordDefinitionLineNo(document.getText(), alObjectDefinition[0]);
             alObject.Type = this.SelectALObjectType(alObjectDefinition.groups["ObjectType"]);
@@ -62,12 +55,23 @@ export class ALSyntaxUtil {
 
             // get AL procedures
             this.GetALObjectProcedures(alObject, document.getText());
+                        
+            // get AL file properties
+            if (document.fileName !== "__symbol__") {
+                alObject.FileName = document.fileName.replace(/^.*[\\\/]/, "");
+                alObject.Path = document.fileName.replace(alObject.FileName, "");
+            } else {
+                alObject.FileName = `${alObject.Name.replace(" ","")}.${ALObjectType[alObject.Type]}.dal`;
+            }
 
             // get XML Documentation
-            ALDocCommentUtil.GenerateObjectDocString(alObject);
+            alObject.XmlDocumentation = this.GetALObjectDocumentation(alObject, document.getText());
+            if ((alObject.XmlDocumentation.DocumentationExists === false)) {
+                ALDocCommentUtil.GenerateObjectDocString(alObject);
+            }
 
-            console.debug(alObject);
-            
+            // console.debug(alObject);            
+
             let t1 = performance.now();
             console.debug("Processing time for object " + alObject.Name + ": " + Math.round((t1 - t0) * 100 / 100) + "ms.");
 
@@ -166,7 +170,11 @@ export class ALSyntaxUtil {
                                 alParameter.Subtype = alParameter.Subtype.replace(/\btemporary\b/,"").trim();
                             }
                         }
-                        ALDocCommentUtil.GenerateParameterDocString(alParameter);
+                        // get XML Documentation
+                        alParameter.XmlDocumentation = this.GetALObjectProcedureParameterDocumentation(alProcedure, alParameter, code);
+                        if ((alParameter.XmlDocumentation.DocumentationExists === false)) {
+                            ALDocCommentUtil.GenerateParameterDocString(alParameter);
+                        }
                         alProcedure.Parameters.push(alParameter);
                     }
                 });
@@ -186,12 +194,21 @@ export class ALSyntaxUtil {
                 if (alReturn.Type === "") {
                     alProcedure.Return = undefined;
                 }
-                ALDocCommentUtil.GenerateProcedureReturnDocString(alReturn);
+                // get XML Documentation
+                alReturn.XmlDocumentation = this.GetALObjectProcedureReturnDocumentation(alProcedure, alReturn, code);
+                if ((alReturn.XmlDocumentation.DocumentationExists === false)) {
+                    ALDocCommentUtil.GenerateProcedureReturnDocString(alReturn);
+                }
                 alProcedure.Return = alReturn;
             }
         }
         this.GetALProcedureProperties(alProcedure, code);
-        ALDocCommentUtil.GenerateProcedureDocString(alProcedure);
+
+        // get XML Documentation
+        alProcedure.XmlDocumentation = this.GetALObjectProcedureDocumentation(alProcedure, code);
+        if ((alProcedure.XmlDocumentation.DocumentationExists === false)) {
+            ALDocCommentUtil.GenerateProcedureDocString(alProcedure);
+        }
 
         return alProcedure;
     }
@@ -503,6 +520,176 @@ export class ALSyntaxUtil {
      */
     public static IsProcedureDefinition(line: string): boolean {
         return (line.toLowerCase().match(FindALProceduresRegEx) !== null);
+    }    
+
+    /**
+     * Read XML Documentation for AL Object from Source Code.
+     * @param alObject ALObject object.
+     * @param code AL Source Code.
+     */
+    private static GetALObjectDocumentation(alObject: ALObject, code: string): { DocumentationExists: boolean, Documentation: string } {
+        let result: { DocumentationExists: boolean, Documentation: string } = {
+            DocumentationExists: false,
+            Documentation: ""
+        };
+
+        try {
+            let codeLines: Array<string>  = this.SplitALCodeToLines(code);
+
+            for (var i = 0; (i < codeLines.length); i++) {
+                let line: string = codeLines[i];
+                if ((line.trim().startsWith('///')) && (line.trim().replace('///','').trim() !== "")) {
+                    result.Documentation = `${result.Documentation}\r\n${line.trim().replace('///','')}`;
+                }
+                if ((ALSyntaxUtil.IsProcedureDefinition(line)) || (ALSyntaxUtil.IsObjectDefinition(line)) || (ALSyntaxUtil.IsBeginEnd(line))) {
+                    break;
+                }
+            }
+
+            result.DocumentationExists = (result.Documentation !== "");
+        }
+        catch (ex)
+        { }
+
+        return result;
+    }
+
+    /**
+     * Read XML Documentation for AL Procedure from Source Code.
+     * @param alProcedure ALProcedure object.
+     * @param code AL Source Code.
+     */
+    static GetALObjectProcedureDocumentation(alProcedure: ALProcedure, code: string): { DocumentationExists: boolean, Documentation: string } {
+        let result: { DocumentationExists: boolean, Documentation: string } = {
+            DocumentationExists: false,
+            Documentation: ""
+        };
+        
+        try {
+            let codeLines: Array<string> = this.SplitALCodeToLines(code);
+
+            let collect: Boolean = false;
+
+            for (var i = (alProcedure.LineNo - 1); (i > 0); i--) {
+                let line: string = codeLines[i];
+                if (line.trim().startsWith('///')) {
+                    if ((line.indexOf("</summary>") !== -1) || (line.indexOf("</returns>") !== -1) || (line.indexOf("</remarks>") !== -1) || (line.indexOf("</example>") !== -1)) {
+                        collect = true;
+                    }
+
+                    if (collect) {
+                        result.Documentation = `${line.trim().replace('///','')}\r\n${result.Documentation}`;
+                    }
+
+                    if ((line.indexOf("<summary>") !== -1) || (line.indexOf("<returns>") !== -1) || (line.indexOf("<remarks>") !== -1) || (line.indexOf("<example>") !== -1)) {
+                        collect = false;
+                    }
+                }
+                if ((ALSyntaxUtil.IsProcedureDefinition(line)) || (ALSyntaxUtil.IsObjectDefinition(line)) || (ALSyntaxUtil.IsBeginEnd(line))) {
+                    break;
+                }
+            }
+
+            result.DocumentationExists = (result.Documentation !== "");
+        }
+        catch (ex)
+        { }
+
+        return result;
+    }
+
+    /**
+     * Read XML Documentation for AL Procedure Parameter from Source Code.
+     * @param alProcedure ALProcedure object.
+     * @param alParameter ALParameter object.
+     * @param code AL Source Code.
+     */
+    static GetALObjectProcedureParameterDocumentation(alProcedure: ALProcedure, alParameter: ALParameter, code: string): { DocumentationExists: boolean, Documentation: string } {
+        let result: { DocumentationExists: boolean, Documentation: string } = {
+            DocumentationExists: false,
+            Documentation: ""
+        };
+        
+        try {
+            let codeLines: Array<string> = this.SplitALCodeToLines(code);
+
+            let collect: Boolean = false;
+
+            for (var i = (alProcedure.LineNo - 1); (i > 0); i--) {
+                let line: string = codeLines[i];
+                if (line.trim().startsWith('///')) {
+                    if (line.indexOf("</param>") !== -1) {
+                        collect = true;
+                    }
+
+                    if (collect) {
+                        result.Documentation = `${line.trim().replace('///','')}\r\n${result.Documentation}`;
+                    }
+
+                    if (line.indexOf('<param name=') !== -1) {
+                        collect = false;
+
+                        if (line.indexOf(`<param name="${alParameter.Name}">`) !== -1) {
+                            result.Documentation = "";
+                        }
+                    }
+                }
+                if ((ALSyntaxUtil.IsProcedureDefinition(line)) || (ALSyntaxUtil.IsObjectDefinition(line)) || (ALSyntaxUtil.IsBeginEnd(line))) {
+                    break;
+                }
+            }
+
+            result.DocumentationExists = (result.Documentation !== "");
+        }
+        catch (ex)
+        { }
+
+        return result;
+    }
+
+    /**
+     * Read XML Documentation for AL Procedure Return Value from Source Code.
+     * @param alProcedure ALProcedure object.
+     * @param alReturn ALProcedureReturn object.
+     * @param code AL Source Code.
+     */
+    static GetALObjectProcedureReturnDocumentation(alProcedure: ALProcedure, alReturn: ALProcedureReturn, code: string): { DocumentationExists: boolean, Documentation: string } {
+        let result: { DocumentationExists: boolean, Documentation: string } = {
+            DocumentationExists: false,
+            Documentation: ""
+        };
+        
+        try {
+            let codeLines: Array<string> = this.SplitALCodeToLines(code);
+
+            let collect: Boolean = false;
+
+            for (var i = (alProcedure.LineNo - 1); (i > 0); i--) {
+                let line: string = codeLines[i];
+                if (line.trim().startsWith('///')) {
+                    if (line.indexOf("</returns>") !== -1) {
+                        collect = true;
+                    }
+
+                    if (collect) {
+                        result.Documentation = `${line.trim().replace('///','')}\r\n${result.Documentation}`;
+                    }
+
+                    if (line.indexOf("<returns>") !== -1) {
+                        collect = false;
+                    }
+                }
+                if ((ALSyntaxUtil.IsProcedureDefinition(line)) || (ALSyntaxUtil.IsObjectDefinition(line)) || (ALSyntaxUtil.IsBeginEnd(line))) {
+                    break;
+                }
+            }
+
+            result.DocumentationExists = (result.Documentation !== "");
+        }
+        catch (ex)
+        { }
+
+        return result;
     }
 
 

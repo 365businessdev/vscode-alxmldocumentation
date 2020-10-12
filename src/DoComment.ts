@@ -1,10 +1,9 @@
 import { Position, Disposable, TextDocumentContentChangeEvent, TextEditor, window, workspace, commands, SnippetString } from 'vscode';
 import { StringUtil } from './util/StringUtil';
 import { ALSyntaxUtil } from './util/ALSyntaxUtil';
-import { ALDocCommentUtil } from './util/ALDocCommentUtil';
 import { VSCodeApi } from './api/VSCodeApi';
 import { ALObject } from './types/ALObject';
-import { FindALObjectRegEx, FindALProceduresRegEx } from './util/ALRegEx';
+import { ALProcedure } from './types/ALProcedure';
 
 export class DoComment {
     private disposable: Disposable;
@@ -133,27 +132,29 @@ export class DoComment {
             return;
         }
 
-        // Get line number of the assoc. source code for documentation.
-        let docLineNo: number = this.FindAssocSourceLineNo();
-        if (docLineNo === -1) {
-            return;
-        }
-
         let docString: string = "";
-        if (alObject.Procedures !== undefined) {
-            for (let i: number = 0; i < alObject.Procedures.length; i++) {
-                if (docLineNo !== alObject.Procedures[i].LineNo) {
-                    alObject.Procedures?.splice(i, 1);
-                    i--;
-                }
-            };
-        }
-        if ((alObject.Procedures !== undefined) && (alObject.Procedures?.length > 0)) {
-            // use procedure definition
-            docString = ALDocCommentUtil.GenerateProcedureDocumentation(alObject.Procedures[alObject.Procedures.length - 1]);
-        } else {
+
+        const activeLineNo: number = this.vsCodeApi.GetActiveLine();
+        if (activeLineNo < alObject.LineNo) {
             // use object definition
-            docString = alObject.XmlDocumentation.replace("__idx__", "1");
+            docString = alObject.XmlDocumentation.Documentation.replace("__idx__", "1");
+        } else {
+            // find procedure
+            let alProcedure: ALProcedure | undefined = alObject.Procedures?.find(alProcedure => (alProcedure.LineNo > activeLineNo));
+            if ((!alProcedure) || (alProcedure.XmlDocumentation.DocumentationExists)) {
+                return;
+            }
+            let snippetIdx: number = 1;
+
+            docString = alProcedure.XmlDocumentation.Documentation.replace("__idx__", snippetIdx.toString()).split("\r\n").join("\r\n/// ");
+            alProcedure.Parameters.forEach(alParameter => {
+                snippetIdx++;
+                docString += "\r\n" + alParameter.XmlDocumentation.Documentation.replace("__idx__", snippetIdx.toString()).split("\r\n").join("\r\n/// ");
+            });
+            if (alProcedure.Return !== undefined) {
+                snippetIdx++;
+                docString += "\r\n" + alProcedure.Return.XmlDocumentation.Documentation.replace("__idx__", snippetIdx.toString()).split("\r\n").join("\r\n/// ");
+            }
         }
 
         // remove starting "///"

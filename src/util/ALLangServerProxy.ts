@@ -4,6 +4,8 @@ import { Location, extensions, workspace, Uri, Range, Extension } from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { LanguageClient, Position, CancellationTokenSource, CancellationToken } from 'vscode-languageclient';
+import { ALObject } from '../types/ALObject';
+import { ALSyntaxUtil } from './ALSyntaxUtil';
 
 export class ALLangServerProxy {
     private langClient : LanguageClient | undefined;
@@ -144,6 +146,67 @@ export class ALLangServerProxy {
         }    
 
         return docPos; 
+    }
+
+    /**
+     * Retrieve AL Object from Language Server.
+     * @param docUri Actual Document file path.
+     * @param pos Actual Position to retrieve AL Object from.
+     */
+    async GetALObjectFromDefinition(docUri: string, pos: Position): Promise<{ ALObject: ALObject | null, Position: Position} | undefined> {
+        try { 
+            if ((!this.IsALLanguageClient()) || (!this.langClient)) {
+                throw new Error(`Fatal error: Unable to contact language server.`);
+            }     
+        
+            var __awaiter : any = (this && __awaiter) || function (thisArg: any, _arguments: any, P: PromiseConstructor, generator: { [x: string]: (arg0: any) => any; next: (arg0: any) => any; apply: any; }) {
+                function adopt(value: unknown) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+                return new (P || (P = Promise))(function (resolve, reject) {
+                    function fulfilled(value: any) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+                    function rejected(value: any) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+                    function step(result: any) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+                    step((generator = generator.apply(thisArg, _arguments || [])).next());
+                });
+            };
+
+            // Execute AL Go to Definition
+            let alDefinition: Location | undefined = await this.ALGoToDefinition(docUri, pos).then((result: any) => __awaiter(this, void 0, void 0, function* () {
+                return Promise.resolve(result);
+            }));
+
+            if ((!alDefinition) || ((alDefinition.range.start.character === 0) && (alDefinition.range.end.character === 0))) {
+                return undefined;
+            }
+
+            let alSourceCode: string = "";
+            if (alDefinition.uri.scheme === 'al-preview') {      
+                // For al-preview try get source code from language server.
+                const request = { Uri: alDefinition.uri.toString() };                        
+                alSourceCode = await this.langClient.sendRequest('al/previewDocument', request).then((result: any) => __awaiter(this, void 0, void 0, function* () {
+                    return Promise.resolve(result.content);
+                }));
+            } else {
+                // If file is available just read from filesystem.
+                alSourceCode = fs.readFileSync(alDefinition.uri.fsPath, 'utf8');
+            }
+
+            let document = Object.assign({});
+            document.getText = () => alSourceCode;
+            document.fileName = (alDefinition.uri.scheme === 'al-preview') ? "__symbol__" : alDefinition.uri.fsPath;
+
+            let result: { ALObject: ALObject | null, Position: Position} = {
+                ALObject: ALSyntaxUtil.GetObject(document),
+                Position: alDefinition.range.end
+            };
+
+            return result;
+        }
+        catch(ex) 
+        {
+            console.error(`[GetALObjectFromDefinition] - ${ex} Please report this Please report this error at https://github.com/365businessdev/vscode-alxmldocumentation/issues`);
+            return undefined;
+        }
+
     }
 
     async GetALSourceCode(docUri: string, pos: Position): Promise<{ value: string; pos: Position; } | undefined> {  

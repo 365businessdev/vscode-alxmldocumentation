@@ -33,7 +33,7 @@ export class ALDocCommentUtil {
         docString += ".}\n";
         docString += "/// </summary>";
 
-        alObject.XmlDocumentation = docString;
+        alObject.XmlDocumentation.Documentation = docString;
 
         return docString;
     }
@@ -52,19 +52,19 @@ export class ALDocCommentUtil {
 
         placeholderIdx++;
 
-        docString += alProcedure.XmlDocumentation.replace("__idx__",placeholderIdx.toString());
+        docString += alProcedure.XmlDocumentation.Documentation.replace("__idx__",placeholderIdx.toString());
 
         if ((alProcedure.Parameters !== undefined) && (alProcedure.Parameters.length !== 0)) {
             alProcedure.Parameters.forEach(alParameter => {
                 placeholderIdx++;
                 docString += "\n";
-                docString += alParameter.XmlDocumentation.replace("__idx__",placeholderIdx.toString());
+                docString += alParameter.XmlDocumentation.Documentation.replace("__idx__",placeholderIdx.toString());
             });
         }
         if (alProcedure.Return !== undefined) {
             placeholderIdx++;
             docString += "\n";
-            docString += alProcedure.Return.XmlDocumentation.replace("__idx__",placeholderIdx.toString());
+            docString += alProcedure.Return.XmlDocumentation.Documentation.replace("__idx__",placeholderIdx.toString());
         }
 
         return docString;
@@ -81,7 +81,7 @@ export class ALDocCommentUtil {
         docString += "/// ${" + ((idx === -1) ? "__idx__" : idx) + ":" + alProcedure.Name + ".}\n";
         docString += "/// </summary>";
 
-        alProcedure.XmlDocumentation = docString;
+        alProcedure.XmlDocumentation.Documentation = docString;
 
         return docString;
     }
@@ -108,7 +108,7 @@ export class ALDocCommentUtil {
         docString += ".}";
         docString += "</param>";
 
-        alParameter.XmlDocumentation = docString;
+        alParameter.XmlDocumentation.Documentation = docString;
 
         return docString;
     }
@@ -131,7 +131,7 @@ export class ALDocCommentUtil {
         docString += ".}";
         docString += "</returns>";
 
-        alProcedureReturn.XmlDocumentation = docString;
+        alProcedureReturn.XmlDocumentation.Documentation = docString;
 
         return docString;
     }
