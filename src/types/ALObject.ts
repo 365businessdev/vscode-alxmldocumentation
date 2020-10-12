@@ -19,6 +19,11 @@ export class ALObject {
     public Path: string|undefined;
 
     /**
+     * Line number of the Object definition.
+     */
+    public LineNo: number = 0;
+
+    /**
      * Name of the AL Object.
      * @type {string}
      */

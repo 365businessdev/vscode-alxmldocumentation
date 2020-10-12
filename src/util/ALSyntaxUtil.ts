@@ -37,6 +37,8 @@ export class ALSyntaxUtil {
                 console.error(`Fatal error: Could not analyze ${alObject.FileName}. Please report this error at https://github.com/365businessdev/vscode-alxmldocumentation/issues.`);
                 return null;
             }
+
+            alObject.LineNo = this.GetALKeywordDefinitionLineNo(document.getText(), alObjectDefinition[0]);
             alObject.Type = this.SelectALObjectType(alObjectDefinition.groups["ObjectType"]);
             if (!((alObjectDefinition.groups["ObjectID"] === null) || (alObjectDefinition.groups["ObjectID"] === undefined))) {
                 alObject.ID = parseInt(alObjectDefinition.groups["ObjectID"]);
@@ -112,7 +114,7 @@ export class ALSyntaxUtil {
         let alProcedure = new ALProcedure();
 
         alProcedure.Name = procedureName;
-        alProcedure.LineNo = this.GetALObjectProcedureLineNo(code, procedureName);
+        alProcedure.LineNo = this.GetALKeywordDefinitionLineNo(code, procedureName);
 
         let alProcedureDefinition = procedureName.match(ALProcedureDefinitionRegEx)?.groups;
         if ((alProcedureDefinition === undefined) || (alProcedureDefinition === null)) {
@@ -293,14 +295,14 @@ export class ALSyntaxUtil {
     }
 
     /**
-     * Get line number of the AL procedure.
+     * Get line number from Source Code.
      * @param code AL Source Code.
-     * @param procedureName Name of the AL procedure.
+     * @param searchTerm Search term, e.g. Name of the AL procedure or object.
      */
-    private static GetALObjectProcedureLineNo(code: string, procedureName: string): number {        
+    private static GetALKeywordDefinitionLineNo(code: string, searchTerm: string): number {        
         let pos: number = -1;
 
-        code = code.substring(0, code.indexOf(procedureName));
+        code = code.substring(0, code.indexOf(searchTerm));
         let newLinesInCode: RegExpMatchArray | null = code.match(/\n/g); // count occurrence of newline char
         if (newLinesInCode === null) {
             pos = 0;
