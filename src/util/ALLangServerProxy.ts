@@ -213,7 +213,7 @@ export class ALLangServerProxy {
             document.fileName = (alDefinition.uri.scheme === 'al-preview') ? "__symbol__" : alDefinition.uri.fsPath;
 
             let result: { ALObject: ALObject | null, Position: Position} = {
-                ALObject: ALSyntaxUtil.GetObject(document),
+                ALObject: ALSyntaxUtil.GetALObject(document),
                 Position: alDefinition.range.end
             };
 

@@ -14,5 +14,6 @@ export enum ALObjectType {
 	PageExtension,
 	EnumExtension,
 	Interface,
-	ControlAddIn
+	ControlAddIn,
+	Record
 };

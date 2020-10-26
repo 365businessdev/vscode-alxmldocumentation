@@ -9,41 +9,18 @@ import { VSCodeApi } from "../api/VSCodeApi";
 
 export class ALDocCommentUtil {
     /**
-     * Create Object XML Documentation for given AL Object.
+     * Create XML Documentation for given AL Object.
      * @param alObject ALObject object.
      */
-    public static GenerateObjectDocString(alObject: ALObject, idx: number = -1): string {
-        let docString = "";
-
-        docString += "/// <summary> \n";
-        docString += "/// ${" + ((idx === -1) ? "__idx__" : 1) + ":" + ALObjectType[alObject.Type] + " " + alObject.Name ;
-        if (alObject.ID !== undefined) {
-            docString += " (ID " + alObject.ID + ")";
-        }
-        if (alObject.ExtensionType !== undefined) {
-            switch (alObject.ExtensionType) {
-                case ALObjectExtensionType.Extend:
-                    docString += " extends Record " + alObject.ExtensionObject;
-                    break;
-                case ALObjectExtensionType.Implement:
-                    docString += " implements Interface " + alObject.ExtensionObject;
-                    break;
-            }
-        }
-        docString += ".}\n";
-        docString += "/// </summary>";
-
-        alObject.XmlDocumentation.Documentation = docString;
-
-        return docString;
+    public static GetObjectDocumentation(alObject: ALObject): string {
+        return `/// ${alObject.XmlDocumentation.Documentation.replace("__idx__", "1").split("\r\n").join("\r\n/// ")}`;
     }
 
     /**
      * Create Procedure XML Documentation for given AL Procedure.
      * @param alProcedure ALProcedure object.
      */
-    public static GenerateProcedureDocumentation(alProcedure: ALProcedure): string {
-        let docString = "";
+    public static GetProcedureDocumentation(alProcedure: ALProcedure): string {
         let placeholderIdx = 0;
 
         if (alProcedure.Name === undefined) {
@@ -52,20 +29,48 @@ export class ALDocCommentUtil {
 
         placeholderIdx++;
 
-        docString += alProcedure.XmlDocumentation.Documentation.replace("__idx__",placeholderIdx.toString());
+        let docString: string = `/// ${alProcedure.XmlDocumentation.Documentation.replace("__idx__", placeholderIdx.toString()).split("\r\n").join("\r\n/// ")}`;
 
         if ((alProcedure.Parameters !== undefined) && (alProcedure.Parameters.length !== 0)) {
             alProcedure.Parameters.forEach(alParameter => {
                 placeholderIdx++;
-                docString += "\n";
-                docString += alParameter.XmlDocumentation.Documentation.replace("__idx__",placeholderIdx.toString());
+                docString += `\r\n/// ${alParameter.XmlDocumentation.Documentation.replace("__idx__", placeholderIdx.toString()).split("\r\n").join("\r\n/// ")}`;
             });
         }
         if (alProcedure.Return !== undefined) {
             placeholderIdx++;
-            docString += "\n";
-            docString += alProcedure.Return.XmlDocumentation.Documentation.replace("__idx__",placeholderIdx.toString());
+            docString += `\r\n/// ${alProcedure.Return.XmlDocumentation.Documentation.replace("__idx__", placeholderIdx.toString()).split("\r\n").join("\r\n/// ")}`;
         }
+
+        return docString;
+    }
+
+    /**
+     * Create Object XML Documentation for given AL Object.
+     * @param alObject ALObject object.
+     */
+    public static GenerateObjectDocString(alObject: ALObject, idx: number = -1): string {
+        let docString = "";
+
+        docString += "<summary>\r\n";
+        docString += "${" + ((idx === -1) ? "__idx__" : 1) + ":" + ALObjectType[alObject.Type] + " " + alObject.Name ;
+        if (alObject.ID !== undefined) {
+            docString += " (ID " + alObject.ID + ")";
+        }
+        if (alObject.ExtensionType !== undefined) {
+            switch (alObject.ExtensionType) {
+                case ALObjectExtensionType.Extend:
+                    docString += ` extends ${ALObjectType[ALObjectType.Record]} ${alObject.ExtensionObject}`;
+                    break;
+                case ALObjectExtensionType.Implement:
+                    docString += ` implements ${ALObjectType[ALObjectType.Interface]} ${alObject.ExtensionObject}`;
+                    break;
+            }
+        }
+        docString += ".}\r\n";
+        docString += "</summary>";
+
+        alObject.XmlDocumentation.Documentation = docString;
 
         return docString;
     }
@@ -76,10 +81,10 @@ export class ALDocCommentUtil {
      * @param idx Placeholder Index for Snippet.
      */
     public static GenerateProcedureDocString(alProcedure: ALProcedure, idx: number = -1): string {
-        let docString: string = "/// ";
-        docString += "<summary> \n";
-        docString += "/// ${" + ((idx === -1) ? "__idx__" : idx) + ":" + alProcedure.Name + ".}\n";
-        docString += "/// </summary>";
+        let docString: string = "";
+        docString += "<summary>\r\n";
+        docString += "${" + ((idx === -1) ? "__idx__" : idx) + ":" + alProcedure.Name + ".}\r\n";
+        docString += "</summary>";
 
         alProcedure.XmlDocumentation.Documentation = docString;
 
@@ -92,7 +97,7 @@ export class ALDocCommentUtil {
      * @param idx Placeholder Index for Snippet.
      */
     public static GenerateParameterDocString(alParameter: ALParameter, idx: number = -1): string {
-        let docString: string = "/// ";
+        let docString: string = "";
         docString += "<param name=\"" + alParameter.Name + "\">";
         docString += "${" + ((idx === -1) ? "__idx__" : idx) + ":";
         if (alParameter.Temporary) {
@@ -119,7 +124,7 @@ export class ALDocCommentUtil {
      * @param idx Placeholder Index for Snippet.
      */
     public static GenerateProcedureReturnDocString(alProcedureReturn: ALProcedureReturn, idx: number = -1): string {
-        let docString: string = "/// ";
+        let docString: string = "";
         docString += "<returns>";
         docString += "${" + ((idx === -1) ? "__idx__" : idx) + ":";
         if (alProcedureReturn.Name !== "") {

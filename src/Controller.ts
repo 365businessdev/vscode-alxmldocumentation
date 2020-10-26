@@ -3,14 +3,19 @@ import { workspace, window, ProgressLocation, RelativePattern, Uri, ExtensionCon
 import { readFile } from "fs-extra";
 import { ALSyntaxUtil } from "./util/ALSyntaxUtil";
 import { DoComment } from "./doComment";
-import { DoHover } from "./DoHover";
+import { RegisterProvider } from "./RegisterProvider";
 
 export class Controller {
+    /**
+     * Constructor of Controller.
+     * @param context ExtensionContext
+     */
     constructor(context: ExtensionContext) {
-
+        // initialize classes.
         const doComment = new DoComment();
-        const doHover = new DoHover();
+        const doHover = new RegisterProvider();
 
+        // add to subscriptions.
         context.subscriptions.push(doComment);
         context.subscriptions.push(doHover);
     }
@@ -50,9 +55,9 @@ export class Controller {
                         document.getText = () => file.content;
                         document.fileName = file.uri.fsPath;
                         
-                        let alObject: ALObject|null = ALSyntaxUtil.GetObject(document as any);
+                        let alObject: ALObject|null = ALSyntaxUtil.GetALObject(document as any);
                         if (alObject !== null) {
-                            // TODO: Check documentation                            
+                            // TODO: Send diagnostics                            
                         }
                     };
                     let max = relevantFiles.length;

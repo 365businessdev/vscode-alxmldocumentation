@@ -14,30 +14,73 @@ import { ALObsoleteState } from "../types/ALObsoleteState";
 import { ALProcedureSubtype } from "../types/ALProcedureSubtype";
 import { ALProcedureType } from "../types/ALProcedureType";
 import { XMLDocumentation } from "../types/XmlDocumentation";
+import { XMLDocumentationExistType } from "../types/XMLDocumentationExistType";
+import { ALObjectCache } from "../ALObjectCache";
 
 export class ALSyntaxUtil {
+    /**
+     * Test whether the AL object is already in AL Object Cache and remove it from Cache if exist.
+     * @param document Current TextDocument.
+     */    
+    public static ClearALObjectFromCache(document: TextDocument) {
+        let alObjectDefinition = this.GetALObjectDefinition(document.getText());
+        if ((alObjectDefinition?.groups === null) || (alObjectDefinition?.groups === undefined)) {
+            return;
+        }
+
+        let objectName: string = alObjectDefinition.groups["ObjectName"];
+        let objectType: ALObjectType = this.SelectALObjectType(alObjectDefinition.groups["ObjectType"]);
+
+        let alObject: ALObject|null = this.GetALObjectFromCache(objectType, objectName);
+        if (alObject === null) {
+            // console.debug(`${ALObjectType[objectType]} ${objectName} has not been found AL Object cache.`);
+            return;
+        }
+
+        ALObjectCache.ALObjects.splice(ALObjectCache.ALObjects.indexOf(alObject), 1);
+        // console.debug(`Removed ${ALObjectType[objectType]} ${objectName} from AL Object cache.`);        
+    }
+
+    /**
+     * Get AL Object from ALObjectCache by Object Type and Name.
+     * @param objectType ALObjectType.
+     * @param objectName AL Object Name.
+     */
+    public static GetALObjectFromCache(objectType: ALObjectType, objectName: string): ALObject | null {
+        let alObject: ALObject | undefined = ALObjectCache.ALObjects.find(alObject => ((alObject.Name === objectName) && (alObject.Type === objectType)));
+        if (alObject !== undefined) {
+            //console.debug(`Found AL Object ${ALObjectType[alObject.Type]} ${alObject.Name} in cache.`);
+            return alObject;
+        }
+        return null;
+    }
 
     /**
      * Get ALObject from currently loaded text document object.
      * @param document TextDocument to be analyzed.
      */
-    public static GetObject(document: TextDocument): ALObject|null {
+    public static GetALObject(document: TextDocument): ALObject|null {
         let t0 = performance.now();
-        let alObject: ALObject = new ALObject();
+        let alObject: ALObject|null;
 
         try {
-            // get AL object definition
-            let alObjectDefinition = document.getText().match(FindALObjectRegEx);
+            let alObjectDefinition = this.GetALObjectDefinition(document.getText());
             if ((alObjectDefinition?.groups === null) || (alObjectDefinition?.groups === undefined)) {
-                throw new Error(`Fatal error: Could not analyze ${alObject.FileName}.`);
-            }            
-
+                throw new Error(`Fatal error: Could not analyze ${document.fileName}.`);
+            }
+            let objectName: string = alObjectDefinition.groups["ObjectName"];
+            let objectType: ALObjectType = this.SelectALObjectType(alObjectDefinition.groups["ObjectType"]);
+            alObject = this.GetALObjectFromCache(objectType, objectName);
+            if (alObject !== null) {
+                return alObject;
+            }
+            alObject = new ALObject();
+            alObject.Type = objectType;
+            alObject.Name = objectName;
             alObject.LineNo = this.GetALKeywordDefinitionLineNo(document.getText(), alObjectDefinition[0]);
-            alObject.Type = this.SelectALObjectType(alObjectDefinition.groups["ObjectType"]);
             if (!((alObjectDefinition.groups["ObjectID"] === null) || (alObjectDefinition.groups["ObjectID"] === undefined))) {
                 alObject.ID = parseInt(alObjectDefinition.groups["ObjectID"]);
             }
-            alObject.Name = alObjectDefinition.groups["ObjectName"];
 
             if (!((alObjectDefinition.groups['ExtensionType'] === null) || (alObjectDefinition.groups['ExtensionType'] === undefined))) {
                 switch (alObjectDefinition.groups['ExtensionType']) {
@@ -67,7 +110,7 @@ export class ALSyntaxUtil {
 
             // get XML Documentation
             alObject.XmlDocumentation = this.GetALObjectDocumentation(alObject, document.getText());
-            if ((alObject.XmlDocumentation.DocumentationExists === false)) {
+            if ((alObject.XmlDocumentation.Exists === XMLDocumentationExistType.No)) {
                 ALDocCommentUtil.GenerateObjectDocString(alObject);
             }
 
@@ -76,6 +119,7 @@ export class ALSyntaxUtil {
             let t1 = performance.now();
             console.debug("Processing time for object " + alObject.Name + ": " + Math.round((t1 - t0) * 100 / 100) + "ms.");
 
+            ALObjectCache.ALObjects.push(alObject); // add AL object to AL Object cache.
             return alObject;   
         }
         catch (ex)
@@ -173,7 +217,7 @@ export class ALSyntaxUtil {
                         }
                         // get XML Documentation
                         alParameter.XmlDocumentation = this.GetALObjectProcedureParameterDocumentation(alProcedure, alParameter, code);
-                        if ((alParameter.XmlDocumentation.DocumentationExists === false)) {
+                        if ((alParameter.XmlDocumentation.Exists === XMLDocumentationExistType.No)) {
                             ALDocCommentUtil.GenerateParameterDocString(alParameter);
                         }
                         alProcedure.Parameters.push(alParameter);
@@ -181,8 +225,12 @@ export class ALSyntaxUtil {
                 });
             }
             // get return type from procedure definition
-            if ((alProcedureDefinition["ReturnType"] !== undefined) && (alProcedureDefinition["ReturnType"].trim() !== "")) {
-                let alReturn: ALProcedureReturn = new ALProcedureReturn();
+            alProcedureDefinition["ReturnType"] = alProcedureDefinition["ReturnType"].trim();
+            if ((alProcedureDefinition["ReturnType"] !== undefined) && (alProcedureDefinition["ReturnType"] !== "")) {
+                let alReturn: ALProcedureReturn | undefined = new ALProcedureReturn();
+                if (alProcedureDefinition["ReturnType"][alProcedureDefinition["ReturnType"].length - 1] === ";") {
+                    alProcedureDefinition["ReturnType"] = alProcedureDefinition["ReturnType"].substring(0, alProcedureDefinition["ReturnType"].length - 1).trim();
+                }
                 if (alProcedureDefinition["ReturnType"].indexOf(":") === -1) {
                     alReturn.Type = alProcedureDefinition["ReturnType"].trim();
                 } else {
@@ -193,12 +241,14 @@ export class ALSyntaxUtil {
                     alReturn.Type = alReturn.Type.substring(0, alReturn.Type.length - 2).trim();
                 }
                 if (alReturn.Type === "") {
-                    alProcedure.Return = undefined;
+                    alReturn = undefined;
                 }
-                // get XML Documentation
-                alReturn.XmlDocumentation = this.GetALObjectProcedureReturnDocumentation(alProcedure, alReturn, code);
-                if ((alReturn.XmlDocumentation.DocumentationExists === false)) {
-                    ALDocCommentUtil.GenerateProcedureReturnDocString(alReturn);
+                if (alReturn !== undefined) {
+                    // get XML Documentation
+                    alReturn.XmlDocumentation = this.GetALObjectProcedureReturnDocumentation(alProcedure, alReturn, code);
+                    if ((alReturn.XmlDocumentation.Exists === XMLDocumentationExistType.No)) {
+                        ALDocCommentUtil.GenerateProcedureReturnDocString(alReturn);
+                    }
                 }
                 alProcedure.Return = alReturn;
             }
@@ -207,8 +257,21 @@ export class ALSyntaxUtil {
 
         // get XML Documentation
         alProcedure.XmlDocumentation = this.GetALObjectProcedureDocumentation(alProcedure, code);
-        if ((alProcedure.XmlDocumentation.DocumentationExists === false)) {
-            ALDocCommentUtil.GenerateProcedureDocString(alProcedure);
+        switch (alProcedure.XmlDocumentation.Exists) {
+            case XMLDocumentationExistType.No:
+                if ((alProcedure.XmlDocumentation.Exists === XMLDocumentationExistType.No)) {
+                    ALDocCommentUtil.GenerateProcedureDocString(alProcedure);
+                }
+                break;
+            case XMLDocumentationExistType.Inherit:                
+                // clear parameter and return documentation previously collected
+                for (let i = 0; i < alProcedure.Parameters.length; i++) {
+                    alProcedure.Parameters[i].XmlDocumentation = new XMLDocumentation();
+                }
+                if (alProcedure.Return !== undefined) {
+                    alProcedure.Return.XmlDocumentation = new XMLDocumentation();
+                }
+                break;
         }
 
         return alProcedure;
@@ -537,14 +600,16 @@ export class ALSyntaxUtil {
             for (var i = 0; (i < codeLines.length); i++) {
                 let line: string = codeLines[i];
                 if ((line.trim().startsWith('///')) && (line.trim().replace('///','').trim() !== "")) {
-                    result.Documentation = `${result.Documentation}\r\n${line.trim().replace('///','')}`;
+                    result.Documentation = `${result.Documentation}\r\n${line.replace('///','').trim()}`;
                 }
                 if ((ALSyntaxUtil.IsProcedureDefinition(line)) || (ALSyntaxUtil.IsObjectDefinition(line)) || (ALSyntaxUtil.IsBeginEnd(line))) {
                     break;
                 }
             }
 
-            result.DocumentationExists = (result.Documentation !== "");
+            if (result.Documentation !== "") {
+                result.Exists = XMLDocumentationExistType.Yes;
+            }
         }
         catch (ex)
         { }
@@ -568,16 +633,26 @@ export class ALSyntaxUtil {
             for (var i = (alProcedure.LineNo - 1); (i > 0); i--) {
                 let line: string = codeLines[i];
                 if (line.trim().startsWith('///')) {
-                    if ((line.indexOf("</summary>") !== -1) || (line.indexOf("</returns>") !== -1) || (line.indexOf("</remarks>") !== -1) || (line.indexOf("</example>") !== -1)) {
+                    if ((line.indexOf("</summary>") !== -1) || (line.indexOf("</remarks>") !== -1) || (line.indexOf("</example>") !== -1)) {
                         collect = true;
                     }
 
                     if (collect) {
-                        result.Documentation = `${line.trim().replace('///','')}\r\n${result.Documentation}`;
+                        if (result.Documentation !== "") {
+                            result.Documentation = `${line.replace('///','').trim()}\r\n${result.Documentation}`;
+                        } else {
+                            result.Documentation = line.replace('///','').trim();
+                        }
                     }
 
-                    if ((line.indexOf("<summary>") !== -1) || (line.indexOf("<returns>") !== -1) || (line.indexOf("<remarks>") !== -1) || (line.indexOf("<example>") !== -1)) {
+                    if ((line.indexOf("<summary>") !== -1) || (line.indexOf("<remarks>") !== -1) || (line.indexOf("<example>") !== -1)) {
                         collect = false;
+                    }
+
+                    if (line.match(/\/\/\/ <inheritdoc cref="(?<CodeReference>.*)"\/>/) !== null) {
+                        result.Exists = XMLDocumentationExistType.Inherit;
+                        result.Documentation = line.trim().replace('///','');
+                        return result;
                     }
                 }
                 if ((ALSyntaxUtil.IsProcedureDefinition(line)) || (ALSyntaxUtil.IsObjectDefinition(line)) || (ALSyntaxUtil.IsBeginEnd(line))) {
@@ -585,7 +660,9 @@ export class ALSyntaxUtil {
                 }
             }
 
-            result.DocumentationExists = (result.Documentation !== "");
+            if (result.Documentation !== "") {
+                result.Exists = XMLDocumentationExistType.Yes;            
+            }
         }
         catch (ex)
         { }
@@ -615,13 +692,17 @@ export class ALSyntaxUtil {
                     }
 
                     if (collect) {
-                        result.Documentation = `${line.trim().replace('///','')}\r\n${result.Documentation}`;
+                        if (result.Documentation !== "") {
+                            result.Documentation = `${line.replace('///','').trim()}\r\n${result.Documentation}`;
+                        } else {
+                            result.Documentation = line.replace('///','').trim();
+                        }
                     }
 
                     if (line.indexOf('<param name=') !== -1) {
                         collect = false;
 
-                        if (line.indexOf(`<param name="${alParameter.Name}">`) !== -1) {
+                        if (line.indexOf(`<param name="${alParameter.Name}">`) === -1) {
                             result.Documentation = "";
                         }
                     }
@@ -631,7 +712,9 @@ export class ALSyntaxUtil {
                 }
             }
 
-            result.DocumentationExists = (result.Documentation !== "");
+            if (result.Documentation !== "") {
+                result.Exists = XMLDocumentationExistType.Yes;
+            }
         }
         catch (ex)
         { }
@@ -661,7 +744,11 @@ export class ALSyntaxUtil {
                     }
 
                     if (collect) {
-                        result.Documentation = `${line.trim().replace('///','')}\r\n${result.Documentation}`;
+                        if (result.Documentation !== "") {
+                            result.Documentation = `${line.replace('///','').trim()}\r\n${result.Documentation}`;
+                        } else {
+                            result.Documentation = line.replace('///','').trim();
+                        }
                     }
 
                     if (line.indexOf("<returns>") !== -1) {
@@ -673,99 +760,22 @@ export class ALSyntaxUtil {
                 }
             }
 
-            result.DocumentationExists = (result.Documentation !== "");
+            if (result.Documentation !== "") {
+                result.Exists = XMLDocumentationExistType.Yes;
+            }
         }
         catch (ex)
         { }
 
         return result;
     }
-
-
+    
     /**
-     * Get AL Procedure documentation.
-     * @param code AL Source Code.
-     * @param alProcedure ALProcedure object.
+     * Get AL Object definition from source code.
+     * @param documentText AL Source Code.
      */
-    // private static GetALProcedureDocumentation(code: string, startingLineNo: number): ALDocumentation {
-    //     let sourceCodeLines = this.SplitALCodeToLines(code);
-    //     let alDocumentation = new ALDocumentation();
-    //     for (let lineNo = startingLineNo - 1; lineNo >= 0; lineNo--) {
-    //         if (this.IsBeginEnd(sourceCodeLines[lineNo])) {
-    //             break;
-    //         }
-    //         if (sourceCodeLines[lineNo].match(FindALObjectRegEx) !== null) {
-    //             break;
-    //         }
-    //         if (sourceCodeLines[lineNo].match(FindALProceduresRegEx) !== null) {
-    //             break;
-    //         }
-    //         if (sourceCodeLines[lineNo].trim().startsWith("///")) {
-    //             alDocumentation.XmlDocumentation = `${sourceCodeLines[lineNo].replace("///","".trim())}\r\n${alDocumentation.XmlDocumentation}`;
-    //         }
-    //     }
-    //     alDocumentation.IsDocumented = (alDocumentation.XmlDocumentation !== "");        
-
-    //     return alDocumentation;
-    // }
-
-    // private static CheckALProcedureDocumentation(code: string, alProcedure: ALProcedure) {
-    //     alProcedure.ALDocumentation = this.GetALProcedureDocumentation(code, alProcedure.LineNo);
-    //     alProcedure.ALDocumentation.SuggestedXmlDocumentation = ALDocCommentUtil.GenerateProcedureDocString(alProcedure, 1);
-    //     if (!alProcedure.ALDocumentation.IsDocumented) {
-    //         return;
-    //     }
-
-    //     // check procedure documentation.
-    //     let documentationAsJson = ALDocCommentUtil.GetJsonFromXmlDocumentation(alProcedure.ALDocumentation.XmlDocumentation);
-    //     if ((documentationAsJson === undefined) || (documentationAsJson === null)) {
-    //         console.error(`${alProcedure.Name} could not be analyzed. Please report this error at https://github.com/365businessdev/vscode-alxmldocumentation/issues`);
-    //         return;
-    //     }
-
-    //     // check summary description
-    //     if ((!documentationAsJson.summary) || (documentationAsJson.summary === "")) {
-    //         alProcedure.ALDocumentation.IsDocumented = false;
-    //         alProcedure.ALDocumentation.DocumentationHints.push(
-    //             new ALDocumentationHints(
-    //                 ALXmlDocDiagnosticCode.SummaryMissing, 
-    //                 ALXmlDocDiagnosticMessage.SummaryMissing));
-    //     }
-
-    //     alProcedure.Parameters.forEach(function(alParameter: ALParameter, index: number) {
-    //         // attach initialized AL Documentation object to AL Procedure.
-    //         alParameter.ALDocumentation = ALSyntaxUtil.GetALProcedureDocumentation(code, alProcedure.LineNo);
-    //         alParameter.ALDocumentation.SuggestedXmlDocumentation = ALDocCommentUtil.GenerateParameterDocString(alParameter, 1);
-    //         alParameter.ALDocumentation.IsDocumented = false;
-    //         if (documentationAsJson.param !== undefined) {
-    //             if (documentationAsJson.param.length !== undefined) {
-    //                 for (let i = 0; i < documentationAsJson.param.length; i++) {
-    //                     if (documentationAsJson.param[i].attr.name === alParameter.Name) {
-    //                         if (documentationAsJson.param[i].value !== "") {
-    //                             alParameter.ALDocumentation.IsDocumented = true;
-    //                             documentationAsJson.param.splice(i, 1);
-    //                         }
-    //                         break;
-    //                     }
-    //                 }
-    //             } else {
-    //                 if (documentationAsJson.param.value !== "") {
-    //                     alParameter.ALDocumentation.IsDocumented = true;
-    //                     documentationAsJson.param = undefined;
-    //                 }
-    //             }
-    //         }            
-
-    //         if (!alParameter.ALDocumentation.IsDocumented) {
-    //             alParameter.ALDocumentation.DocumentationHints.push(
-    //                     new ALDocumentationHints(
-    //                         ALXmlDocDiagnosticCode.ParameterMissing, 
-    //                         ALXmlDocDiagnosticMessage.ParameterMissing));
-    //         }
-
-    //         // reassign parameter to object
-    //         alProcedure.Parameters[index] = alParameter;
-    //     });
-    // }
-
+    private static GetALObjectDefinition(documentText: string): RegExpMatchArray | null {
+        let alObjectDefinition = documentText.match(FindALObjectRegEx);
+        return alObjectDefinition;
+    }
 }

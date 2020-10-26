@@ -4,6 +4,7 @@ import { ALSyntaxUtil } from './util/ALSyntaxUtil';
 import { VSCodeApi } from './api/VSCodeApi';
 import { ALObject } from './types/ALObject';
 import { ALProcedure } from './types/ALProcedure';
+import { ALDocCommentUtil } from './util/ALDocCommentUtil';
 
 export class DoComment {
     private disposable: Disposable;
@@ -22,7 +23,10 @@ export class DoComment {
             const activeEditor = window.activeTextEditor;
 
             if (activeEditor && event.document === activeEditor.document) {
-                this.DoComment(activeEditor, event.contentChanges[0]);
+                ALSyntaxUtil.ClearALObjectFromCache(activeEditor.document);
+                // TODO: Configuration
+                // this.DoComment(activeEditor, event.contentChanges[0]);
+                ALSyntaxUtil.GetALObject(activeEditor.document);
             }
         }, this, subscriptions);
         
@@ -40,6 +44,9 @@ export class DoComment {
         this.activeEditor = activeEditor;
 
         if ((this.event === undefined) || (this.event === null) || (this.activeEditor === undefined) || (this.activeEditor === null)) {
+            return;
+        }
+        if (this.event.text !== "/") {
             return;
         }
 
@@ -127,7 +134,7 @@ export class DoComment {
      */
     public WriteDocString() {
         // Analyze current AL Object.
-        let alObject: ALObject | null = ALSyntaxUtil.GetObject(this.activeEditor.document);
+        let alObject: ALObject | null = ALSyntaxUtil.GetALObject(this.activeEditor.document);
         if ((alObject === null) || (alObject === undefined)) {
             return;
         }
@@ -137,59 +144,20 @@ export class DoComment {
         const activeLineNo: number = this.vsCodeApi.GetActiveLine();
         if (activeLineNo < alObject.LineNo) {
             // use object definition
-            docString = alObject.XmlDocumentation.Documentation.replace("__idx__", "1");
+            docString = ALDocCommentUtil.GetObjectDocumentation(alObject);
         } else {
             // find procedure
             let alProcedure: ALProcedure | undefined = alObject.Procedures?.find(alProcedure => (alProcedure.LineNo > activeLineNo));
-            if ((!alProcedure) || (alProcedure.XmlDocumentation.DocumentationExists)) {
+            if ((!alProcedure) || (alProcedure.XmlDocumentation.Exists)) {
                 return;
             }
-            let snippetIdx: number = 1;
-
-            docString = alProcedure.XmlDocumentation.Documentation.replace("__idx__", snippetIdx.toString()).split("\r\n").join("\r\n/// ");
-            alProcedure.Parameters.forEach(alParameter => {
-                snippetIdx++;
-                docString += "\r\n" + alParameter.XmlDocumentation.Documentation.replace("__idx__", snippetIdx.toString()).split("\r\n").join("\r\n/// ");
-            });
-            if (alProcedure.Return !== undefined) {
-                snippetIdx++;
-                docString += "\r\n" + alProcedure.Return.XmlDocumentation.Documentation.replace("__idx__", snippetIdx.toString()).split("\r\n").join("\r\n/// ");
-            }
+            docString = ALDocCommentUtil.GetProcedureDocumentation(alProcedure);
         }
 
-        // remove starting "///"
-        docString = docString.replace("__idx__", "1").substring(docString.indexOf("///") + 3);
+        docString = docString.replace('///',''); // delete leading '///'.
 
         const position: Position = this.vsCodeApi.GetActivePosition();
         this.activeEditor.insertSnippet(new SnippetString(docString), this.vsCodeApi.ShiftPositionChar(position, 1));
-    }
-
-    /**
-     * Find associated AL Source Code line no. based on current cursor position.
-     */
-    private FindAssocSourceLineNo(): number {
-        const lineCount: number = this.vsCodeApi.GetLineCount();
-        const curLine: number = this.vsCodeApi.GetActiveLine();
-
-        // find assoc. AL Source Code for documentation.
-        for (let i: number = curLine; i < lineCount - 1; i++) {
-            const line: string = this.vsCodeApi.ReadLine(i + 1);
-
-            // Skip empty line
-            if (StringUtil.IsNullOrWhiteSpace(line)) {
-                continue;
-            }
-
-            if (ALSyntaxUtil.IsBeginEnd(line)) {
-                return -1;
-            }
-
-            if ((ALSyntaxUtil.IsObjectDefinition(line)) || (ALSyntaxUtil.IsProcedureDefinition(line))) {
-                return i + 1;
-            }
-        }
-
-        return -1;
     }
 
     public dispose() {
