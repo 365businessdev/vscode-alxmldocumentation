@@ -1,10 +1,10 @@
-import { XMLDocumentation } from "./XmlDocumentation";
+import { XMLDocumentation } from './XmlDocumentation';
 
 export class ALProcedureReturn {
     /**
      * Name of the return variable, if set.
      */
-    public Name: string = "";
+    public Name: string = '';
 
     /**
      * Type of the procedure return value.

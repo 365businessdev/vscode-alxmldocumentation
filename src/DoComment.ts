@@ -28,7 +28,7 @@ export class DoComment {
         workspace.onDidChangeTextDocument(event => {
             const activeEditor = window.activeTextEditor;
 
-            if (event.document.languageId !== "al") {
+            if (event.document.languageId !== 'al') {
                 return;
             }
 
@@ -77,7 +77,7 @@ export class DoComment {
         if ((this.event === undefined) || (this.event === null) || (this.activeEditor === undefined) || (this.activeEditor === null)) {
             return;
         }
-        if (this.event.text !== "/") {
+        if (this.event.text !== '/') {
             return;
         }
 
@@ -169,7 +169,7 @@ export class DoComment {
             return;
         }
 
-        let docString: string = "";
+        let docString: string = '';
 
         const activeLineNo: number = this.vsCodeApi.GetActiveLine();
         if (activeLineNo < alObject.LineNo) {

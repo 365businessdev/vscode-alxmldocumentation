@@ -1,12 +1,12 @@
-import { CancellationToken, CompletionContext, CompletionItem, CompletionItemKind, CompletionItemProvider, CompletionList, Location, Position, ProviderResult, SnippetString, TextDocument } from "vscode";
-import { ALObject } from "../types/ALObject";
-import { ALObjectExtensionType } from "../types/ALObjectExtensionType";
-import { ALObjectType } from "../types/ALObjectType";
-import { ALProcedure } from "../types/ALProcedure";
-import { ALDocCommentUtil } from "./ALDocCommentUtil";
-import { ALLangServerProxy } from "./ALLangServerProxy";
-import { ALSyntaxUtil } from "./ALSyntaxUtil";
-import { Configuration } from "./Configuration";
+import { CancellationToken, CompletionContext, CompletionItem, CompletionItemKind, CompletionItemProvider, CompletionList, Location, Position, ProviderResult, SnippetString, TextDocument } from 'vscode';
+import { ALObject } from '../types/ALObject';
+import { ALObjectExtensionType } from '../types/ALObjectExtensionType';
+import { ALObjectType } from '../types/ALObjectType';
+import { ALProcedure } from '../types/ALProcedure';
+import { ALDocCommentUtil } from './ALDocCommentUtil';
+import { ALLangServerProxy } from './ALLangServerProxy';
+import { ALSyntaxUtil } from './ALSyntaxUtil';
+import { Configuration } from './Configuration';
 
 export class ALDocCommentProvider implements CompletionItemProvider {
     private alXmlDocCompletionItems: Array<CompletionItem> = [];

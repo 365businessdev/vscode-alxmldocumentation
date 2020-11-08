@@ -1,11 +1,11 @@
-import { ALObject } from "../types/ALObject";
-import { ALProcedure } from "../types/ALProcedure";
-import { ALParameter } from "../types/ALParameter";
-import { ALProcedureReturn } from "../types/ALProcedureReturn";
-import { ALObjectExtensionType } from "../types/ALObjectExtensionType";
-import { ALObjectType } from "../types/ALObjectType";
-import { TextEditor, TextDocument } from "vscode";
-import { VSCodeApi } from "../api/VSCodeApi";
+import { ALObject } from '../types/ALObject';
+import { ALProcedure } from '../types/ALProcedure';
+import { ALParameter } from '../types/ALParameter';
+import { ALProcedureReturn } from '../types/ALProcedureReturn';
+import { ALObjectExtensionType } from '../types/ALObjectExtensionType';
+import { ALObjectType } from '../types/ALObjectType';
+import { TextEditor, TextDocument } from 'vscode';
+import { VSCodeApi } from '../api/VSCodeApi';
 
 export class ALDocCommentUtil {
     /**
@@ -13,7 +13,7 @@ export class ALDocCommentUtil {
      * @param alObject ALObject object.
      */
     public static GetObjectDocumentation(alObject: ALObject): string {
-        return `/// ${alObject.XmlDocumentation.Documentation.replace("__idx__", "1").split("\r\n").join("\r\n/// ")}`;
+        return `/// ${alObject.XmlDocumentation.Documentation.replace('__idx__', '1').split('\r\n').join('\r\n/// ')}`;
     }
 
     /**
@@ -24,22 +24,22 @@ export class ALDocCommentUtil {
         let placeholderIdx = 0;
 
         if (alProcedure.Name === undefined) {
-            return "";
+            return '';
         }
 
         placeholderIdx++;
 
-        let docString: string = `/// ${alProcedure.XmlDocumentation.Documentation.replace("__idx__", placeholderIdx.toString()).split("\r\n").join("\r\n/// ")}`;
+        let docString: string = `/// ${alProcedure.XmlDocumentation.Documentation.replace('__idx__', placeholderIdx.toString()).split('\r\n').join('\r\n/// ')}`;
 
         if ((alProcedure.Parameters !== undefined) && (alProcedure.Parameters.length !== 0)) {
             alProcedure.Parameters.forEach(alParameter => {
                 placeholderIdx++;
-                docString += `\r\n/// ${alParameter.XmlDocumentation.Documentation.replace("__idx__", placeholderIdx.toString()).split("\r\n").join("\r\n/// ")}`;
+                docString += `\r\n/// ${alParameter.XmlDocumentation.Documentation.replace('__idx__', placeholderIdx.toString()).split('\r\n').join('\r\n/// ')}`;
             });
         }
         if (alProcedure.Return !== undefined) {
             placeholderIdx++;
-            docString += `\r\n/// ${alProcedure.Return.XmlDocumentation.Documentation.replace("__idx__", placeholderIdx.toString()).split("\r\n").join("\r\n/// ")}`;
+            docString += `\r\n/// ${alProcedure.Return.XmlDocumentation.Documentation.replace('__idx__', placeholderIdx.toString()).split('\r\n').join('\r\n/// ')}`;
         }
 
         return docString;
@@ -50,12 +50,12 @@ export class ALDocCommentUtil {
      * @param alObject ALObject object.
      */
     public static GenerateObjectDocString(alObject: ALObject, idx: number = -1): string {
-        let docString = "";
+        let docString = '';
 
-        docString += "<summary>\r\n";
-        docString += "${" + ((idx === -1) ? "__idx__" : 1) + ":" + ALObjectType[alObject.Type] + " " + alObject.Name ;
+        docString += '<summary>\r\n';
+        docString += '${' + ((idx === -1) ? '__idx__' : 1) + ':' + ALObjectType[alObject.Type] + ' ' + alObject.Name ;
         if (alObject.ID !== undefined) {
-            docString += " (ID " + alObject.ID + ")";
+            docString += ' (ID ' + alObject.ID + ')';
         }
         if (alObject.ExtensionType !== undefined) {
             switch (alObject.ExtensionType) {
@@ -67,8 +67,8 @@ export class ALDocCommentUtil {
                     break;
             }
         }
-        docString += ".}\r\n";
-        docString += "</summary>";
+        docString += '.}\r\n';
+        docString += '</summary>';
 
         alObject.XmlDocumentation.Documentation = docString;
 
@@ -81,10 +81,10 @@ export class ALDocCommentUtil {
      * @param idx Placeholder Index for Snippet.
      */
     public static GenerateProcedureDocString(alProcedure: ALProcedure, idx: number = -1): string {
-        let docString: string = "";
-        docString += "<summary>\r\n";
-        docString += "${" + ((idx === -1) ? "__idx__" : idx) + ":" + alProcedure.Name + ".}\r\n";
-        docString += "</summary>";
+        let docString: string = '';
+        docString += '<summary>\r\n';
+        docString += '${' + ((idx === -1) ? '__idx__' : idx) + ':' + alProcedure.Name + '.}\r\n';
+        docString += '</summary>';
 
         alProcedure.XmlDocumentation.Documentation = docString;
 
@@ -97,21 +97,21 @@ export class ALDocCommentUtil {
      * @param idx Placeholder Index for Snippet.
      */
     public static GenerateParameterDocString(alParameter: ALParameter, idx: number = -1): string {
-        let docString: string = "";
-        docString += "<param name=\"" + alParameter.Name + "\">";
-        docString += "${" + ((idx === -1) ? "__idx__" : idx) + ":";
+        let docString: string = '';
+        docString += '<param name="' + alParameter.Name + '">';
+        docString += '${' + ((idx === -1) ? '__idx__' : idx) + ':';
         if (alParameter.Temporary) {
-            docString += "Temporary ";
+            docString += 'Temporary ';
         }
         if (alParameter.CallByReference) {
-            docString += "VAR ";
+            docString += 'VAR ';
         }
         docString += alParameter.Type;
-        if ((alParameter.Subtype !== "") && (alParameter.Subtype !== undefined)) {
-            docString += " " + alParameter.Subtype;
+        if ((alParameter.Subtype !== '') && (alParameter.Subtype !== undefined)) {
+            docString += ' ' + alParameter.Subtype;
         }
-        docString += ".}";
-        docString += "</param>";
+        docString += '.}';
+        docString += '</param>';
 
         alParameter.XmlDocumentation.Documentation = docString;
 
@@ -124,17 +124,17 @@ export class ALDocCommentUtil {
      * @param idx Placeholder Index for Snippet.
      */
     public static GenerateProcedureReturnDocString(alProcedureReturn: ALProcedureReturn, idx: number = -1): string {
-        let docString: string = "";
-        docString += "<returns>";
-        docString += "${" + ((idx === -1) ? "__idx__" : idx) + ":";
-        if (alProcedureReturn.Name !== "") {
-            docString += "Return variable " + alProcedureReturn.Name;
+        let docString: string = '';
+        docString += '<returns>';
+        docString += '${' + ((idx === -1) ? '__idx__' : idx) + ':';
+        if (alProcedureReturn.Name !== '') {
+            docString += 'Return variable ' + alProcedureReturn.Name;
         } else {
-            docString += "Return value";
+            docString += 'Return value';
         }
-        docString += " of type " + alProcedureReturn.Type;
-        docString += ".}";
-        docString += "</returns>";
+        docString += ' of type ' + alProcedureReturn.Type;
+        docString += '.}';
+        docString += '</returns>';
 
         alProcedureReturn.XmlDocumentation.Documentation = docString;
 
@@ -149,9 +149,9 @@ export class ALDocCommentUtil {
         // transform xml to json
         var parser = require('fast-xml-parser');
         var options = {
-            attributeNamePrefix : "",
-            attrNodeName: "attr",
-            textNodeName : "value",
+            attributeNamePrefix : '',
+            attrNodeName: 'attr',
+            textNodeName : 'value',
             ignoreAttributes : false,
             ignoreNameSpace : true,
             parseAttributeValue : true
@@ -172,12 +172,12 @@ export class ALDocCommentUtil {
      * @param attrName Requested attribute (optional).
      * @param attrValue Requested attribute value (optional).
      */
-    public static GetXmlDocumentationNode(xmlDocumentation: string, xmlNode: string, attrName: string = "", attrValue: string = ""): string {
+    public static GetXmlDocumentationNode(xmlDocumentation: string, xmlNode: string, attrName: string = '', attrValue: string = ''): string {
         let isTag: boolean = false;
-        let docNode: string = "";
-        xmlDocumentation.split("\n").forEach(line => {
-            if (attrName !== "") {
-                if (line.includes(`<${xmlNode} ${attrName}="${attrValue}">`)) {
+        let docNode: string = '';
+        xmlDocumentation.split('\n').forEach(line => {
+            if (attrName !== '') {
+                if (line.includes(`<${xmlNode} ${attrName}='${attrValue}'>`)) {
                     isTag = true;
                 }
             } else {
@@ -186,7 +186,7 @@ export class ALDocCommentUtil {
                 }
             }
             if (isTag) {
-                if (docNode !== "") {
+                if (docNode !== '') {
                     docNode = `${docNode}\n`;
                 }
                 docNode = `${docNode}${line}`;

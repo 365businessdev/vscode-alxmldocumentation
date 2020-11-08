@@ -1,12 +1,12 @@
-import { Diagnostic, DiagnosticCollection, DiagnosticSeverity, languages, Range, TextDocument } from "vscode";
-import { ALXmlDocDiagnosticCode, ALXmlDocDiagnosticPrefix } from "../types";
-import { ALObject } from "../types/ALObject";
-import { ALObjectType } from "../types/ALObjectType";
-import { ALProcedure } from "../types/ALProcedure";
-import { XMLDocumentationExistType } from "../types/XMLDocumentationExistType";
-import { ALSyntaxUtil } from "./ALSyntaxUtil";
-import { Configuration } from "./Configuration";
-import { StringUtil } from "./StringUtil";
+import { Diagnostic, DiagnosticCollection, DiagnosticSeverity, languages, Range, TextDocument } from 'vscode';
+import { ALXmlDocDiagnosticCode, ALXmlDocDiagnosticPrefix } from '../types';
+import { ALObject } from '../types/ALObject';
+import { ALObjectType } from '../types/ALObjectType';
+import { ALProcedure } from '../types/ALProcedure';
+import { XMLDocumentationExistType } from '../types/XMLDocumentationExistType';
+import { ALSyntaxUtil } from './ALSyntaxUtil';
+import { Configuration } from './Configuration';
+import { StringUtil } from './StringUtil';
 import * as fs from 'fs';
 
 export class ALCheckDocumentation {
@@ -132,7 +132,7 @@ export class ALCheckDocumentation {
                 diag.push({
                     type: DiagnosticSeverity.Warning,
                     diagnosticCode: ALXmlDocDiagnosticCode.ReturnTypeMissing,
-                    element: `${((alProcedure.Return.Name !== "") ? ` '${alProcedure.Return.Name}'` : "")}`,
+                    element: `${((alProcedure.Return.Name !== '') ? ` '${alProcedure.Return.Name}'` : '')}`,
                     range: alProcedure.Range
                 });
             }
@@ -152,8 +152,8 @@ export class ALCheckDocumentation {
 
         let missingDoc = diag.filter(this.IsMissingDocumentationDiag);
         if ((missingDoc !== undefined) && (missingDoc.length > 0)) {
-            let msg: string = "";
-            let code: string = "";
+            let msg: string = '';
+            let code: string = '';
             if (missingDoc[0].diagnosticCode !== ALXmlDocDiagnosticCode.XmlDocumentationMissing) {
                 missingDoc.forEach(diag => {
                     switch (diag.diagnosticCode) {
@@ -161,11 +161,11 @@ export class ALCheckDocumentation {
                             diag.element = `parameter '${diag.element}'`;
                         break;
                         case ALXmlDocDiagnosticCode.ReturnTypeMissing:
-                            diag.element = `return value${(diag.element !== "") ? "'" + diag.element + "'" : ""}`;
+                            diag.element = `return value${(diag.element !== '') ? '\'' + diag.element + '\'' : ''}`;
                         break;
                     }
-                    msg = StringUtil.AppendString(msg, diag.element, ", ");
-                    code = StringUtil.AppendString(code, this.GetDiagnosticCode(diag.diagnosticCode), ", ");
+                    msg = StringUtil.AppendString(msg, diag.element, ', ');
+                    code = StringUtil.AppendString(code, this.GetDiagnosticCode(diag.diagnosticCode), ', ');
                 });
 
                 msg = `The procedure ${alProcedure.Name} is missing documentation for ${msg}.`;

@@ -1,11 +1,11 @@
-import { Uri } from "vscode";
-import { ALAccessLevel } from "./ALAccessLevel";
-import { ALCodeunitType } from "./ALCodeunitType";
-import { ALObjectExtensionType } from "./ALObjectExtensionType";
-import { ALObjectType } from "./ALObjectType";
-import { ALObsoleteState } from "./ALObsoleteState";
-import { ALProcedure } from "./ALProcedure";
-import { XMLDocumentation } from "./XmlDocumentation";
+import { Uri } from 'vscode';
+import { ALAccessLevel } from './ALAccessLevel';
+import { ALCodeunitType } from './ALCodeunitType';
+import { ALObjectExtensionType } from './ALObjectExtensionType';
+import { ALObjectType } from './ALObjectType';
+import { ALObsoleteState } from './ALObsoleteState';
+import { ALProcedure } from './ALProcedure';
+import { XMLDocumentation } from './XmlDocumentation';
 
 export class ALObject {
     /**
@@ -81,7 +81,7 @@ export class ALObject {
      * Obsolete Reason of the AL Object.
      * @type {string} 
      */   
-    public ObsoleteReason: string = "";
+    public ObsoleteReason: string = '';
 
     /**
      * List of procedures in the AL Object or undefined.

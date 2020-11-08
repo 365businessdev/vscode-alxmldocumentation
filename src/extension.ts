@@ -1,6 +1,6 @@
-import { ExtensionContext } from "vscode";
-import { ALObjectCache } from "./ALObjectCache";
-import { Controller } from "./Controller";
+import { commands, ExtensionContext, TextEditor, window } from 'vscode';
+import { ALObjectCache } from './ALObjectCache';
+import { Controller } from './Controller';
 
 export async function activate(context: ExtensionContext) {	
 	const controller = new Controller(context);

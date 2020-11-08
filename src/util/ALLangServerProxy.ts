@@ -181,7 +181,7 @@ export class ALLangServerProxy {
                 function adopt(value: unknown) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
                 return new (P || (P = Promise))(function (resolve, reject) {
                     function fulfilled(value: any) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-                    function rejected(value: any) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+                    function rejected(value: any) { try { step(generator['throw'](value)); } catch (e) { reject(e); } }
                     function step(result: any) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
                     step((generator = generator.apply(thisArg, _arguments || [])).next());
                 });
@@ -196,7 +196,7 @@ export class ALLangServerProxy {
                 return undefined;
             }
 
-            let alSourceCode: string = "";
+            let alSourceCode: string = '';
             if (alDefinition.uri.scheme === 'al-preview') {      
                 // For al-preview try get source code from language server.
                 const request = { Uri: alDefinition.uri.toString() };                        
@@ -210,7 +210,7 @@ export class ALLangServerProxy {
 
             let document = Object.assign({});
             document.getText = () => alSourceCode;
-            document.fileName = (alDefinition.uri.scheme === 'al-preview') ? "__symbol__" : alDefinition.uri.fsPath;
+            document.fileName = (alDefinition.uri.scheme === 'al-preview') ? '__symbol__' : alDefinition.uri.fsPath;
 
             let result: { ALObject: ALObject | null, Position: Position} = {
                 ALObject: ALSyntaxUtil.GetALObject(document),

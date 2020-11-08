@@ -1,11 +1,11 @@
-import { Range } from "vscode";
-import { ALAccessLevel } from "./ALAccessLevel";
-import { ALObsoleteState } from "./ALObsoleteState";
-import { ALParameter } from "./ALParameter";
-import { ALProcedureReturn } from "./ALProcedureReturn";
-import { ALProcedureSubtype } from "./ALProcedureSubtype";
-import { ALProcedureType } from "./ALProcedureType";
-import { XMLDocumentation } from "./XmlDocumentation";
+import { Range } from 'vscode';
+import { ALAccessLevel } from './ALAccessLevel';
+import { ALObsoleteState } from './ALObsoleteState';
+import { ALParameter } from './ALParameter';
+import { ALProcedureReturn } from './ALProcedureReturn';
+import { ALProcedureSubtype } from './ALProcedureSubtype';
+import { ALProcedureType } from './ALProcedureType';
+import { XMLDocumentation } from './XmlDocumentation';
 
 export class ALProcedure {
     /**
@@ -24,7 +24,7 @@ export class ALProcedure {
      * Procedure declaration code.
      * @type {string}
      */
-    public Code: string = "";
+    public Code: string = '';
 
     /**
      * Range in TextDocument of the procedure
@@ -66,7 +66,7 @@ export class ALProcedure {
      * Obsolete Reason for procedure.
      * @type {string}
      */
-    public ObsoleteReason: string = "";
+    public ObsoleteReason: string = '';
 
     /**
      * List of parameters of the procedure.

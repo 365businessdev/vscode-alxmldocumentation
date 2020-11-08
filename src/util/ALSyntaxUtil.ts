@@ -1,23 +1,23 @@
-import { commands, Location, Position, Range, TextDocument, Uri, workspace } from "vscode";
-import { FindALProceduresRegEx, ALProcedureDefinitionRegEx, FindALObjectRegEx, FindBeginEndKeywordRegEx, InheritDocRegEx } from "./ALRegEx";
-import { ALObject } from "../types/ALObject";
-import { ALProcedure } from "../types/ALProcedure";
-import { ALParameter } from "../types/ALParameter";
-import { ALDocCommentUtil } from "./ALDocCommentUtil";
-import { performance } from "perf_hooks";
-import { ALProcedureReturn } from "../types/ALProcedureReturn";
-import { ALAccessLevel } from "../types/ALAccessLevel";
-import { ALCodeunitType } from "../types/ALCodeunitType";
-import { ALObjectExtensionType } from "../types/ALObjectExtensionType";
-import { ALObjectType } from "../types/ALObjectType";
-import { ALObsoleteState } from "../types/ALObsoleteState";
-import { ALProcedureSubtype } from "../types/ALProcedureSubtype";
-import { ALProcedureType } from "../types/ALProcedureType";
-import { XMLDocumentation } from "../types/XmlDocumentation";
-import { XMLDocumentationExistType } from "../types/XMLDocumentationExistType";
-import { ALObjectCache } from "../ALObjectCache";
+import { commands, Location, Position, Range, TextDocument, Uri, workspace } from 'vscode';
+import { FindALProceduresRegEx, ALProcedureDefinitionRegEx, FindALObjectRegEx, FindBeginEndKeywordRegEx, InheritDocRegEx } from './ALRegEx';
+import { ALObject } from '../types/ALObject';
+import { ALProcedure } from '../types/ALProcedure';
+import { ALParameter } from '../types/ALParameter';
+import { ALDocCommentUtil } from './ALDocCommentUtil';
+import { performance } from 'perf_hooks';
+import { ALProcedureReturn } from '../types/ALProcedureReturn';
+import { ALAccessLevel } from '../types/ALAccessLevel';
+import { ALCodeunitType } from '../types/ALCodeunitType';
+import { ALObjectExtensionType } from '../types/ALObjectExtensionType';
+import { ALObjectType } from '../types/ALObjectType';
+import { ALObsoleteState } from '../types/ALObsoleteState';
+import { ALProcedureSubtype } from '../types/ALProcedureSubtype';
+import { ALProcedureType } from '../types/ALProcedureType';
+import { XMLDocumentation } from '../types/XmlDocumentation';
+import { XMLDocumentationExistType } from '../types/XMLDocumentationExistType';
+import { ALObjectCache } from '../ALObjectCache';
 import * as fs from 'fs';
-import { Guid } from "guid-typescript";
+import { Guid } from 'guid-typescript';
 
 export class ALSyntaxUtil {
     /**
@@ -69,8 +69,8 @@ export class ALSyntaxUtil {
             return;
         }
 
-        let objectName: string = alObjectDefinition.groups["ObjectName"];
-        let objectType: ALObjectType = this.SelectALObjectType(alObjectDefinition.groups["ObjectType"]);
+        let objectName: string = alObjectDefinition.groups['ObjectName'];
+        let objectType: ALObjectType = this.SelectALObjectType(alObjectDefinition.groups['ObjectType']);
 
         let alObject: ALObject|null = this.GetALObjectFromCache(objectType, objectName);
         if (alObject === null) {
@@ -109,8 +109,8 @@ export class ALSyntaxUtil {
             if ((alObjectDefinition?.groups === null) || (alObjectDefinition?.groups === undefined)) {
                 throw new Error(`Fatal error: Could not analyze ${document.fileName}.`);
             }
-            let objectName: string = alObjectDefinition.groups["ObjectName"];
-            let objectType: ALObjectType = this.SelectALObjectType(alObjectDefinition.groups["ObjectType"]);
+            let objectName: string = alObjectDefinition.groups['ObjectName'];
+            let objectType: ALObjectType = this.SelectALObjectType(alObjectDefinition.groups['ObjectType']);
             alObject = this.GetALObjectFromCache(objectType, objectName);
             if (alObject !== null) {
                 return alObject;
@@ -119,16 +119,16 @@ export class ALSyntaxUtil {
             alObject.Type = objectType;
             alObject.Name = objectName;
             alObject.LineNo = this.GetALKeywordDefinitionLineNo(document.getText(), alObjectDefinition[0]);
-            if (!((alObjectDefinition.groups["ObjectID"] === null) || (alObjectDefinition.groups["ObjectID"] === undefined))) {
-                alObject.ID = parseInt(alObjectDefinition.groups["ObjectID"]);
+            if (!((alObjectDefinition.groups['ObjectID'] === null) || (alObjectDefinition.groups['ObjectID'] === undefined))) {
+                alObject.ID = parseInt(alObjectDefinition.groups['ObjectID']);
             }
 
             if (!((alObjectDefinition.groups['ExtensionType'] === null) || (alObjectDefinition.groups['ExtensionType'] === undefined))) {
                 switch (alObjectDefinition.groups['ExtensionType']) {
-                    case "extends":
+                    case 'extends':
                         alObject.ExtensionType = ALObjectExtensionType.Extend;
                         break;
-                    case "implements":
+                    case 'implements':
                         alObject.ExtensionType = ALObjectExtensionType.Implement;
                         break;
                 }
@@ -142,12 +142,12 @@ export class ALSyntaxUtil {
             this.GetALObjectProcedures(alObject, document.getText());
                         
             // get AL file properties
-            if (document.fileName !== "__symbol__") {
-                alObject.FileName = document.fileName.replace(/^.*[\\\/]/, "");
-                alObject.Path = document.fileName.replace(alObject.FileName, "");
+            if (document.fileName !== '__symbol__') {
+                alObject.FileName = document.fileName.replace(/^.*[\\\/]/, '');
+                alObject.Path = document.fileName.replace(alObject.FileName, '');
                 alObject.Uri = document.uri;
             } else {
-                alObject.FileName = `${alObject.Name.replace(" ","")}.${ALObjectType[alObject.Type]}.dal`;
+                alObject.FileName = `${alObject.Name.replace(' ','')}.${ALObjectType[alObject.Type]}.dal`;
             }
 
             // get XML Documentation
@@ -159,7 +159,7 @@ export class ALSyntaxUtil {
             // console.debug(alObject);            
 
             let t1 = performance.now();
-            console.debug("Processing time for object " + alObject.Name + ": " + Math.round((t1 - t0) * 100 / 100) + "ms.");
+            console.debug(`Processing time for object ${alObject.Name}: ${Math.round((t1 - t0) * 100 / 100)}ms.`);
 
             ALObjectCache.ALObjects.push(alObject); // add AL object to AL Object cache.
             return alObject;   
@@ -212,53 +212,53 @@ export class ALSyntaxUtil {
         if ((alProcedureDefinition === undefined) || (alProcedureDefinition === null)) {
             console.debug(`Failed to get procedure definition for ${alProcedure.Name}.`);
         } else {
-            alProcedure.Name = alProcedureDefinition["ProcedureName"];
+            alProcedure.Name = alProcedureDefinition['ProcedureName'];
 
-            alProcedure.Code = `${alProcedure.Name}(${alProcedureDefinition["Params"] !== undefined ? alProcedureDefinition["Params"] : ""})`;
+            alProcedure.Code = `${alProcedure.Name}(${alProcedureDefinition['Params'] !== undefined ? alProcedureDefinition['Params'] : ''})`;
 
             alProcedure.Access = this.GetALProcedureAccessLevel(alProcedureDefinition['Access']);
             // get procedure type from procedure definition
-            switch (alProcedureDefinition["Type"].toLowerCase()) {
-                case "trigger":
+            switch (alProcedureDefinition['Type'].toLowerCase()) {
+                case 'trigger':
                     alProcedure.Type = ALProcedureType.Trigger;
                     break;
-                case "procedure":
+                case 'procedure':
                     alProcedure.Type = ALProcedureType.Procedure;
                     break;
             }
             // get parameters from procedure definition
-            if (alProcedureDefinition["Params"] !== undefined) {
+            if (alProcedureDefinition['Params'] !== undefined) {
                 let alProcedureParams: Array<string> = [];
-                if (alProcedureDefinition["Params"].indexOf(";") === -1) { // only one parameter
-                    alProcedureParams.push(alProcedureDefinition["Params"]);
+                if (alProcedureDefinition['Params'].indexOf(';') === -1) { // only one parameter
+                    alProcedureParams.push(alProcedureDefinition['Params']);
                 } else { // multiple parameters
-                    alProcedureDefinition["Params"].split(";").forEach(param => {
+                    alProcedureDefinition['Params'].split(';').forEach(param => {
                         alProcedureParams.push(param);
                     });
                 }
 
                 alProcedureParams.forEach(param => {
                     let alParameter: ALParameter = new ALParameter();
-                    alParameter.CallByReference = (param.split(":")[0].match(/\bvar\s/) !== null);
-                    alParameter.Name = param.split(":")[0].trim();
+                    alParameter.CallByReference = (param.split(':')[0].match(/\bvar\s/) !== null);
+                    alParameter.Name = param.split(':')[0].trim();
                     // remove var prefix for call-by-reference parameter
                     if (alParameter.CallByReference) {
                         alParameter.Name = alParameter.Name.substr(4).trim();
                     }
-                    if (param.indexOf(":") !== -1) {
-                        if (param.split(":")[1].trim().indexOf(" ") === -1) {
-                            alParameter.Type = param.split(":")[1].trim();
+                    if (param.indexOf(':') !== -1) {
+                        if (param.split(':')[1].trim().indexOf(' ') === -1) {
+                            alParameter.Type = param.split(':')[1].trim();
                         } else {
-                            alParameter.Type = param.split(":")[1].trim().split(" ")[0];
+                            alParameter.Type = param.split(':')[1].trim().split(' ')[0];
                             // TODO: Find a smarter solution
-                            alParameter.Subtype = "";
-                            for (let i = 1; i <= param.split(":")[1].trim().split(" ").length - 1; i++) {
-                                alParameter.Subtype = `${alParameter.Subtype} ${param.split(":")[1].trim().split(" ")[i]}`;
+                            alParameter.Subtype = '';
+                            for (let i = 1; i <= param.split(':')[1].trim().split(' ').length - 1; i++) {
+                                alParameter.Subtype = `${alParameter.Subtype} ${param.split(':')[1].trim().split(' ')[i]}`;
                             }
                             alParameter.Subtype = alParameter.Subtype.trim();
-                            if ((alParameter.Type === "Record") && (alParameter.Subtype.trim().match(/\btemporary\b/) !== null)) {
+                            if ((alParameter.Type === 'Record') && (alParameter.Subtype.trim().match(/\btemporary\b/) !== null)) {
                                 alParameter.Temporary = true;
-                                alParameter.Subtype = alParameter.Subtype.replace(/\btemporary\b/,"").trim();
+                                alParameter.Subtype = alParameter.Subtype.replace(/\btemporary\b/,'').trim();
                             }
                         }
                         // get XML Documentation
@@ -271,22 +271,22 @@ export class ALSyntaxUtil {
                 });
             }
             // get return type from procedure definition
-            alProcedureDefinition["ReturnType"] = alProcedureDefinition["ReturnType"].trim();
-            if ((alProcedureDefinition["ReturnType"] !== undefined) && (alProcedureDefinition["ReturnType"] !== "")) {
+            alProcedureDefinition['ReturnType'] = alProcedureDefinition['ReturnType'].trim();
+            if ((alProcedureDefinition['ReturnType'] !== undefined) && (alProcedureDefinition['ReturnType'] !== '')) {
                 let alReturn: ALProcedureReturn | undefined = new ALProcedureReturn();
-                if (alProcedureDefinition["ReturnType"][alProcedureDefinition["ReturnType"].length - 1] === ";") {
-                    alProcedureDefinition["ReturnType"] = alProcedureDefinition["ReturnType"].substring(0, alProcedureDefinition["ReturnType"].length - 1).trim();
+                if (alProcedureDefinition['ReturnType'][alProcedureDefinition['ReturnType'].length - 1] === ';') {
+                    alProcedureDefinition['ReturnType'] = alProcedureDefinition['ReturnType'].substring(0, alProcedureDefinition['ReturnType'].length - 1).trim();
                 }
-                if (alProcedureDefinition["ReturnType"].indexOf(":") === -1) {
-                    alReturn.Type = alProcedureDefinition["ReturnType"].trim();
+                if (alProcedureDefinition['ReturnType'].indexOf(':') === -1) {
+                    alReturn.Type = alProcedureDefinition['ReturnType'].trim();
                 } else {
-                    alReturn.Name = alProcedureDefinition["ReturnType"].split(":")[0].trim();
-                    alReturn.Type = alProcedureDefinition["ReturnType"].split(":")[1].trim();
+                    alReturn.Name = alProcedureDefinition['ReturnType'].split(':')[0].trim();
+                    alReturn.Type = alProcedureDefinition['ReturnType'].split(':')[1].trim();
                 }     
-                if (alReturn.Type[alReturn.Type.length - 1] === "/") {
+                if (alReturn.Type[alReturn.Type.length - 1] === '/') {
                     alReturn.Type = alReturn.Type.substring(0, alReturn.Type.length - 2).trim();
                 }
-                if (alReturn.Type === "") {
+                if (alReturn.Type === '') {
                     alReturn = undefined;
                 }
                 if (alReturn !== undefined) {
@@ -329,7 +329,7 @@ export class ALSyntaxUtil {
      * @param code AL Source Code.
      */
     private static GetALProcedureProperties(alProcedure: ALProcedure, code: string) {
-        if ((alProcedure.Name === "") || (alProcedure.LineNo === 0)) {
+        if ((alProcedure.Name === '') || (alProcedure.LineNo === 0)) {
             return;
         }
 
@@ -339,13 +339,13 @@ export class ALSyntaxUtil {
                 return;
             }
             // get TableNo property for OnRun trigger
-            if ((alProcedure.Type === ALProcedureType.Trigger) && (alProcedure.Name === "OnRun")) {                
+            if ((alProcedure.Type === ALProcedureType.Trigger) && (alProcedure.Name === 'OnRun')) {                
                 let tableNoSubtype = codeLines[lineNo].match(/(?<!\/\/.*).*?TableNo\s\=(?<Subtype>.*)\;/);
                 if ((tableNoSubtype !== null) && (tableNoSubtype !== undefined) && (tableNoSubtype.groups !== undefined)) {
                     
                     let alParameter = new ALParameter();
-                    alParameter.Name = "Rec";
-                    alParameter.Type = "Record";
+                    alParameter.Name = 'Rec';
+                    alParameter.Type = 'Record';
                     alParameter.Subtype = tableNoSubtype.groups['Subtype'].trim();
 
                     ALDocCommentUtil.GenerateParameterDocString(alParameter);
@@ -404,11 +404,11 @@ export class ALSyntaxUtil {
             }
 
             switch(accessLevel.trim().toLowerCase()) {
-                case "internal":
+                case 'internal':
                     return ALAccessLevel.Internal;
-                case "local":
+                case 'local':
                     return ALAccessLevel.Local;
-                case "protected":
+                case 'protected':
                     return ALAccessLevel.Protected;
                 default:
                     throw new Error(`Unexpected Access Modifier ${accessLevel}.`);
@@ -461,14 +461,14 @@ export class ALSyntaxUtil {
         try 
         {
             if ((obsoleteReason === null) || (obsoleteReason[1] === undefined)) {
-                return "";
+                return '';
             }
             return obsoleteReason[1];
         }
         catch(ex)
         {
             console.debug(`[GetALObjectObsoleteReason] - ${ex}`);
-            return "";
+            return '';
         }
     }
 
@@ -485,11 +485,11 @@ export class ALSyntaxUtil {
             }
             
             switch(obsoleteState[1].toLowerCase()) {
-                case "no":
+                case 'no':
                     return ALObsoleteState.No;
-                case "pending":
+                case 'pending':
                     return ALObsoleteState.Pending;
-                case "removed":
+                case 'removed':
                     return ALObsoleteState.Removed;
                 default:
                     throw new Error(`Unexpected ObsoleteState: ${obsoleteState[1]}.`);
@@ -515,15 +515,15 @@ export class ALSyntaxUtil {
             }
             
             switch(subtype[2].toLowerCase()) {
-                case "normal":
+                case 'normal':
                     return ALCodeunitType.Normal;
-                case "install":
+                case 'install':
                     return ALCodeunitType.Install;            
-                case "upgrade":
+                case 'upgrade':
                     return ALCodeunitType.Upgrade;
-                case "test":
+                case 'test':
                     return ALCodeunitType.Test;
-                case "testrunner":
+                case 'testrunner':
                     return ALCodeunitType.TestRunner;
                 default:
                     throw new Error(`Unexpected Subtype: ${subtype[2]}.`);
@@ -549,9 +549,9 @@ export class ALSyntaxUtil {
             }
 
             switch(accessLevel[1].toLowerCase()) {
-                case "internal":
+                case 'internal':
                     return ALAccessLevel.Internal;
-                case "public":
+                case 'public':
                     return ALAccessLevel.Public;
                 default:
                     throw new Error(`Unexpected Access Modifier: ${accessLevel[1]}.`);
@@ -570,29 +570,29 @@ export class ALSyntaxUtil {
      */
     private static SelectALObjectType(alKeyword: string): ALObjectType {
         switch (alKeyword.toLowerCase()) {
-            case "codeunit":
+            case 'codeunit':
                 return ALObjectType.Codeunit;
-            case "table":
+            case 'table':
                 return ALObjectType.Table;
-            case "tableextension":
+            case 'tableextension':
                 return ALObjectType.TableExtension;
-            case "page": 
+            case 'page': 
                 return ALObjectType.Page;
-            case "pageextension":
+            case 'pageextension':
                 return ALObjectType.PageExtension;
-            case "report":
+            case 'report':
                 return ALObjectType.Report;
-            case "query":
+            case 'query':
                 return ALObjectType.Query;
-            case "xmlport":
+            case 'xmlport':
                 return ALObjectType.XmlPort;
-            case "controladdin":
+            case 'controladdin':
                 return ALObjectType.ControlAddIn;
-            case "enum":
+            case 'enum':
                 return ALObjectType.Enum;
-            case "enumextension":
+            case 'enumextension':
                 return ALObjectType.EnumExtension;
-            case "interface":
+            case 'interface':
                 return ALObjectType.Interface;
             default:
                 console.debug(`Fatal error: Unknown AL object keyword received ${alKeyword}!`);
@@ -618,11 +618,11 @@ export class ALSyntaxUtil {
      * @param code AL Source Code.
      */
     public static SplitALCodeToLines(code: string): Array<string> {
-        return code.replace(/\r/g,"").split("\n");
+        return code.replace(/\r/g,'').split('\n');
     }
 
     /**
-     * Test current AL Source Code line for containing "begin" or "end;" keyword.
+     * Test current AL Source Code line for containing 'begin' or 'end;' keyword.
      * @param line AL Source Code line.
      */
     public static IsBeginEnd(line: string): boolean {
@@ -658,7 +658,7 @@ export class ALSyntaxUtil {
 
             for (var i = 0; (i < codeLines.length); i++) {
                 let line: string = codeLines[i];
-                if ((line.trim().startsWith('///')) && (line.trim().replace('///','').trim() !== "")) {
+                if ((line.trim().startsWith('///')) && (line.trim().replace('///','').trim() !== '')) {
                     result.Documentation = `${result.Documentation}\r\n${line.replace('///','').trim()}`;
                 }
                 if ((ALSyntaxUtil.IsProcedureDefinition(line)) || (ALSyntaxUtil.IsObjectDefinition(line)) || (ALSyntaxUtil.IsBeginEnd(line))) {
@@ -666,7 +666,7 @@ export class ALSyntaxUtil {
                 }
             }
 
-            if (result.Documentation !== "") {
+            if (result.Documentation !== '') {
                 result.Exists = XMLDocumentationExistType.Yes;
             }
         }
@@ -692,19 +692,19 @@ export class ALSyntaxUtil {
             for (var i = (alProcedure.LineNo - 1); (i > 0); i--) {
                 let line: string = codeLines[i];
                 if (line.trim().startsWith('///')) {
-                    if ((line.indexOf("</summary>") !== -1) || (line.indexOf("</remarks>") !== -1) || (line.indexOf("</example>") !== -1)) {
+                    if ((line.indexOf('</summary>') !== -1) || (line.indexOf('</remarks>') !== -1) || (line.indexOf('</example>') !== -1)) {
                         collect = true;
                     }
 
                     if (collect) {
-                        if (result.Documentation !== "") {
+                        if (result.Documentation !== '') {
                             result.Documentation = `${line.replace('///','').trim()}\r\n${result.Documentation}`;
                         } else {
                             result.Documentation = line.replace('///','').trim();
                         }
                     }
 
-                    if ((line.indexOf("<summary>") !== -1) || (line.indexOf("<remarks>") !== -1) || (line.indexOf("<example>") !== -1)) {
+                    if ((line.indexOf('<summary>') !== -1) || (line.indexOf('<remarks>') !== -1) || (line.indexOf('<example>') !== -1)) {
                         collect = false;
                     }
 
@@ -719,7 +719,7 @@ export class ALSyntaxUtil {
                 }
             }
 
-            if (result.Documentation !== "") {
+            if (result.Documentation !== '') {
                 result.Exists = XMLDocumentationExistType.Yes;            
             }
         }
@@ -746,12 +746,12 @@ export class ALSyntaxUtil {
             for (var i = (alProcedure.LineNo - 1); (i > 0); i--) {
                 let line: string = codeLines[i];
                 if (line.trim().startsWith('///')) {
-                    if (line.indexOf("</param>") !== -1) {
+                    if (line.indexOf('</param>') !== -1) {
                         collect = true;
                     }
 
                     if (collect) {
-                        if (result.Documentation !== "") {
+                        if (result.Documentation !== '') {
                             result.Documentation = `${line.replace('///','').trim()}\r\n${result.Documentation}`;
                         } else {
                             result.Documentation = line.replace('///','').trim();
@@ -762,9 +762,9 @@ export class ALSyntaxUtil {
                         collect = false;
 
                         if (line.indexOf(`<param name="${alParameter.Name}">`) === -1) {
-                            result.Documentation = "";
+                            result.Documentation = '';
                         } else {
-                            if (result.Documentation !== "") {
+                            if (result.Documentation !== '') {
                                 result.Exists = XMLDocumentationExistType.Yes;
                             }
                             return result;
@@ -799,19 +799,19 @@ export class ALSyntaxUtil {
             for (var i = (alProcedure.LineNo - 1); (i > 0); i--) {
                 let line: string = codeLines[i];
                 if (line.trim().startsWith('///')) {
-                    if (line.indexOf("</returns>") !== -1) {
+                    if (line.indexOf('</returns>') !== -1) {
                         collect = true;
                     }
 
                     if (collect) {
-                        if (result.Documentation !== "") {
+                        if (result.Documentation !== '') {
                             result.Documentation = `${line.replace('///','').trim()}\r\n${result.Documentation}`;
                         } else {
                             result.Documentation = line.replace('///','').trim();
                         }
                     }
 
-                    if (line.indexOf("<returns>") !== -1) {
+                    if (line.indexOf('<returns>') !== -1) {
                         collect = false;
                     }
                 }
@@ -820,7 +820,7 @@ export class ALSyntaxUtil {
                 }
             }
 
-            if (result.Documentation !== "") {
+            if (result.Documentation !== '') {
                 result.Exists = XMLDocumentationExistType.Yes;
             }
         }

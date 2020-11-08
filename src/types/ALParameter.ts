@@ -1,4 +1,4 @@
-import { XMLDocumentation } from "./XmlDocumentation";
+import { XMLDocumentation } from './XmlDocumentation';
 
 export class ALParameter {
     /**

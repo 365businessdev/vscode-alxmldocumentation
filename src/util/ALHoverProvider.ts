@@ -1,10 +1,10 @@
-import { CancellationToken, Hover, HoverProvider, Location, MarkdownString, Position, TextDocument } from "vscode";
-import { ALObjectType } from "../types/ALObjectType";
-import { ALProcedure } from "../types/ALProcedure";
-import { XMLDocumentationExistType } from "../types/XMLDocumentationExistType";
-import { ALDocCommentUtil } from "./ALDocCommentUtil";
-import { ALLangServerProxy } from "./ALLangServerProxy";
-import { ALSyntaxUtil } from "./ALSyntaxUtil";
+import { CancellationToken, Hover, HoverProvider, Location, MarkdownString, Position, TextDocument } from 'vscode';
+import { ALObjectType } from '../types/ALObjectType';
+import { ALProcedure } from '../types/ALProcedure';
+import { XMLDocumentationExistType } from '../types/XMLDocumentationExistType';
+import { ALDocCommentUtil } from './ALDocCommentUtil';
+import { ALLangServerProxy } from './ALLangServerProxy';
+import { ALSyntaxUtil } from './ALSyntaxUtil';
 
 export class ALHoverProvider implements HoverProvider {
     async provideHover(document: TextDocument, position: Position, token: CancellationToken) {   
@@ -31,16 +31,16 @@ export class ALHoverProvider implements HoverProvider {
             case XMLDocumentationExistType.Yes:
                 
                 // AL Language Version 6.x is providing simple XML Documentation capabilities. Do not push procedure summary in this case.
-                if (alLangServerProxy.GetALExtension()?.packageJSON.version < "6.0.0") {
+                if (alLangServerProxy.GetALExtension()?.packageJSON.version < '6.0.0') {
                     // add Summary to hover message.
-                    if ((jsonDocumentation.summary) && (jsonDocumentation.summary !== "")) {
+                    if ((jsonDocumentation.summary) && (jsonDocumentation.summary !== '')) {
                         result.appendMarkdown(`${jsonDocumentation.summary} \n`);
                     } else {
                         return; // don't show w/o summary
                     }
                 }
                 // add Remarks to hover message.
-                if ((jsonDocumentation.remarks) && (jsonDocumentation.remarks.trim() !== "")) {
+                if ((jsonDocumentation.remarks) && (jsonDocumentation.remarks.trim() !== '')) {
                     result.appendMarkdown(`*${jsonDocumentation.remarks}*  \n`);
                 } 
 
@@ -48,7 +48,7 @@ export class ALHoverProvider implements HoverProvider {
                 if ((alProcedure.Return !== undefined) && (alProcedure.Return.XmlDocumentation.Exists === XMLDocumentationExistType.Yes)) {
                     // convert XML Documentation to more readable JSON object.
                     jsonDocumentation = ALDocCommentUtil.GetJsonFromXmlDocumentation(alProcedure.Return.XmlDocumentation.Documentation);
-                    if ((jsonDocumentation.returns) && (jsonDocumentation.returns.trim() !== "")) {
+                    if ((jsonDocumentation.returns) && (jsonDocumentation.returns.trim() !== '')) {
                         result.appendMarkdown(`${jsonDocumentation.returns} \n`);
                     }
                 }
@@ -70,8 +70,8 @@ export class ALHoverProvider implements HoverProvider {
                     let codeRefFound: boolean = false;
 
                     // split code reference.
-                    let codeRefObjectName: string = codeRef.split(".")[0];
-                    let codeRefProcedureCode: string = codeRef.split(".")[1];
+                    let codeRefObjectName: string = codeRef.split('.')[0];
+                    let codeRefProcedureCode: string = codeRef.split('.')[1];
 
                     let objDefinition: Array<Location> | undefined = await ALSyntaxUtil.GetObjectDefinition(ALObjectType.Interface, codeRefObjectName);
                     if (objDefinition !== undefined) {
@@ -84,17 +84,17 @@ export class ALHoverProvider implements HoverProvider {
                                 result.appendMarkdown(`*Inherit documentation from ${codeRefProcedure.Name} in ${ALObjectType[alDefinition.ALObject.Type]} ${alDefinition.ALObject.Name}.*  \n`);
 
                                 jsonDocumentation = ALDocCommentUtil.GetJsonFromXmlDocumentation(codeRefProcedure.XmlDocumentation.Documentation);
-                                if ((jsonDocumentation.summary) && (jsonDocumentation.summary !== "")) {
+                                if ((jsonDocumentation.summary) && (jsonDocumentation.summary !== '')) {
                                     result.appendMarkdown(`${jsonDocumentation.summary}  \n`);
                                 }
-                                if ((jsonDocumentation.remarks) && (jsonDocumentation.remarks.trim() !== "")) {
+                                if ((jsonDocumentation.remarks) && (jsonDocumentation.remarks.trim() !== '')) {
                                     // result.appendMarkdown(`#### Remarks \n`);
                                     result.appendMarkdown(`*${jsonDocumentation.remarks}*  \n`);
                                 } 
                                 if ((codeRefProcedure.Return !== undefined) && (codeRefProcedure.Return.XmlDocumentation.Exists === XMLDocumentationExistType.Yes)) {
                                     // convert XML Documentation to more readable JSON object.
                                     jsonDocumentation = ALDocCommentUtil.GetJsonFromXmlDocumentation(codeRefProcedure.Return.XmlDocumentation.Documentation);
-                                    if ((jsonDocumentation.returns) && (jsonDocumentation.returns.trim() !== "")) {
+                                    if ((jsonDocumentation.returns) && (jsonDocumentation.returns.trim() !== '')) {
                                         // result.appendMarkdown(`#### Returns \n`);
                                         result.appendMarkdown(`Returns: ${jsonDocumentation.returns}  \n`);
                                     }
@@ -120,7 +120,7 @@ export class ALHoverProvider implements HoverProvider {
                 break;
         }
 
-        if (result.value !== "") {
+        if (result.value !== '') {
             return new Hover(result);
         }
     }

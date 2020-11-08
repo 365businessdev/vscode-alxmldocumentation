@@ -1,4 +1,4 @@
-import { XMLDocumentationExistType } from "./XMLDocumentationExistType";
+import { XMLDocumentationExistType } from './XMLDocumentationExistType';
 
 export class XMLDocumentation {
     /**
@@ -11,5 +11,5 @@ export class XMLDocumentation {
      * Contains the XML Documentation.
      * @type {string}
      */
-    public Documentation: string = "";
+    public Documentation: string = '';
 }

@@ -1,9 +1,9 @@
-import { CancellationToken, DefinitionProvider, Location, LocationLink, Position, Range, TextDocument } from "vscode";
-import { InheritDocRegEx } from "./ALRegEx";
-import { ALObject } from "../types/ALObject";
-import { ALSyntaxUtil } from "./ALSyntaxUtil";
-import { ALProcedure } from "../types/ALProcedure";
-import { ALObjectType } from "../types/ALObjectType";
+import { CancellationToken, DefinitionProvider, Location, LocationLink, Position, Range, TextDocument } from 'vscode';
+import { InheritDocRegEx } from './ALRegEx';
+import { ALObject } from '../types/ALObject';
+import { ALSyntaxUtil } from './ALSyntaxUtil';
+import { ALProcedure } from '../types/ALProcedure';
+import { ALObjectType } from '../types/ALObjectType';
 
 export class ALInheritDocDefinitionProvider implements DefinitionProvider {
     async provideDefinition(document: TextDocument, position: Position, token: CancellationToken): Promise<Location | Location[] | LocationLink[] | null | undefined> {
@@ -15,8 +15,8 @@ export class ALInheritDocDefinitionProvider implements DefinitionProvider {
             }
 
             // split code reference.
-            let codeRefObjectName: string = codeRef.groups!['CodeReference'].split(".")[0];
-            let codeRefProcedureCode: string = codeRef.groups!['CodeReference'].split(".")[1];
+            let codeRefObjectName: string = codeRef.groups!['CodeReference'].split('.')[0];
+            let codeRefProcedureCode: string = codeRef.groups!['CodeReference'].split('.')[1];
 
             // get actual AL Object.
             let alObject: ALObject | null = ALSyntaxUtil.GetALObject(document);

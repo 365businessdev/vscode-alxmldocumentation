@@ -1,4 +1,4 @@
-import { ALObject } from "./types/ALObject";
+import { ALObject } from './types/ALObject';
 
 export class ALObjectCache {
     /**

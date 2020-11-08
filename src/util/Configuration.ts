@@ -1,8 +1,8 @@
-import { workspace, window, WorkspaceConfiguration, WorkspaceFolder, Uri, DiagnosticSeverity } from "vscode";
-import { ALXmlDocConfigurationPrefix } from "../types";
-import { ALAccessLevel } from "../types/ALAccessLevel";
-import { ALProcedureSubtype } from "../types/ALProcedureSubtype";
-import { ALProcedureType } from "../types/ALProcedureType";
+import { workspace, window, WorkspaceConfiguration, WorkspaceFolder, Uri, DiagnosticSeverity } from 'vscode';
+import { ALXmlDocConfigurationPrefix } from '../types';
+import { ALAccessLevel } from '../types/ALAccessLevel';
+import { ALProcedureSubtype } from '../types/ALProcedureSubtype';
+import { ALProcedureType } from '../types/ALProcedureType';
 
 export class Configuration {
     /**
@@ -21,7 +21,7 @@ export class Configuration {
             if (answer === undefined) {
                 return;
             }
-            if (answer === "Yes") {
+            if (answer === 'Yes') {
                 this.SetConfigurationValue('CheckProcedureDocumentationInformationLevel', 'Information');
             }
         });
@@ -50,30 +50,30 @@ export class Configuration {
         }
         mandatoryProcedureTypes.forEach(mandatoryProcedureType => {
             switch (mandatoryProcedureType) {
-                case "Global Procedures":
-                case "Local Procedures":
-                case "Internal Procedures":
-                case "Protected Procedures":
+                case 'Global Procedures':
+                case 'Local Procedures':
+                case 'Internal Procedures':
+                case 'Protected Procedures':
                     if ((alProcedureType === ALProcedureType.Procedure) && (alProcedureSubtype === ALProcedureSubtype.Normal)) {
                         return true;
                     }
                     break;
-                case "Event Publisher":
+                case 'Event Publisher':
                     if ((alProcedureType === ALProcedureType.Procedure) && (alProcedureSubtype === ALProcedureSubtype.EventPublisher)) {
                         return true;
                     }
                     break;
-                case "Event Subscriber":
+                case 'Event Subscriber':
                     if ((alProcedureType === ALProcedureType.Procedure) && (alProcedureSubtype === ALProcedureSubtype.EventSubscriber)) {
                         return true;
                     }
                     break;
-                case "Trigger Procedures":
+                case 'Trigger Procedures':
                     if (alProcedureType === ALProcedureType.Trigger) {
                         return true;
                     }
                     break;
-                case "Test Procedures":
+                case 'Test Procedures':
                     if ((alProcedureType === ALProcedureType.Procedure) && (alProcedureSubtype === ALProcedureSubtype.Test)) {
                         return true;
                     }
@@ -88,7 +88,7 @@ export class Configuration {
      * @param fileUri Actual file url or undefined.
      */
     public static IntelliSenseDocumentationIsEnabled(fileUri: Uri | undefined = undefined): boolean {
-        return (this.GetConfigurationValue('DocumentationBehavior', fileUri) === "IntelliSense");
+        return (this.GetConfigurationValue('DocumentationBehavior', fileUri) === 'IntelliSense');
     }
 
     /**
@@ -96,7 +96,7 @@ export class Configuration {
      * @param fileUri Actual file url or undefined.
      */
     public static DirectDocumentationIsEnabled(fileUri: Uri | undefined = undefined): boolean {
-        return (this.GetConfigurationValue('DocumentationBehavior', fileUri) === "Direct");
+        return (this.GetConfigurationValue('DocumentationBehavior', fileUri) === 'Direct');
     }
 
     /**
@@ -104,7 +104,7 @@ export class Configuration {
      * @param fileUri 
      */
     public static ProcedureDocumentationCheckIsEnabled(fileUri: Uri | undefined = undefined): boolean {
-        return (this.GetConfigurationValue('CheckProcedureDocumentationInformationLevel', fileUri) !== "Disabled");
+        return (this.GetConfigurationValue('CheckProcedureDocumentationInformationLevel', fileUri) !== 'Disabled');
     }
 
     /**
@@ -113,11 +113,11 @@ export class Configuration {
      */
     public static GetProcedureDocumentationCheckInformationLevel(fileUri: Uri | undefined = undefined): DiagnosticSeverity {
         switch (this.GetConfigurationValue('CheckProcedureDocumentationInformationLevel', fileUri)) {
-            case "Information":
+            case 'Information':
                 return DiagnosticSeverity.Information;
-            case "Warning":
+            case 'Warning':
                 return DiagnosticSeverity.Warning;
-            case "Error":
+            case 'Error':
                 return DiagnosticSeverity.Error;
         }
 

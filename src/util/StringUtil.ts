@@ -12,9 +12,9 @@ export class StringUtil {
      * @param indentPlaces No. of whitespace to indent.
      */
     public static GetIndentSpaces(indentPlaces: number): string {
-        let indent = "";
+        let indent = '';
         for (var i = 0; i < indentPlaces; i++) {
-            indent += " ";
+            indent += ' ';
         }
 
         return indent;
@@ -26,11 +26,11 @@ export class StringUtil {
      * @param append 
      * @param concatString 
      */
-    public static AppendString(baseString: string, append: string, concatString: string = ""): string {
+    public static AppendString(baseString: string, append: string, concatString: string = ''): string {
         if (baseString.includes(append)) {
             return baseString;
         }
-        if (baseString !== "") {
+        if (baseString !== '') {
             baseString = `${baseString}${concatString}`;
         }
         baseString = `${baseString}${append}`;
