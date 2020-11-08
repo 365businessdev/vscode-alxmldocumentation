@@ -1,3 +1,4 @@
+import { Uri } from "vscode";
 import { ALAccessLevel } from "./ALAccessLevel";
 import { ALCodeunitType } from "./ALCodeunitType";
 import { ALObjectExtensionType } from "./ALObjectExtensionType";
@@ -18,6 +19,12 @@ export class ALObject {
      * @type {string}
      */
     public Path: string|undefined;
+
+    /**
+     * A universal resource identifier representing either a file on disk or another resource.
+     * @type {Uri}
+     */
+    public Uri: Uri|undefined;
 
     /**
      * Line number of the Object definition.
