@@ -1,4 +1,4 @@
-import { Diagnostic, DiagnosticCollection, DiagnosticSeverity, languages, Range, TextDocument } from 'vscode';
+import { Diagnostic, DiagnosticCollection, languages, Range, TextDocument } from 'vscode';
 import { ALXmlDocDiagnosticCode, ALXmlDocDiagnosticPrefix } from '../types';
 import { ALObject } from '../types/ALObject';
 import { ALObjectType } from '../types/ALObjectType';
@@ -199,39 +199,36 @@ export class ALCheckDocumentation {
         }
 
         let diag: { 
-            type: DiagnosticSeverity, 
             diagnosticCode: ALXmlDocDiagnosticCode,
-            element: string,
-            range: Range | undefined
+            element: string
         }[] = [];
+
+        // TODO: Identify completely undocumented procedures.
 
         if (alProcedure.XmlDocumentation.Exists !== XMLDocumentationExistType.Inherit) {
             if (alProcedure.XmlDocumentation.Exists === XMLDocumentationExistType.No) {
-                diag.push({
-                    type: DiagnosticSeverity.Warning,
-                    diagnosticCode: ALXmlDocDiagnosticCode.SummaryMissing,
-                    element: 'summary',
-                    range: alProcedure.Range
-                });
+                let diagnostic = new Diagnostic(alProcedure.Range!, 
+                    `Summary is expected in XML documentation for procedure ${alProcedure.Name}.`, 
+                    Configuration.GetProcedureDocumentationCheckInformationLevel(alObject.Uri));
+                diagnostic.source = ALXmlDocDiagnosticPrefix;
+                diagnostic.code = ALXmlDocDiagnosticCode.SummaryMissing;
+
+                this.diags.push(diagnostic);
             }
 
             alProcedure.Parameters?.forEach(alParameter => {
                 if (alParameter.XmlDocumentation.Exists === XMLDocumentationExistType.No) {
                     diag.push({
-                        type: DiagnosticSeverity.Warning,
                         diagnosticCode: ALXmlDocDiagnosticCode.ParameterMissing,
-                        element: `${alParameter.Name}`,
-                        range: alProcedure.Range
+                        element: alParameter.Name!
                     });
                 }
             });
 
             if (alProcedure.Return?.XmlDocumentation.Exists === XMLDocumentationExistType.No) {
                 diag.push({
-                    type: DiagnosticSeverity.Warning,
                     diagnosticCode: ALXmlDocDiagnosticCode.ReturnTypeMissing,
-                    element: `${((alProcedure.Return.Name !== '') ? ` '${alProcedure.Return.Name}'` : '')}`,
-                    range: alProcedure.Range
+                    element: `${((alProcedure.Return.Name !== '') ? ` '${alProcedure.Return.Name}'` : '')}`
                 });
             }
         } else {
@@ -250,28 +247,33 @@ export class ALCheckDocumentation {
 
         let missingDoc = diag.filter(this.IsMissingDocumentationDiag);
         if ((missingDoc !== undefined) && (missingDoc.length > 0)) {
-            let msg: string = '';
+            let message: string = '';
             let code: string = '';
             if (missingDoc[0].diagnosticCode !== ALXmlDocDiagnosticCode.XmlDocumentationMissing) {
                 missingDoc.forEach(diag => {
                     switch (diag.diagnosticCode) {
                         case ALXmlDocDiagnosticCode.ParameterMissing:
-                            diag.element = `parameter '${diag.element}'`;
+                            diag.element = `Parameter '${diag.element}'`;
                         break;
                         case ALXmlDocDiagnosticCode.ReturnTypeMissing:
-                            diag.element = `return value${(diag.element !== '') ? '\'' + diag.element + '\'' : ''}`;
+                            diag.element = `Return Value${(diag.element !== '') ? '\'' + diag.element + '\'' : ''}`;
                         break;
                     }
-                    msg = StringUtil.AppendString(msg, diag.element, ', ');
+                    message = StringUtil.AppendString(message, diag.element, ', ');
                     code = StringUtil.AppendString(code, this.GetDiagnosticCode(diag.diagnosticCode), ', ');
                 });
-
-                msg = `The procedure ${alProcedure.Name} is missing documentation for ${msg}.`;
+                let isAre = 'is';
+                if (missingDoc.length > 1) {
+                    isAre = 'are';
+                }
+                message = `${message} ${isAre} defined in signature for procedure ${alProcedure.Name}, but ${isAre} not documented.`;
             } else {
                 code = this.GetDiagnosticCode(missingDoc[0].diagnosticCode);
-                msg = `The procedure ${alProcedure.Name} missing documentation.`;
+                message = `The procedure ${alProcedure.Name} is missing XML documentation.`;
             }
-            let diagnostic = new Diagnostic(alProcedure.Range!, msg, Configuration.GetProcedureDocumentationCheckInformationLevel(alObject.Uri));
+            let diagnostic = new Diagnostic(alProcedure.Range!, 
+                message, 
+                Configuration.GetProcedureDocumentationCheckInformationLevel(alObject.Uri));
             diagnostic.source = ALXmlDocDiagnosticPrefix;
             diagnostic.code = code;
 
