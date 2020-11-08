@@ -605,7 +605,7 @@ export class ALSyntaxUtil {
      * @param code AL Source Code.
      * @param lineNo Line Number.
      */
-    private static GetRange(code: string, lineNo: number): Range {
+    public static GetRange(code: string, lineNo: number): Range {
         let line: string[] = this.SplitALCodeToLines(code);
 
         return new Range(

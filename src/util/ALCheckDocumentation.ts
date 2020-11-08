@@ -5,6 +5,7 @@ import { ALObjectType } from '../types/ALObjectType';
 import { ALProcedure } from '../types/ALProcedure';
 import { XMLDocumentationExistType } from '../types/XMLDocumentationExistType';
 import { ALSyntaxUtil } from './ALSyntaxUtil';
+import { ALDocCommentUtil } from './ALDocCommentUtil';
 import { Configuration } from './Configuration';
 import { StringUtil } from './StringUtil';
 import * as fs from 'fs';
@@ -72,7 +73,7 @@ export class ALCheckDocumentation {
             this.AnalyzeProcedureDocumentation(this.alObject, alProcedure);
         });
         
-        // TODO: Send diagnostics for unnecessary documentations
+        this.AnalyzeUnnecessaryDocumentation(this.alObject, this.document);
         
         this.UpdateDiagnosticCollection();
     }
@@ -87,6 +88,103 @@ export class ALCheckDocumentation {
 
         if (this.alObject === null) {
             this.alObject = ALSyntaxUtil.GetALObject(this.document);
+        }
+    }
+    
+    /**
+     * Analyze source code for unnecessary XML documentations.
+     * @param alObject ALObject
+     * @param document TextDocument
+     */
+    private static AnalyzeUnnecessaryDocumentation(alObject: ALObject | null, document: TextDocument) {
+        if (alObject === null) {
+            return;
+        }
+        let i = 0;
+        try {
+            let codeLines: string[] = ALSyntaxUtil.SplitALCodeToLines(document.getText());
+            let xmlDocumentation: string = '';
+            for(i = 0; i < codeLines.length; i++) {
+                let line: string = codeLines[i];
+                if (!line.trim().startsWith('///')) {
+                    if (xmlDocumentation !== '') {
+                        let alProcedure: ALProcedure | undefined = alObject.Procedures?.find(alProcedure => (i <= alProcedure.LineNo));
+                        if (alProcedure === undefined) {
+                            console.debug(`Could not find AL Procedure for XML documentation found in ${alObject.FileName} line ${i}.`);
+                            continue;
+                        }
+                        this.GetUnnecessaryProcedureDocumentationDiagnostics(codeLines, i, xmlDocumentation, alObject, alProcedure);
+                    }
+                    xmlDocumentation = '';
+                    continue;
+                }
+
+                xmlDocumentation += line.trim().replace('///','');
+            }
+        } catch (ex) {
+            console.debug(`An error occurred in ${alObject.FileName} during analyze unnecessary documentations.\r\n${ex}`);
+        }
+    }
+
+    /**
+     * Analyze procedure for unnecessary XML documentations.
+     * @param codeLines AL Source Code.
+     * @param currentLineNo Actual line no. in AL Source Code.
+     * @param xmlDocumentation Captured XML documentation.
+     * @param alObject ALObject
+     * @param alProcedure ALProcedure
+     */
+    private static GetUnnecessaryProcedureDocumentationDiagnostics(codeLines: string[], currentLineNo: number, xmlDocumentation: string, alObject: ALObject, alProcedure: ALProcedure) {
+        // convert to JSON to make it more accessible 
+        let jsonDocumentation = ALDocCommentUtil.GetJsonFromXmlDocumentation(xmlDocumentation);
+        if (!jsonDocumentation.param) {
+            return;
+        }
+
+        let unnecessaryParameters: Array<string> = [];
+
+        if (jsonDocumentation.param.length) { // multiple parameters
+            for (let i = 0; i < jsonDocumentation.param.length; i++) {
+                this.GetUnnecessaryParameterDocumentationDiagnostics(unnecessaryParameters, jsonDocumentation.param[i], alProcedure);
+            }
+        } else { // one parameter
+            this.GetUnnecessaryParameterDocumentationDiagnostics(unnecessaryParameters, jsonDocumentation.param, alProcedure);
+        }
+
+        if (unnecessaryParameters.length !== 0) {
+            let message = '';
+            unnecessaryParameters.forEach(parameter => {
+                message = StringUtil.AppendString(message, `'${parameter}'`, ', ');
+
+                let paramRange: Range = alProcedure.Range!;
+                for (let i = currentLineNo; i >= 0; i--) {
+                    if (codeLines[i].indexOf(`/// <param name="${parameter}">`) !== -1) {
+                        paramRange = ALSyntaxUtil.GetRange(codeLines.join('\r\n'), i);
+                        break;
+                    }
+                }
+
+                message = `The parameter ${parameter} is described in XML documentation for procedure ${alProcedure.Name}, but do not exist in procedure signature.`;
+                let diagnostic = new Diagnostic(paramRange,
+                    message, 
+                    Configuration.GetProcedureDocumentationCheckInformationLevel(alObject.Uri));
+                diagnostic.source = ALXmlDocDiagnosticPrefix;
+                diagnostic.code = this.GetDiagnosticCode(ALXmlDocDiagnosticCode.ParameterUnnecessary);
+    
+                this.diags.push(diagnostic);
+            });
+        }
+    }
+
+    /**
+     * Search for documented parameter in ALProcedure and add to array if unnecessary.
+     * @param unnecessaryParameters Array<string> to collect unnecessary parameters.
+     * @param param Documented parameter
+     * @param alProcedure ALProcedure
+     */
+    private static GetUnnecessaryParameterDocumentationDiagnostics(unnecessaryParameters: Array<string>, param: { value: string, attr: { name: string }}, alProcedure: ALProcedure) {
+        if (alProcedure.Parameters.find(alParameter => (alParameter.Name === param.attr.name)) === undefined) {
+            unnecessaryParameters.push(param.attr.name);
         }
     }
 
