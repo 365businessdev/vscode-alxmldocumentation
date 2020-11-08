@@ -1,10 +1,16 @@
-import { Position, Disposable, TextDocumentContentChangeEvent, TextEditor, window, workspace, commands, SnippetString } from 'vscode';
+import { Position, Disposable, TextDocumentContentChangeEvent, TextEditor, window, workspace, SnippetString } from 'vscode';
 import { StringUtil } from './util/StringUtil';
 import { ALSyntaxUtil } from './util/ALSyntaxUtil';
 import { VSCodeApi } from './api/VSCodeApi';
 import { ALObject } from './types/ALObject';
 import { ALProcedure } from './types/ALProcedure';
 import { ALDocCommentUtil } from './util/ALDocCommentUtil';
+import { Configuration } from './util/Configuration';
+import { ALObjectExtensionType } from './types/ALObjectExtensionType';
+import { ALObjectType } from './types/ALObjectType';
+import { ALObjectCache } from './ALObjectCache';
+import * as fs from 'fs';
+import { ALCheckDocumentation } from './util/ALCheckDocumentation';
 
 export class DoComment {
     private disposable: Disposable;
@@ -22,11 +28,36 @@ export class DoComment {
         workspace.onDidChangeTextDocument(event => {
             const activeEditor = window.activeTextEditor;
 
+            if (event.document.languageId !== "al") {
+                return;
+            }
+
             if (activeEditor && event.document === activeEditor.document) {
                 ALSyntaxUtil.ClearALObjectFromCache(activeEditor.document);
-                // TODO: Configuration
-                // this.DoComment(activeEditor, event.contentChanges[0]);
-                ALSyntaxUtil.GetALObject(activeEditor.document);
+                this.DoComment(activeEditor, event.contentChanges[0]);
+                let alObject: ALObject | null = ALSyntaxUtil.GetALObject(activeEditor.document);
+                if (alObject === null) {
+                    return;
+                }
+                if (alObject.Type === ALObjectType.Interface) {
+                    // update implementing codeunits
+                    let implALObjects: Array<ALObject> | undefined = ALObjectCache.ALObjects.filter(implALObject => ((implALObject.ExtensionType === ALObjectExtensionType.Implement) && (implALObject.ExtensionObject === alObject?.Name)));
+                    if (implALObjects === undefined) {
+                        return;
+                    }
+                    implALObjects.forEach(implALObject => {
+                        let document = Object.assign({});
+                        if (fs.existsSync(`${implALObject.Path}/${implALObject.FileName}`)) {
+                            document.getText = () => fs.readFileSync(`${implALObject.Path}/${implALObject.FileName}`, 'utf8');
+                            document.fileName = `${implALObject.Path}/${implALObject.FileName}`;
+                            
+                            console.debug(`Update AL Object Cache for object ${implALObject.Name} regarding change in ${ALObjectType[alObject!.Type]} ${alObject!.Name}.`);
+                            ALSyntaxUtil.ClearALObjectFromCache(document);
+                            ALSyntaxUtil.GetALObject(document);
+                        }
+                    });
+                }                            
+                ALCheckDocumentation.CheckDocumentationForALObject(alObject);
             }
         }, this, subscriptions);
         
@@ -60,6 +91,10 @@ export class DoComment {
                 editBuilder.replace(replaceSelection, '');
             });
         }
+        
+        if (!Configuration.DirectDocumentationIsEnabled(this.activeEditor.document.uri)) {
+            return;
+        }
 
         if (!this.IsDoCommentTrigger()) {
             return;
@@ -89,11 +124,6 @@ export class DoComment {
      */
     private IsDoCommentTrigger(): boolean {
         this.isEnterKey = false;
-
-        // TODO: configuration
-        // if (!Configuration.DocumentationCommentsIsEnabled(this.activeEditor.document.uri)) {
-        //     return false;
-        // }
 
         const eventText: string = this.event.text;
         if (eventText === null || eventText === '') {

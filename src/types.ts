@@ -5,6 +5,11 @@
 export const ALXmlDocDiagnosticPrefix = "AL-XML-DOC";
 
 /**
+ * General prefix for configuration parameters.
+ */
+export const ALXmlDocConfigurationPrefix = ALXmlDocDiagnosticPrefix.toLowerCase();
+
+/**
  * Diagnostics codes.
  */
 export enum ALXmlDocDiagnosticCode {

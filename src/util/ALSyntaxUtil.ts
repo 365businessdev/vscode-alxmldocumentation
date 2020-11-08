@@ -1,5 +1,5 @@
-import { TextDocument } from "vscode";
-import { FindALProceduresRegEx, ALProcedureDefinitionRegEx, FindALObjectRegEx, FindBeginEndKeywordRegEx } from "./ALRegEx";
+import { commands, Location, Position, Range, TextDocument, Uri, workspace } from "vscode";
+import { FindALProceduresRegEx, ALProcedureDefinitionRegEx, FindALObjectRegEx, FindBeginEndKeywordRegEx, InheritDocRegEx } from "./ALRegEx";
 import { ALObject } from "../types/ALObject";
 import { ALProcedure } from "../types/ALProcedure";
 import { ALParameter } from "../types/ALParameter";
@@ -16,8 +16,49 @@ import { ALProcedureType } from "../types/ALProcedureType";
 import { XMLDocumentation } from "../types/XmlDocumentation";
 import { XMLDocumentationExistType } from "../types/XMLDocumentationExistType";
 import { ALObjectCache } from "../ALObjectCache";
+import * as fs from 'fs';
+import { Guid } from "guid-typescript";
 
 export class ALSyntaxUtil {
+    /**
+     * Retrieve definition for AL Object.
+     * @param alObjectType ALObjectType.
+     * @param alObjectName Object Name.
+     */
+    public static async GetObjectDefinition(alObjectType: ALObjectType, alObjectName: string): Promise<Location[] | undefined> {
+        let definition: Array<Location> | undefined = undefined;
+
+        // get current workspace folder
+        const wsPath: string = workspace.workspaceFolders![0].uri.fsPath;
+        // create temporary al file name
+        const tempFileName: Uri = Uri.file(`${wsPath}/__${Guid.create().toString()}__.al`);
+        try 
+        {
+            // create temp AL-file to execute AL Definition Provider.
+            fs.writeFileSync(tempFileName.fsPath,
+`codeunit 50000 GoToDefinition {
+    trigger OnRun()
+    var
+        object: ${ALObjectType[alObjectType]} ${alObjectName};
+    begin
+    end;
+}`);
+
+            // execute AL definition provider.
+            definition = await commands.executeCommand('vscode.executeDefinitionProvider', tempFileName, new Position(3, `        object: ${ALObjectType[alObjectType]} `.length + 1));
+            if ((definition === undefined) || (definition.length === 0)) {
+                console.debug(`No definition for ${ALObjectType[alObjectType]} ${alObjectName} has been found.`);
+            }
+        } finally {
+            // delete temp file.
+            if (fs.existsSync(tempFileName.fsPath)) {
+                fs.unlinkSync(tempFileName.fsPath);
+            }
+        }
+
+        return definition;
+    }
+
     /**
      * Test whether the AL object is already in AL Object Cache and remove it from Cache if exist.
      * @param document Current TextDocument.
@@ -104,6 +145,7 @@ export class ALSyntaxUtil {
             if (document.fileName !== "__symbol__") {
                 alObject.FileName = document.fileName.replace(/^.*[\\\/]/, "");
                 alObject.Path = document.fileName.replace(alObject.FileName, "");
+                alObject.Uri = document.uri;
             } else {
                 alObject.FileName = `${alObject.Name.replace(" ","")}.${ALObjectType[alObject.Type]}.dal`;
             }
@@ -164,12 +206,16 @@ export class ALSyntaxUtil {
 
         alProcedure.Name = procedureName;
         alProcedure.LineNo = this.GetALKeywordDefinitionLineNo(code, procedureName);
+        alProcedure.Range = this.GetRange(code, alProcedure.LineNo);
 
         let alProcedureDefinition = procedureName.match(ALProcedureDefinitionRegEx)?.groups;
         if ((alProcedureDefinition === undefined) || (alProcedureDefinition === null)) {
             console.debug(`Failed to get procedure definition for ${alProcedure.Name}.`);
         } else {
             alProcedure.Name = alProcedureDefinition["ProcedureName"];
+
+            alProcedure.Code = `${alProcedure.Name}(${alProcedureDefinition["Params"] !== undefined ? alProcedureDefinition["Params"] : ""})`;
+
             alProcedure.Access = this.GetALProcedureAccessLevel(alProcedureDefinition['Access']);
             // get procedure type from procedure definition
             switch (alProcedureDefinition["Type"].toLowerCase()) {
@@ -555,6 +601,19 @@ export class ALSyntaxUtil {
     }
 
     /**
+     * Calculate the Range of a given line number in AL Source Code.
+     * @param code AL Source Code.
+     * @param lineNo Line Number.
+     */
+    private static GetRange(code: string, lineNo: number): Range {
+        let line: string[] = this.SplitALCodeToLines(code);
+
+        return new Range(
+            new Position(lineNo, (line[lineNo].length - line[lineNo].trim().length)), 
+            new Position(lineNo, line[lineNo].length));
+    }
+
+    /**
      * Split string object, containing AL Source Code, in string array per line.
      * @param code AL Source Code.
      */
@@ -649,7 +708,7 @@ export class ALSyntaxUtil {
                         collect = false;
                     }
 
-                    if (line.match(/\/\/\/ <inheritdoc cref="(?<CodeReference>.*)"\/>/) !== null) {
+                    if (line.match(InheritDocRegEx) !== null) {
                         result.Exists = XMLDocumentationExistType.Inherit;
                         result.Documentation = line.trim().replace('///','');
                         return result;
@@ -704,16 +763,17 @@ export class ALSyntaxUtil {
 
                         if (line.indexOf(`<param name="${alParameter.Name}">`) === -1) {
                             result.Documentation = "";
+                        } else {
+                            if (result.Documentation !== "") {
+                                result.Exists = XMLDocumentationExistType.Yes;
+                            }
+                            return result;
                         }
                     }
                 }
                 if ((ALSyntaxUtil.IsProcedureDefinition(line)) || (ALSyntaxUtil.IsObjectDefinition(line)) || (ALSyntaxUtil.IsBeginEnd(line))) {
                     break;
                 }
-            }
-
-            if (result.Documentation !== "") {
-                result.Exists = XMLDocumentationExistType.Yes;
             }
         }
         catch (ex)

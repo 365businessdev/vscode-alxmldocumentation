@@ -1,3 +1,4 @@
+import { Range } from "vscode";
 import { ALAccessLevel } from "./ALAccessLevel";
 import { ALObsoleteState } from "./ALObsoleteState";
 import { ALParameter } from "./ALParameter";
@@ -18,6 +19,18 @@ export class ALProcedure {
      * @type {number}
      */
     public LineNo: number = 0;
+
+    /**
+     * Procedure declaration code.
+     * @type {string}
+     */
+    public Code: string = "";
+
+    /**
+     * Range in TextDocument of the procedure
+     * @type {Range}
+     */
+    public Range: Range | undefined;
     
     /**
      * Access level of the Procedure.

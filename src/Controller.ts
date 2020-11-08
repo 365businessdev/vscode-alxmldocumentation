@@ -4,6 +4,8 @@ import { readFile } from "fs-extra";
 import { ALSyntaxUtil } from "./util/ALSyntaxUtil";
 import { DoComment } from "./doComment";
 import { RegisterProvider } from "./RegisterProvider";
+import { ALCheckDocumentation } from "./util/ALCheckDocumentation";
+import { DoExport } from "./DoExport";
 
 export class Controller {
     /**
@@ -14,10 +16,12 @@ export class Controller {
         // initialize classes.
         const doComment = new DoComment();
         const doHover = new RegisterProvider();
+        const doExport = new DoExport();
 
         // add to subscriptions.
         context.subscriptions.push(doComment);
         context.subscriptions.push(doHover);
+        context.subscriptions.push(doExport);
     }
 
     /**
@@ -30,7 +34,6 @@ export class Controller {
                 location: ProgressLocation.Window,
                 title: 'AL XML Documentation initialization in progress...',
             }, async (progress, token) => {
-                // TODO: Respect configuration
                 let workspacePaths = workspace.workspaceFolders;
                 if ((!workspacePaths) || (workspacePaths === undefined)) {
                     throw new Error("Workspace folders could not be retrieved.");
@@ -40,7 +43,7 @@ export class Controller {
                     let allFiles = await workspace.findFiles(new RelativePattern(validPath, '**/*.al'), undefined, undefined, token);
                     let relevantFileTasks = allFiles.map(async (file: Uri) => {
                         let content = await readFile(file.fsPath, 'utf-8');
-                        if (content.match(/(procedure)\s+(.*?)\(/gm)) {
+                        if (content.match(/(procedure|trigger)\s+(.*?)\(/gm)) {
                             return { uri: file, content: content };
                         }
     
@@ -54,10 +57,11 @@ export class Controller {
                         let document = Object.assign({});
                         document.getText = () => file.content;
                         document.fileName = file.uri.fsPath;
+                        document.uri = file.uri;
                         
                         let alObject: ALObject|null = ALSyntaxUtil.GetALObject(document as any);
-                        if (alObject !== null) {
-                            // TODO: Send diagnostics                            
+                        if (alObject !== null) {                    
+                            ALCheckDocumentation.CheckDocumentationForALObject(alObject);
                         }
                     };
                     let max = relevantFiles.length;

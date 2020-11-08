@@ -19,4 +19,22 @@ export class StringUtil {
 
         return indent;
     }
+    
+    /**
+     * Append two strings together using the concatenate string.
+     * @param baseString 
+     * @param append 
+     * @param concatString 
+     */
+    public static AppendString(baseString: string, append: string, concatString: string = ""): string {
+        if (baseString.includes(append)) {
+            return baseString;
+        }
+        if (baseString !== "") {
+            baseString = `${baseString}${concatString}`;
+        }
+        baseString = `${baseString}${append}`;
+
+        return baseString;
+    }
 }

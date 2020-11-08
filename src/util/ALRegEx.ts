@@ -13,3 +13,8 @@ export const ALProcedureDefinitionRegEx: RegExp = /(?<!\/\/\/.*)(?<Access>(local
  * Regular Expressions for AL Source Code.
  */
 export const FindBeginEndKeywordRegEx: RegExp = /(?<!\/\/.*)(\bbegin\b|end\;)/;
+
+/**
+ * Regular Expression to get Code Reference from inheritdoc comment.
+ */
+export const InheritDocRegEx: RegExp = /\/\/\/ <inheritdoc cref="(?<CodeReference>.*)"\/>/;

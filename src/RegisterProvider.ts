@@ -1,6 +1,7 @@
 import { languages } from "vscode";
 import { ALDocCommentProvider } from "./util/ALDocCommentProvider";
 import { ALHoverProvider } from "./util/ALHoverProvider";
+import { ALInheritDocDefinitionProvider } from "./util/ALInheritDocDefinitionProvider";
 
 export class RegisterProvider {
 
@@ -24,7 +25,14 @@ export class RegisterProvider {
             language: 'al'
         }, new ALDocCommentProvider(),
         '/');
-    }    
 
-    public dispose() { }
+        languages.registerDefinitionProvider({
+            scheme: 'file',
+            language: 'al'
+        }, new ALInheritDocDefinitionProvider());
+    }
+
+    public dispose() {
+
+     }
 }
