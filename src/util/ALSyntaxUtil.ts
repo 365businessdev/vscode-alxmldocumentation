@@ -461,14 +461,14 @@ export class ALSyntaxUtil {
      * @param code AL Source Code.
      */
     private static GetALObjectSubtype(code: string): ALCodeunitType {
-        let subtype = code.match(/^Subtype = (.*);/m);
+        let subtype = code.match(/^(\s*)?Subtype\s=\s(.*);/m);
         try 
         {
             if ((subtype === null) || (subtype[1] === undefined)) {
                 return ALCodeunitType.Normal;
             }
             
-            switch(subtype[1].toLowerCase()) {
+            switch(subtype[2].toLowerCase()) {
                 case "normal":
                     return ALCodeunitType.Normal;
                 case "install":
@@ -480,7 +480,7 @@ export class ALSyntaxUtil {
                 case "testrunner":
                     return ALCodeunitType.TestRunner;
                 default:
-                    throw new Error(`Unexpected Subtype: ${subtype[1]}.`);
+                    throw new Error(`Unexpected Subtype: ${subtype[2]}.`);
             }
         }
         catch(ex)
