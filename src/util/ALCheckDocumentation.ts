@@ -77,9 +77,10 @@ export class ALCheckDocumentation {
             return;
         }        
 
-        if (this.alObject === null) {
+        if ((this.alObject === null) || (this.alObject.Uri?.scheme === 'al-preview')) {
             return;
         }
+
         if (Configuration.ObjectDocumentationCheckIsEnabled(this.document.uri)) {
             this.AnalyzeObjectDocumentation(this.alObject);
         }
