@@ -56,7 +56,7 @@ export class ALCheckDocumentation {
             this.document.uri = alObject.Uri;
         } else {
             this.document = document;
-            
+
             if (document.languageId !== 'al') {
                 return;
             }
@@ -71,11 +71,11 @@ export class ALCheckDocumentation {
      * General documentation check procedure.
      */
     private static CheckDocumentation() {
+        this.Initialize();
+        
         if ((!Configuration.ProcedureDocumentationCheckIsEnabled(this.document.uri)) && (!Configuration.ObjectDocumentationCheckIsEnabled(this.document.uri))) {
             return;
-        }
-
-        this.Initialize();
+        }        
 
         if (this.alObject === null) {
             return;
