@@ -177,6 +177,7 @@ export class ALCheckDocumentation {
                     Configuration.GetProcedureDocumentationCheckInformationLevel(alObject.Uri));
                 diagnostic.source = ALXmlDocDiagnosticPrefix;
                 diagnostic.code = this.GetDiagnosticCode(ALXmlDocDiagnosticCode.ParameterUnnecessary);
+                diagnostic.tags = [alProcedure.LineNo];
     
                 this.diags.push(diagnostic);
             });
@@ -216,6 +217,7 @@ export class ALCheckDocumentation {
                 Configuration.GetProcedureDocumentationCheckInformationLevel(alObject.Uri));
             diagnostic.source = ALXmlDocDiagnosticPrefix;
             diagnostic.code = ALXmlDocDiagnosticCode.XmlDocumentationMissing;
+            diagnostic.tags = [alProcedure.LineNo];
 
             this.diags.push(diagnostic);
             return;
@@ -228,6 +230,7 @@ export class ALCheckDocumentation {
                     Configuration.GetProcedureDocumentationCheckInformationLevel(alObject.Uri));
                 diagnostic.source = ALXmlDocDiagnosticPrefix;
                 diagnostic.code = ALXmlDocDiagnosticCode.SummaryMissing;
+                diagnostic.tags = [alProcedure.LineNo];
 
                 this.diags.push(diagnostic);
             }
@@ -292,6 +295,7 @@ export class ALCheckDocumentation {
                 Configuration.GetProcedureDocumentationCheckInformationLevel(alObject.Uri));
             diagnostic.source = ALXmlDocDiagnosticPrefix;
             diagnostic.code = code;
+            diagnostic.tags = [alProcedure.LineNo];
 
             this.diags.push(diagnostic);
         }
