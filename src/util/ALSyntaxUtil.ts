@@ -74,12 +74,10 @@ export class ALSyntaxUtil {
 
         let alObject: ALObject|null = this.GetALObjectFromCache(objectType, objectName);
         if (alObject === null) {
-            // console.debug(`${ALObjectType[objectType]} ${objectName} has not been found AL Object cache.`);
             return;
         }
 
-        ALObjectCache.ALObjects.splice(ALObjectCache.ALObjects.indexOf(alObject), 1);
-        // console.debug(`Removed ${ALObjectType[objectType]} ${objectName} from AL Object cache.`);        
+        ALObjectCache.ALObjects.splice(ALObjectCache.ALObjects.indexOf(alObject), 1);   
     }
 
     /**
@@ -90,7 +88,6 @@ export class ALSyntaxUtil {
     public static GetALObjectFromCache(objectType: ALObjectType, objectName: string): ALObject | null {
         let alObject: ALObject | undefined = ALObjectCache.ALObjects.find(alObject => ((alObject.Name === objectName) && (alObject.Type === objectType)));
         if (alObject !== undefined) {
-            //console.debug(`Found AL Object ${ALObjectType[alObject.Type]} ${alObject.Name} in cache.`);
             return alObject;
         }
         return null;
@@ -213,19 +210,10 @@ export class ALSyntaxUtil {
             console.debug(`Failed to get procedure definition for ${alProcedure.Name}.`);
         } else {
             alProcedure.Name = alProcedureDefinition['ProcedureName'];
-
             alProcedure.Code = `${alProcedure.Name}(${alProcedureDefinition['Params'] !== undefined ? alProcedureDefinition['Params'] : ''})`;
+            alProcedure.Access = this.GetALProcedureAccessLevel(alProcedureDefinition['Access']);            
+            alProcedure.Type = this.GetALProcedureType(alProcedureDefinition);
 
-            alProcedure.Access = this.GetALProcedureAccessLevel(alProcedureDefinition['Access']);
-            // get procedure type from procedure definition
-            switch (alProcedureDefinition['Type'].toLowerCase()) {
-                case 'trigger':
-                    alProcedure.Type = ALProcedureType.Trigger;
-                    break;
-                case 'procedure':
-                    alProcedure.Type = ALProcedureType.Procedure;
-                    break;
-            }
             // get parameters from procedure definition
             if (alProcedureDefinition['Params'] !== undefined) {
                 let alProcedureParams: Array<string> = [];
@@ -238,66 +226,10 @@ export class ALSyntaxUtil {
                 }
 
                 alProcedureParams.forEach(param => {
-                    let alParameter: ALParameter = new ALParameter();
-                    alParameter.CallByReference = (param.split(':')[0].match(/\bvar\s/) !== null);
-                    alParameter.Name = param.split(':')[0].trim();
-                    // remove var prefix for call-by-reference parameter
-                    if (alParameter.CallByReference) {
-                        alParameter.Name = alParameter.Name.substr(4).trim();
-                    }
-                    if (param.indexOf(':') !== -1) {
-                        if (param.split(':')[1].trim().indexOf(' ') === -1) {
-                            alParameter.Type = param.split(':')[1].trim();
-                        } else {
-                            alParameter.Type = param.split(':')[1].trim().split(' ')[0];
-                            // TODO: Find a smarter solution
-                            alParameter.Subtype = '';
-                            for (let i = 1; i <= param.split(':')[1].trim().split(' ').length - 1; i++) {
-                                alParameter.Subtype = `${alParameter.Subtype} ${param.split(':')[1].trim().split(' ')[i]}`;
-                            }
-                            alParameter.Subtype = alParameter.Subtype.trim();
-                            if ((alParameter.Type === 'Record') && (alParameter.Subtype.trim().match(/\btemporary\b/) !== null)) {
-                                alParameter.Temporary = true;
-                                alParameter.Subtype = alParameter.Subtype.replace(/\btemporary\b/,'').trim();
-                            }
-                        }
-                        // get XML Documentation
-                        alParameter.XmlDocumentation = this.GetALObjectProcedureParameterDocumentation(alProcedure, alParameter, code);
-                        if ((alParameter.XmlDocumentation.Exists === XMLDocumentationExistType.No)) {
-                            ALDocCommentUtil.GenerateParameterDocString(alParameter);
-                        }
-                        alProcedure.Parameters.push(alParameter);
-                    }
+                    this.GetALObjectProcedureParameter(param, alProcedure, code);
                 });
             }
-            // get return type from procedure definition
-            alProcedureDefinition['ReturnType'] = alProcedureDefinition['ReturnType'].trim();
-            if ((alProcedureDefinition['ReturnType'] !== undefined) && (alProcedureDefinition['ReturnType'] !== '')) {
-                let alReturn: ALProcedureReturn | undefined = new ALProcedureReturn();
-                if (alProcedureDefinition['ReturnType'][alProcedureDefinition['ReturnType'].length - 1] === ';') {
-                    alProcedureDefinition['ReturnType'] = alProcedureDefinition['ReturnType'].substring(0, alProcedureDefinition['ReturnType'].length - 1).trim();
-                }
-                if (alProcedureDefinition['ReturnType'].indexOf(':') === -1) {
-                    alReturn.Type = alProcedureDefinition['ReturnType'].trim();
-                } else {
-                    alReturn.Name = alProcedureDefinition['ReturnType'].split(':')[0].trim();
-                    alReturn.Type = alProcedureDefinition['ReturnType'].split(':')[1].trim();
-                }     
-                if (alReturn.Type[alReturn.Type.length - 1] === '/') {
-                    alReturn.Type = alReturn.Type.substring(0, alReturn.Type.length - 2).trim();
-                }
-                if (alReturn.Type === '') {
-                    alReturn = undefined;
-                }
-                if (alReturn !== undefined) {
-                    // get XML Documentation
-                    alReturn.XmlDocumentation = this.GetALObjectProcedureReturnDocumentation(alProcedure, alReturn, code);
-                    if ((alReturn.XmlDocumentation.Exists === XMLDocumentationExistType.No)) {
-                        ALDocCommentUtil.GenerateProcedureReturnDocString(alReturn);
-                    }
-                }
-                alProcedure.Return = alReturn;
-            }
+            this.GetALObjectProcedureReturn(alProcedureDefinition, alProcedure, code);
         }
         this.GetALProcedureProperties(alProcedure, code);
 
@@ -321,6 +253,98 @@ export class ALSyntaxUtil {
         }
 
         return alProcedure;
+    }
+
+    /**
+     * Get return type from procedure definition
+     * @param alProcedureDefinition ALProcedureDefinition from RegEx.
+     * @param alProcedure ALProcedure object to attach return.
+     * @param code AL Source Code.
+     */
+    private static GetALObjectProcedureReturn(alProcedureDefinition: { [key: string]: string; }, alProcedure: ALProcedure, code: string) {
+        alProcedureDefinition['ReturnType'] = alProcedureDefinition['ReturnType'].trim();
+        if ((alProcedureDefinition['ReturnType'] !== undefined) && (alProcedureDefinition['ReturnType'] !== '')) {
+            let alReturn: ALProcedureReturn | undefined = new ALProcedureReturn();
+            if (alProcedureDefinition['ReturnType'][alProcedureDefinition['ReturnType'].length - 1] === ';') {
+                alProcedureDefinition['ReturnType'] = alProcedureDefinition['ReturnType'].substring(0, alProcedureDefinition['ReturnType'].length - 1).trim();
+            }
+            if (alProcedureDefinition['ReturnType'].indexOf(':') === -1) {
+                alReturn.Type = alProcedureDefinition['ReturnType'].trim();
+            } else {
+                alReturn.Name = alProcedureDefinition['ReturnType'].split(':')[0].trim();
+                alReturn.Type = alProcedureDefinition['ReturnType'].split(':')[1].trim();
+            }
+            if (alReturn.Type[alReturn.Type.length - 1] === '/') {
+                alReturn.Type = alReturn.Type.substring(0, alReturn.Type.length - 2).trim();
+            }
+            if (alReturn.Type === '') {
+                alReturn = undefined;
+            }
+            if (alReturn !== undefined) {
+                // get XML Documentation
+                alReturn.XmlDocumentation = this.GetALObjectProcedureReturnDocumentation(alProcedure, alReturn, code);
+                if ((alReturn.XmlDocumentation.Exists === XMLDocumentationExistType.No)) {
+                    ALDocCommentUtil.GenerateProcedureReturnDocString(alReturn);
+                }
+            }
+            alProcedure.Return = alReturn;
+        }
+    }
+
+    /**
+     * Get AL Procedure Parameter.
+     * @param param Parameter declaration.
+     * @param alProcedure ALProcedure object to attach parameter.
+     * @param code AL Source Code.
+     */
+    private static GetALObjectProcedureParameter(param: string, alProcedure: ALProcedure, code: string) {
+        let alParameter: ALParameter = new ALParameter();
+        alParameter.CallByReference = (param.split(':')[0].match(/\bvar\s/) !== null);
+        alParameter.Name = param.split(':')[0].trim();
+        // remove var prefix for call-by-reference parameter
+        if (alParameter.CallByReference) {
+            alParameter.Name = alParameter.Name.substr(4).trim();
+        }
+        if (param.indexOf(':') !== -1) {
+            if (param.split(':')[1].trim().indexOf(' ') === -1) {
+                alParameter.Type = param.split(':')[1].trim();
+            } else {
+                alParameter.Type = param.split(':')[1].trim().split(' ')[0];
+                // TODO: Find a smarter solution
+                alParameter.Subtype = '';
+                for (let i = 1; i <= param.split(':')[1].trim().split(' ').length - 1; i++) {
+                    alParameter.Subtype = `${alParameter.Subtype} ${param.split(':')[1].trim().split(' ')[i]}`;
+                }
+                alParameter.Subtype = alParameter.Subtype.trim();
+                if ((alParameter.Type === 'Record') && (alParameter.Subtype.trim().match(/\btemporary\b/) !== null)) {
+                    alParameter.Temporary = true;
+                    alParameter.Subtype = alParameter.Subtype.replace(/\btemporary\b/, '').trim();
+                }
+            }
+            // get XML Documentation
+            alParameter.XmlDocumentation = this.GetALObjectProcedureParameterDocumentation(alProcedure, alParameter, code);
+            if ((alParameter.XmlDocumentation.Exists === XMLDocumentationExistType.No)) {
+                ALDocCommentUtil.GenerateParameterDocString(alParameter);
+            }
+            alProcedure.Parameters.push(alParameter);
+        }
+    }
+
+    /**
+     * Get procedure type from procedure definition.
+     * @param alProcedureDefinition Captured definition from RegEx.
+     * @param alProcedure 
+     */
+    private static GetALProcedureType(alProcedureDefinition: { [key: string]: string; }): ALProcedureType {
+        switch (alProcedureDefinition['Type'].toLowerCase()) {
+            case 'trigger':
+                return ALProcedureType.Trigger;
+            case 'procedure':
+                return ALProcedureType.Procedure;
+        }
+
+        console.error(`Unknown AL procedure type ${alProcedureDefinition['Type'].toLowerCase()} found.`);
+        return ALProcedureType.Procedure;
     }
 
     /**
