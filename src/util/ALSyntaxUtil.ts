@@ -18,6 +18,7 @@ import { XMLDocumentationExistType } from '../types/XMLDocumentationExistType';
 import { ALObjectCache } from '../ALObjectCache';
 import * as fs from 'fs';
 import { Guid } from 'guid-typescript';
+import { StringUtil } from './StringUtil';
 
 export class ALSyntaxUtil {
     /**
@@ -114,7 +115,7 @@ export class ALSyntaxUtil {
             }
             alObject = new ALObject();
             alObject.Type = objectType;
-            alObject.Name = objectName;
+            alObject.Name = StringUtil.ReplaceAll(objectName, '"');
             alObject.LineNo = this.GetALKeywordDefinitionLineNo(document.getText(), alObjectDefinition[0]);
             alObject.Range = this.GetRange(document.getText(), alObject.LineNo);
             if (!((alObjectDefinition.groups['ObjectID'] === null) || (alObjectDefinition.groups['ObjectID'] === undefined))) {
@@ -130,7 +131,7 @@ export class ALSyntaxUtil {
                         alObject.ExtensionType = ALObjectExtensionType.Implement;
                         break;
                 }
-                alObject.ExtensionObject = alObjectDefinition.groups['ExtensionObject'].trim();
+                alObject.ExtensionObject = StringUtil.ReplaceAll(alObjectDefinition.groups['ExtensionObject'].trim(), '"', '');
             }
 
             // get AL object properties
@@ -202,7 +203,7 @@ export class ALSyntaxUtil {
     private static GetALObjectProcedureDefinition(code: string, procedureName: string): ALProcedure {
         let alProcedure = new ALProcedure();
 
-        alProcedure.Name = procedureName;
+        alProcedure.Name = StringUtil.ReplaceAll(procedureName, '"');
         alProcedure.LineNo = this.GetALKeywordDefinitionLineNo(code, procedureName);
         alProcedure.Range = this.GetRange(code, alProcedure.LineNo);
 
@@ -210,8 +211,8 @@ export class ALSyntaxUtil {
         if ((alProcedureDefinition === undefined) || (alProcedureDefinition === null)) {
             console.debug(`Failed to get procedure definition for ${alProcedure.Name}.`);
         } else {
-            alProcedure.Name = alProcedureDefinition['ProcedureName'];
-            alProcedure.Code = `${alProcedure.Name}(${alProcedureDefinition['Params'] !== undefined ? alProcedureDefinition['Params'] : ''})`;
+            alProcedure.Name = StringUtil.ReplaceAll(alProcedureDefinition['ProcedureName'], '"');
+            alProcedure.Code = `${StringUtil.ReplaceAll(alProcedure.Name, '"')}(${alProcedureDefinition['Params'] !== undefined ? alProcedureDefinition['Params'] : ''})`;
             alProcedure.Access = this.GetALProcedureAccessLevel(alProcedureDefinition['Access']);            
             alProcedure.Type = this.GetALProcedureType(alProcedureDefinition);
 
@@ -272,7 +273,7 @@ export class ALSyntaxUtil {
             if (alProcedureDefinition['ReturnType'].indexOf(':') === -1) {
                 alReturn.Type = alProcedureDefinition['ReturnType'].trim();
             } else {
-                alReturn.Name = alProcedureDefinition['ReturnType'].split(':')[0].trim();
+                alReturn.Name = StringUtil.ReplaceAll(alProcedureDefinition['ReturnType'].split(':')[0].trim(), '"');
                 alReturn.Type = alProcedureDefinition['ReturnType'].split(':')[1].trim();
             }
             if (alReturn.Type[alReturn.Type.length - 1] === '/') {
@@ -301,10 +302,10 @@ export class ALSyntaxUtil {
     private static GetALObjectProcedureParameter(param: string, alProcedure: ALProcedure, code: string) {
         let alParameter: ALParameter = new ALParameter();
         alParameter.CallByReference = (param.split(':')[0].match(/\bvar\s/) !== null);
-        alParameter.Name = param.split(':')[0].trim();
+        alParameter.Name = StringUtil.ReplaceAll(param.split(':')[0].trim(), '"');
         // remove var prefix for call-by-reference parameter
         if (alParameter.CallByReference) {
-            alParameter.Name = alParameter.Name.substr(4).trim();
+            alParameter.Name = StringUtil.ReplaceAll(alParameter.Name.substr(4).trim(), '"');
         }
         if (param.indexOf(':') !== -1) {
             if (param.split(':')[1].trim().indexOf(' ') === -1) {
@@ -853,6 +854,26 @@ export class ALSyntaxUtil {
         { }
 
         return result;
+    }
+
+    /**
+     * Tests whether the given string contains special characters to escape in AL or not.
+     * @param string 
+     */
+    public static HasCharactersToEscape(string: string): boolean {
+        return ((string.indexOf(' ') !== -1) ||
+               (string.indexOf('/') !== -1) ||
+               (string.indexOf('%') !== -1) ||
+               (string.indexOf('.') !== -1) ||
+               (string.indexOf(':') !== -1) ||
+               (string.indexOf('(') !== -1) ||
+               (string.indexOf(')') !== -1) ||
+               (string.indexOf('[') !== -1) ||
+               (string.indexOf(']') !== -1) ||
+               (string.indexOf('&') !== -1) ||
+               (string.indexOf('$') !== -1) ||
+               (string.indexOf('§') !== -1) ||
+               (string.indexOf('!') !== -1));        
     }
     
     /**

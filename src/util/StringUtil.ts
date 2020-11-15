@@ -37,4 +37,14 @@ export class StringUtil {
 
         return baseString;
     }
+
+    /**
+     * Common Replace All function, to replace all occurrences of a string in the base string.
+     * @param string Base String.
+     * @param search Substring to replace.
+     * @param replaceWith Replacement for the substring. (optional)
+     */
+    public static ReplaceAll(string: string, search: string, replaceWith: string = ''): string {
+        return string.replace(new RegExp(search, 'g'), replaceWith);
+    }
 }

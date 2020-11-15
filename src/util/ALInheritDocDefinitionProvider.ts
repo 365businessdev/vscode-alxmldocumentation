@@ -20,8 +20,7 @@ export class ALInheritDocDefinitionProvider implements DefinitionProvider {
 
             // get actual AL Object.
             let alObject: ALObject | null = ALSyntaxUtil.GetALObject(document);
-            let alProcedure: ALProcedure | undefined = alObject?.Procedures?.find((alProcedure) => (alProcedure.LineNo > position.line) && (alProcedure.Code === codeRefProcedureCode));
-            if (alProcedure === undefined) {
+            if ((alObject === null) || (alObject.Uri === undefined)) {
                 return;
             }
 
@@ -30,12 +29,29 @@ export class ALInheritDocDefinitionProvider implements DefinitionProvider {
                 return;
             }
 
-            // build return definition.
-            let definition: Location | undefined = new Location(objDefinition[0].uri, new Range(
-                new Position(alProcedure.Range!.start.line + 1, alProcedure.Range!.start.character),
-                new Position(alProcedure.Range!.end.line + 1, alProcedure.Range!.end.character)));            
+            if (((document.lineAt(position.line).text.indexOf(codeRefObjectName)) <= position.character) && 
+                ((document.lineAt(position.line).text.indexOf(codeRefObjectName) + codeRefObjectName.length) >= position.character)) {
+                // build object return definition.
+                let definition: Location | undefined = new Location(objDefinition[0].uri, new Range(
+                    new Position(alObject.LineNo, 0),
+                    new Position(alObject.LineNo, 0)));            
 
-            return definition;
+                return definition;
+            }
+
+            if ((document.lineAt(position.line).text.indexOf(codeRefObjectName)) < position.character) {
+                let alProcedure: ALProcedure | undefined = alObject?.Procedures?.find((alProcedure) => (alProcedure.LineNo > position.line) && (alProcedure.Code === codeRefProcedureCode));
+                if (alProcedure === undefined) {
+                    return;
+                }
+
+                // build return definition.
+                let definition: Location | undefined = new Location(objDefinition[0].uri, new Range(
+                    new Position(alProcedure.Range!.start.line + 1, alProcedure.Range!.start.character),
+                    new Position(alProcedure.Range!.end.line + 1, alProcedure.Range!.end.character)));            
+
+                return definition;
+            }
         }
     }
 }

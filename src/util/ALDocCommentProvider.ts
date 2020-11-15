@@ -62,15 +62,18 @@ export class ALDocCommentProvider implements CompletionItemProvider {
     async ProvideALProcedureCompletionItems(alObject: ALObject, alProcedure: ALProcedure) {
         this.AddXmlDocCompletionItem(alProcedure);
 
-        if ((alObject.ExtensionType === ALObjectExtensionType.Implement) && (alObject.ExtensionObject !== undefined)) {
-            let inheritObjLocation: Array<Location> | undefined = await ALSyntaxUtil.GetObjectDefinition(ALObjectType.Interface, alObject.ExtensionObject);
-            if (inheritObjLocation === undefined) {
-                return;
-            }
-            
-            this.AddInheritXmlDocCompletionItem(alObject, alProcedure);
+        try {
+            if ((alObject.ExtensionType === ALObjectExtensionType.Implement) && (alObject.ExtensionObject !== undefined)) {                
+                this.AddInheritXmlDocCompletionItem(alObject, alProcedure);
 
-            await this.AddXmlDocFromInterfaceCompletionItem(inheritObjLocation, alProcedure);
+                let inheritObjLocation: Array<Location> | undefined = await ALSyntaxUtil.GetObjectDefinition(ALObjectType.Interface, alObject.ExtensionObject);
+                if ((inheritObjLocation === undefined) || (inheritObjLocation.length === 0)) {
+                    return;
+                }
+                await this.AddXmlDocFromInterfaceCompletionItem(inheritObjLocation, alProcedure);
+            }
+        } catch {
+            return;
         }
     }
 
@@ -101,28 +104,34 @@ export class ALDocCommentProvider implements CompletionItemProvider {
      * @param alProcedure AL Procedure to document.
      */
     private async AddXmlDocFromInterfaceCompletionItem(inheritObjLocation: Location[], alProcedure: ALProcedure) {
-        const alLangServer = new ALLangServerProxy();
-        const alDefinition = await alLangServer.GetALObjectFromDefinition(inheritObjLocation[0].uri.toString(), inheritObjLocation[0].range.start);
-        if ((alDefinition !== undefined) && (alDefinition.ALObject !== null)) {
-            let inheritALProcedure: ALProcedure | undefined = alDefinition.ALObject.Procedures?.find(inheritALProcedure => (inheritALProcedure.Code === alProcedure?.Code));
-            if (inheritALProcedure !== undefined) {
+        try {
+            const alLangServer = new ALLangServerProxy();
+            const alDefinition = await alLangServer.GetALObjectFromDefinition(inheritObjLocation[0].uri.toString(), inheritObjLocation[0].range.start);
+            if ((alDefinition !== undefined) && (alDefinition.ALObject !== null)) {
+                let inheritALProcedure: ALProcedure | undefined = alDefinition.ALObject.Procedures?.find(inheritALProcedure => (inheritALProcedure.Code === alProcedure?.Code));
+                if (inheritALProcedure !== undefined) {
 
-                const inheritCompletionItem2: CompletionItem = new CompletionItem(
-                    'AL XML Documentation Interface Comment',
-                    CompletionItemKind.Snippet
-                );
+                    const inheritCompletionItem2: CompletionItem = new CompletionItem(
+                        'AL XML Documentation Interface Comment',
+                        CompletionItemKind.Text
+                    );
 
-                let snippetText: string = ALDocCommentUtil.GetProcedureDocumentation(inheritALProcedure);
+                    let snippetText: string = ALDocCommentUtil.GetProcedureDocumentation(inheritALProcedure);
 
-                const snippet: SnippetString = new SnippetString(snippetText.replace('///', '')); // delete leading '///'. The trigger character is already in the document when the completion provider is triggered.
-                inheritCompletionItem2.insertText = snippet;
-                inheritCompletionItem2.documentation = snippetText;
-                inheritCompletionItem2.detail = 'XML documentation interface comment.';
-                inheritCompletionItem2.sortText = '1';
+                    const snippet: SnippetString = new SnippetString(snippetText.replace('///', '')); // delete leading '///'. The trigger character is already in the document when the completion provider is triggered.
+                    inheritCompletionItem2.insertText = snippet;
+                    inheritCompletionItem2.documentation = snippetText;
+                    inheritCompletionItem2.detail = 'XML documentation interface comment.';
+                    inheritCompletionItem2.sortText = '1';
 
-                this.alXmlDocCompletionItems.push(inheritCompletionItem2);
+                    this.alXmlDocCompletionItems.push(inheritCompletionItem2);
+                }
             }
+        } catch(ex) {
+            console.error(`[AddXmlDocFromInterfaceCompletionItem] - ${ex} Please report this Please report this error at https://github.com/365businessdev/vscode-alxmldocumentation/issues`);
+            return undefined;
         }
+
     }
 
     /**
