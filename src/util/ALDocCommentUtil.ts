@@ -6,6 +6,7 @@ import { ALObjectExtensionType } from '../types/ALObjectExtensionType';
 import { ALObjectType } from '../types/ALObjectType';
 import { TextEditor, TextDocument } from 'vscode';
 import { VSCodeApi } from '../api/VSCodeApi';
+import { ALSyntaxUtil } from './ALSyntaxUtil';
 
 export class ALDocCommentUtil {
     /**
@@ -197,6 +198,50 @@ export class ALDocCommentUtil {
         });
 
         return docNode;
+    }
+
+    /**
+     * Get line number in TextEditor for searched XML node.
+     * @param editor {TextEditor}
+     * @param startingLineNo Line number to start searching.
+     * @param nodeName Searched XML node name.
+     * @param attrName Searched XML attribute name.
+     * @param attrValue Searched XML attribute value.
+     */
+    public static GetXmlDocumentationNodeLineNo(editor: TextEditor, startingLineNo: number = -1, nodeName: string, attrName: string = "", attrValue: string = ""): number { 
+        let paramEndLineNo: number = -1;
+
+        if (startingLineNo === -1) {
+            let vsCodeApi = new VSCodeApi(editor); 
+            startingLineNo = vsCodeApi.GetActivePosition().line;
+        }
+
+        let alCode = ALSyntaxUtil.SplitALCodeToLines(editor.document.getText());
+        for (let lineNo = startingLineNo - 1; lineNo > 0; lineNo--) {
+            let line = alCode[lineNo];
+            switch (true) {
+                case ALSyntaxUtil.IsObjectDefinition(line):
+                case ALSyntaxUtil.IsProcedureDefinition(line):
+                case ALSyntaxUtil.IsBeginEnd(line):
+                    return -1;
+                default:
+                    if (line.includes(`</${nodeName}>`)) {
+                        paramEndLineNo = lineNo;
+                    }
+
+                    if (attrName !== "") {
+                        if (line.includes(`<${nodeName} ${attrName}="${attrValue}">`)) {
+                            return paramEndLineNo + 1;
+                        }
+                    } else {
+                        if (line.includes(`<${nodeName}>`)) {
+                            return paramEndLineNo + 1;
+                        }
+                    }
+                    break;
+            }
+        }
+        return -1;
     }
 
     /**

@@ -1,7 +1,11 @@
-import { languages } from "vscode";
-import { ALDocCommentProvider } from "./util/ALDocCommentProvider";
-import { ALHoverProvider } from "./util/ALHoverProvider";
-import { ALInheritDocDefinitionProvider } from "./util/ALInheritDocDefinitionProvider";
+import { commands, window, languages, Range } from 'vscode';
+import { ALXmlDocConfigurationPrefix } from './types';
+import { ALProcedure } from './types/ALProcedure';
+import { ALDocCommentProvider } from './util/ALDocCommentProvider';
+import { ALDocumentationQuickFixProvider } from './util/ALDocumentationQuickFix';
+import { ALFixDocumentation } from './util/ALFixDocumentation';
+import { ALHoverProvider } from './util/ALHoverProvider';
+import { ALInheritDocDefinitionProvider } from './util/ALInheritDocDefinitionProvider';
 
 export class RegisterProvider {
 
@@ -33,6 +37,35 @@ export class RegisterProvider {
             scheme: 'file',
             language: 'al'
         }, new ALInheritDocDefinitionProvider());
+
+        /**
+         * ALDocumentationQuickFixProvider is providing CodeActions to fix broken or missing XML documentations.
+         */
+        languages.registerCodeActionsProvider({
+            scheme: 'file',
+            language: 'al'
+        }, new ALDocumentationQuickFixProvider());
+
+        this.RegisterCodeActions();
+    }
+
+    private RegisterCodeActions() {        
+        commands.registerCommand(`${ALXmlDocConfigurationPrefix}.fixDocumentation`, ( alProcedure: ALProcedure ) => {
+            ALFixDocumentation.FixDocumentation(window.activeTextEditor, alProcedure);
+        });
+        commands.registerCommand(`${ALXmlDocConfigurationPrefix}.fixSummaryDocumentation`, ( alProcedure: ALProcedure ) => {
+            ALFixDocumentation.FixSummaryDocumentation(window.activeTextEditor, alProcedure);
+        });
+        commands.registerCommand(`${ALXmlDocConfigurationPrefix}.fixParameterDocumentation`, ( alProcedure: ALProcedure ) => {
+            ALFixDocumentation.FixParameterDocumentation(window.activeTextEditor, alProcedure);
+        });
+        commands.registerCommand(`${ALXmlDocConfigurationPrefix}.fixReturnDocumentation`, ( alProcedure: ALProcedure ) => {
+            ALFixDocumentation.FixReturnTypeDocumentation(window.activeTextEditor, alProcedure);
+        });
+        commands.registerCommand(`${ALXmlDocConfigurationPrefix}.fixUnnecessaryParameterDocumentation`, ( alProcedure: ALProcedure, range: Range ) => {
+            ALFixDocumentation.FixUnnecessaryParameterDocumentation(window.activeTextEditor, alProcedure, range);
+        });
+
     }
 
     public dispose() {
