@@ -36,6 +36,9 @@ export class ALCheckDocumentation {
      * @param document {TextDocument}
      */
     public static CheckDocumentationForDocument(document: TextDocument) {
+        if (document.languageId !== 'al') {
+            return;
+        }
         this.document = document;
 
         this.CheckDocumentation();
