@@ -706,7 +706,7 @@ export class ALSyntaxUtil {
      * @param alProcedure ALProcedure object.
      * @param code AL Source Code.
      */
-    static GetALObjectProcedureDocumentation(alProcedure: ALProcedure, code: string): XMLDocumentation {
+    public static GetALObjectProcedureDocumentation(alProcedure: ALProcedure, code: string): XMLDocumentation {
         let result: XMLDocumentation = new XMLDocumentation();
         
         try {
@@ -760,7 +760,7 @@ export class ALSyntaxUtil {
      * @param alParameter ALParameter object.
      * @param code AL Source Code.
      */
-    static GetALObjectProcedureParameterDocumentation(alProcedure: ALProcedure, alParameter: ALParameter, code: string): XMLDocumentation {
+    public static GetALObjectProcedureParameterDocumentation(alProcedure: ALProcedure, alParameter: ALParameter, code: string): XMLDocumentation {
         let result: XMLDocumentation = new XMLDocumentation();
         
         try {
@@ -813,7 +813,7 @@ export class ALSyntaxUtil {
      * @param alReturn ALProcedureReturn object.
      * @param code AL Source Code.
      */
-    static GetALObjectProcedureReturnDocumentation(alProcedure: ALProcedure, alReturn: ALProcedureReturn, code: string): XMLDocumentation {
+    public static GetALObjectProcedureReturnDocumentation(alProcedure: ALProcedure, alReturn: ALProcedureReturn, code: string): XMLDocumentation {
         let result: XMLDocumentation = new XMLDocumentation();
         
         try {
