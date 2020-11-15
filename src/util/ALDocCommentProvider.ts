@@ -81,7 +81,7 @@ export class ALDocCommentProvider implements CompletionItemProvider {
     private AddXmlDocCompletionItem(alProcedure: ALProcedure) {
         const completionItem: CompletionItem = new CompletionItem(
             'AL XML Documentation Comment',
-            CompletionItemKind.Snippet
+            CompletionItemKind.Text
         );
 
         let snippetText: string = ALDocCommentUtil.GetProcedureDocumentation(alProcedure);
@@ -133,7 +133,7 @@ export class ALDocCommentProvider implements CompletionItemProvider {
     private AddInheritXmlDocCompletionItem(alObject: ALObject, alProcedure: ALProcedure) {
         const inheritCompletionItem: CompletionItem = new CompletionItem(
             'Inherit AL XML Documentation Comment',
-            CompletionItemKind.Snippet
+            CompletionItemKind.Text
         );
 
         inheritCompletionItem.detail = 'XML documentation comment to document inherit AL procedures.';
@@ -152,7 +152,7 @@ export class ALDocCommentProvider implements CompletionItemProvider {
     private ProvideALObjectCompletionItems(alObject: ALObject) {               
         const completionItem: CompletionItem = new CompletionItem(
             'AL XML Documentation Comment',
-            CompletionItemKind.Snippet
+            CompletionItemKind.Text
         );
 
         let snippetText: string = ALDocCommentUtil.GetObjectDocumentation(alObject);
