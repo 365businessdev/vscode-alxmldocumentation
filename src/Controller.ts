@@ -15,11 +15,13 @@ export class Controller {
      */
     constructor(context: ExtensionContext) {
         // initialize classes.
+        const doUpdateCache = new DoUpdateCache();
         const doComment = new DoComment();
         const doHover = new RegisterProvider();
         const doExport = new DoExport();
 
         // add to subscriptions.
+        context.subscriptions.push(doUpdateCache);
         context.subscriptions.push(doComment);
         context.subscriptions.push(doHover);
         context.subscriptions.push(doExport);
