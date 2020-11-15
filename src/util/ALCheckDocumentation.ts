@@ -164,7 +164,7 @@ export class ALCheckDocumentation {
                     }
                 }
 
-                message = `The parameter ${parameter} is described in XML documentation for procedure ${alProcedure.Name}, but do not exist in procedure signature.`;
+                message = `Parameter '${parameter}' is described in XML documentation for procedure ${alProcedure.Name}, but do not exist in procedure signature.`;
                 let diagnostic = new Diagnostic(paramRange,
                     message, 
                     Configuration.GetProcedureDocumentationCheckInformationLevel(alObject.Uri));
@@ -237,7 +237,7 @@ export class ALCheckDocumentation {
             if (alProcedure.Return?.XmlDocumentation.Exists === XMLDocumentationExistType.No) {
                 diag.push({
                     diagnosticCode: ALXmlDocDiagnosticCode.ReturnTypeMissing,
-                    element: `${((alProcedure.Return.Name !== '') ? ` '${alProcedure.Return.Name}'` : '')}`
+                    element: `${((alProcedure.Return.Name !== '') ? alProcedure.Return.Name : '')}`
                 });
             }
         } else {
@@ -265,7 +265,7 @@ export class ALCheckDocumentation {
                             diag.element = `Parameter '${diag.element}'`;
                         break;
                         case ALXmlDocDiagnosticCode.ReturnTypeMissing:
-                            diag.element = `Return Value${(diag.element !== '') ? '\'' + diag.element + '\'' : ''}`;
+                            diag.element = `Return value${(diag.element !== '') ? ' \'' + diag.element + '\'' : ''}`;
                         break;
                     }
                     message = StringUtil.AppendString(message, diag.element, ', ');
