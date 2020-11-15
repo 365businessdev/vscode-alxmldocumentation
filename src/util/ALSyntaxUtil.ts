@@ -116,6 +116,7 @@ export class ALSyntaxUtil {
             alObject.Type = objectType;
             alObject.Name = objectName;
             alObject.LineNo = this.GetALKeywordDefinitionLineNo(document.getText(), alObjectDefinition[0]);
+            alObject.Range = this.GetRange(document.getText(), alObject.LineNo);
             if (!((alObjectDefinition.groups['ObjectID'] === null) || (alObjectDefinition.groups['ObjectID'] === undefined))) {
                 alObject.ID = parseInt(alObjectDefinition.groups['ObjectID']);
             }

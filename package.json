@@ -109,6 +109,24 @@
 						"description": "Specifies the accessibility level of the procedures to be exported as markdown documentation files.",
 						"uniqueItems": true
 					},
+					"al-xml-doc.CheckObjectDocumentationInformationLevel": {
+						"type": "string",
+						"scope": "resource",
+						"default": "Information",
+						"enum": [
+							"Disabled",
+							"Information",
+							"Warning",
+							"Error"
+						],
+						"enumDescriptions": [
+							"Completely disables the object XML documentation check.",
+							"Missing XML documentations will be reported as Information.",
+							"Missing XML documentations will be reported as Warning.",
+							"Missing XML documentations will be reported as Error."
+						],
+						"description": "Specifies whether procedure documentations should be checked and undocumented procedures reported."
+					},
 					"al-xml-doc.CheckProcedureDocumentationInformationLevel": {
 						"type": "string",
 						"scope": "resource",

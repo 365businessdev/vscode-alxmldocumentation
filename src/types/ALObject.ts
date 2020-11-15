@@ -1,4 +1,4 @@
-import { Uri } from 'vscode';
+import { Range, Uri } from 'vscode';
 import { ALAccessLevel } from './ALAccessLevel';
 import { ALCodeunitType } from './ALCodeunitType';
 import { ALObjectExtensionType } from './ALObjectExtensionType';
@@ -30,6 +30,12 @@ export class ALObject {
      * Line number of the Object definition.
      */
     public LineNo: number = 0;
+
+    /**
+     * Range in TextDocument of the procedure
+     * @type {Range}
+     */
+    public Range: Range | undefined;
 
     /**
      * Name of the AL Object.

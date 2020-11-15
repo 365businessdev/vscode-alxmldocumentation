@@ -1,5 +1,6 @@
 import { commands, window, languages, Range } from 'vscode';
 import { ALXmlDocConfigurationPrefix } from './types';
+import { ALObject } from './types/ALObject';
 import { ALProcedure } from './types/ALProcedure';
 import { ALDocCommentProvider } from './util/ALDocCommentProvider';
 import { ALDocumentationQuickFixProvider } from './util/ALDocumentationQuickFix';
@@ -65,7 +66,9 @@ export class RegisterProvider {
         commands.registerCommand(`${ALXmlDocConfigurationPrefix}.fixUnnecessaryParameterDocumentation`, ( alProcedure: ALProcedure, range: Range ) => {
             ALFixDocumentation.FixUnnecessaryParameterDocumentation(window.activeTextEditor, alProcedure, range);
         });
-
+        commands.registerCommand(`${ALXmlDocConfigurationPrefix}.fixObjectDocumentation`, ( alObject: ALObject ) => {
+            ALFixDocumentation.FixObjectDocumentation(window.activeTextEditor, alObject);
+        });
     }
 
     public dispose() {

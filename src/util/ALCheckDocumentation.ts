@@ -67,7 +67,7 @@ export class ALCheckDocumentation {
      * General documentation check procedure.
      */
     private static CheckDocumentation() {
-        if (!Configuration.ProcedureDocumentationCheckIsEnabled(this.document.uri)) {
+        if ((!Configuration.ProcedureDocumentationCheckIsEnabled(this.document.uri)) && (!Configuration.ObjectDocumentationCheckIsEnabled(this.document.uri))) {
             return;
         }
 
@@ -76,11 +76,16 @@ export class ALCheckDocumentation {
         if (this.alObject === null) {
             return;
         }
-        this.alObject.Procedures?.forEach(alProcedure => {
-            this.AnalyzeProcedureDocumentation(this.alObject, alProcedure);
-        });
-        
-        this.AnalyzeUnnecessaryDocumentation(this.alObject, this.document);
+        if (Configuration.ObjectDocumentationCheckIsEnabled(this.document.uri)) {
+            this.AnalyzeObjectDocumentation(this.alObject);
+        }
+        if (Configuration.ProcedureDocumentationCheckIsEnabled(this.document.uri)) {
+            this.alObject.Procedures?.forEach(alProcedure => {
+                this.AnalyzeProcedureDocumentation(this.alObject, alProcedure);
+            });
+            
+            this.AnalyzeUnnecessaryDocumentation(this.alObject, this.document);
+        }
         
         this.UpdateDiagnosticCollection();
     }
@@ -296,6 +301,27 @@ export class ALCheckDocumentation {
             diagnostic.source = ALXmlDocDiagnosticPrefix;
             diagnostic.code = code;
             diagnostic.tags = [alProcedure.LineNo];
+
+            this.diags.push(diagnostic);
+        }
+    }
+    
+    /**
+     * Analyse documentation of the given object.
+     * @param alObject 
+     */
+    private static AnalyzeObjectDocumentation(alObject: ALObject) {
+        if (alObject === null) {
+            return;
+        }
+        
+        if (alObject.XmlDocumentation.Exists === XMLDocumentationExistType.No) {            
+            let diagnostic = new Diagnostic(alObject.Range!, 
+                `XML documentation is expected for object ${alObject.Name}.`, 
+                Configuration.GetProcedureDocumentationCheckInformationLevel(alObject.Uri));
+            diagnostic.source = ALXmlDocDiagnosticPrefix;
+            diagnostic.code = ALXmlDocDiagnosticCode.ObjectXmlDocumentationMissing;
+            diagnostic.tags = [alObject.LineNo];
 
             this.diags.push(diagnostic);
         }

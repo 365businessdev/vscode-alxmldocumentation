@@ -100,7 +100,32 @@ export class Configuration {
     }
 
     /**
-     * Returns whether the XML Documentation Check is enabled or not.
+     * Returns whether the XML Documentation Check for objects is enabled or not.
+     * @param fileUri 
+     */
+    public static ObjectDocumentationCheckIsEnabled(fileUri: Uri | undefined = undefined): boolean {
+        return (this.GetConfigurationValue('CheckObjectDocumentationInformationLevel', fileUri) !== 'Disabled');
+    }
+
+    /**
+     * Returns DiagnosticSeverity for objects as configured.
+     * @param fileUri 
+     */
+    public static GetObjectDocumentationCheckInformationLevel(fileUri: Uri | undefined = undefined): DiagnosticSeverity {
+        switch (this.GetConfigurationValue('CheckObjectDocumentationInformationLevel', fileUri)) {
+            case 'Information':
+                return DiagnosticSeverity.Information;
+            case 'Warning':
+                return DiagnosticSeverity.Warning;
+            case 'Error':
+                return DiagnosticSeverity.Error;
+        }
+
+        return DiagnosticSeverity.Information;
+    }
+
+    /**
+     * Returns whether the XML Documentation Check for procedures is enabled or not.
      * @param fileUri 
      */
     public static ProcedureDocumentationCheckIsEnabled(fileUri: Uri | undefined = undefined): boolean {
@@ -108,7 +133,7 @@ export class Configuration {
     }
 
     /**
-     * Returns DiagnosticSeverity as configured for XML Documentation Check.
+     * Returns DiagnosticSeverity for procedures as configured.
      * @param fileUri 
      */
     public static GetProcedureDocumentationCheckInformationLevel(fileUri: Uri | undefined = undefined): DiagnosticSeverity {

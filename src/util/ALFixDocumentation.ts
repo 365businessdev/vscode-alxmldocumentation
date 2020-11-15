@@ -1,10 +1,27 @@
 import { Position, Range, SnippetString, TextEditor } from 'vscode';
+import { ALObject } from '../types/ALObject';
 import { ALParameter } from '../types/ALParameter';
 import { ALProcedure } from '../types/ALProcedure';
 import { ALDocCommentUtil } from './ALDocCommentUtil';
 import { ALSyntaxUtil } from './ALSyntaxUtil';
 
 export class ALFixDocumentation {
+    /**
+     * Add missing XML documentation for AL procedure.
+     * @param editor {TextEditor}
+     * @param alProcedure {ALProcedure}
+     */
+    public static FixObjectDocumentation(editor: TextEditor | undefined, alObject: ALObject) {
+        if (editor === undefined) {
+            return;
+        }
+
+        editor.insertSnippet(new SnippetString(
+            `${ALDocCommentUtil.GetObjectDocumentation(alObject)}\r\n`),
+            new Position(alObject.LineNo, ALDocCommentUtil.GetLineStartPosition(editor.document, alObject.LineNo))
+        );
+    }
+
     /**
      * Add missing XML documentation for AL procedure.
      * @param editor {TextEditor}
