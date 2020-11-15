@@ -10,7 +10,7 @@ export class DoUpdateCache {
         const subscriptions: Disposable[] = [];
 
         window.onDidChangeActiveTextEditor(editor => {
-            if ((editor === undefined) || (editor === null)) {
+            if ((editor === undefined) || (editor === null) || (editor.document.languageId !== 'al')) {
                 return;
             }
             
@@ -22,7 +22,7 @@ export class DoUpdateCache {
         }, this, subscriptions);
         
         workspace.onDidChangeTextDocument(event => {
-            if (!event.document) {
+            if ((!event.document) || (event.document.languageId !== 'al')) {
                 return;
             }
             

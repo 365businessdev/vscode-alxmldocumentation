@@ -56,6 +56,10 @@ export class ALCheckDocumentation {
             this.document.uri = alObject.Uri;
         } else {
             this.document = document;
+            
+            if (document.languageId !== 'al') {
+                return;
+            }
         }
 
         this.alObject = alObject;
