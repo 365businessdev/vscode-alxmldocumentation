@@ -39,7 +39,7 @@ export class DoExport {
     }
 
     private getExtensionName():string {
-        return '365businessdevelopment.bdev-al-xml-doc';
+        return '365businessdevelopment.al-xml-doc';
     }
 
     private getConfiguration():WorkspaceConfiguration {
@@ -96,11 +96,11 @@ export class DoExport {
                 workingPath = this.getDirectoryName(document.fileName);
                 console.debug('Using working path: ' + workingPath);
             }
-            var markdownPath = this.getConfiguration().markdown_path;
+            var markdownPath = this.getConfiguration().DocumentationExportPath;
             if (markdownPath === undefined || markdownPath === null || markdownPath === '') {
                 let workspaceRoot = workspace.workspaceFolders ? workspace.workspaceFolders[0].uri.fsPath : '';
                 if (workspaceRoot === '') {
-                    window.showErrorMessage('Please setup \'markdown_path\' in workspace settings to define the export directory.');
+                    window.showErrorMessage('Please setup \'DocumentationExportPath\' in workspace settings to define the export directory.');
                     return;
                 }
                 markdownPath = path.join(workspaceRoot, 'doc');			
@@ -129,15 +129,15 @@ export class DoExport {
             additionalArgs = additionalArgs + ' -g';
         }
 
-        var exec = `'${extensionPath}/bin/ALCodeCommentMarkdownCreator.exe' ${additionalArgs} -o '${markdownPath}'`;
+        var exec = `"${extensionPath}/bin/ALCodeCommentMarkdownCreator.exe" ${additionalArgs} -o "${markdownPath}"`;
         if (useFile) {
             // use file mode (-f)
             this.output.appendLine(`Markdown export started for '${workingPath}' at '${new Date().toLocaleTimeString()}'`);
-            exec += ` -f '${workingPath}'`;
+            exec += ` -f "${workingPath}"`;
         } else {
             // use directory mode (-i)
             this.output.appendLine(`Markdown export started for directory '${workingPath}' at '${new Date().toLocaleTimeString()}'`);
-            exec += ` -i '${workingPath}'`;
+            exec += ` -i "${workingPath}"`;
         }
         console.debug(exec);
         this.output.appendLine('');
