@@ -203,7 +203,16 @@ export class ALCheckDocumentation {
             element: string
         }[] = [];
 
-        // TODO: Identify completely undocumented procedures.
+        if (this.IsMissingXmlDocumentation(alProcedure)) {
+            let diagnostic = new Diagnostic(alProcedure.Range!, 
+                `XML documentation is expected for procedure ${alProcedure.Name}.`, 
+                Configuration.GetProcedureDocumentationCheckInformationLevel(alObject.Uri));
+            diagnostic.source = ALXmlDocDiagnosticPrefix;
+            diagnostic.code = ALXmlDocDiagnosticCode.XmlDocumentationMissing;
+
+            this.diags.push(diagnostic);
+            return;
+        }
 
         if (alProcedure.XmlDocumentation.Exists !== XMLDocumentationExistType.Inherit) {
             if (alProcedure.XmlDocumentation.Exists === XMLDocumentationExistType.No) {
@@ -279,6 +288,16 @@ export class ALCheckDocumentation {
 
             this.diags.push(diagnostic);
         }
+    }
+
+    /**
+     * Checks whether any XML documentation is present for AL Procedure or not.
+     * @param alProcedure ALProcedure to search for any XML documentation present
+     */
+    private static IsMissingXmlDocumentation(alProcedure: ALProcedure): boolean {
+        return (alProcedure.XmlDocumentation.Exists === XMLDocumentationExistType.No) && 
+            ((alProcedure.Return === undefined) || (alProcedure.Return?.XmlDocumentation.Exists === XMLDocumentationExistType.No)) && 
+            (alProcedure.Parameters?.find(alProcedure => (alProcedure.XmlDocumentation.Exists === XMLDocumentationExistType.Yes)) === undefined);
     }
 
     /**
