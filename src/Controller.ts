@@ -37,7 +37,7 @@ export class Controller {
             }, async (progress, token) => {
                 let workspacePaths = workspace.workspaceFolders;
                 if ((!workspacePaths) || (workspacePaths === undefined)) {
-                    throw new Error("Workspace folders could not be retrieved.");
+                    throw new Error('Workspace folders could not be retrieved.');
                 }
     
                 for (let validPath of workspacePaths) {
