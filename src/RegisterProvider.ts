@@ -26,6 +26,9 @@ export class RegisterProvider {
         }, new ALDocCommentProvider(),
         '/');
 
+        /**
+         * ALInheritDocDefinitionProvider is providing AL XML documentation for inherit objects.
+         */
         languages.registerDefinitionProvider({
             scheme: 'file',
             language: 'al'
