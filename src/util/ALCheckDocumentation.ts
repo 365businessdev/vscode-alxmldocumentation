@@ -48,11 +48,15 @@ export class ALCheckDocumentation {
      * Check documentation for passed AL Object.
      * @param alObject {ALObject}
      */
-    public static CheckDocumentationForALObject(alObject: ALObject) {
-        this.document = Object.assign({});
-        this.document.getText = () => fs.readFileSync(`${alObject.Path}/${alObject.FileName}`, 'utf8');
-        this.document.fileName = `${alObject.Path}/${alObject.FileName}`;
-        this.document.uri = alObject.Uri;
+    public static CheckDocumentationForALObject(alObject: ALObject, document: TextDocument | undefined = undefined) {
+        if (document === undefined) {
+            this.document = Object.assign({});
+            this.document.getText = () => fs.readFileSync(`${alObject.Path}/${alObject.FileName}`, 'utf8');
+            this.document.fileName = `${alObject.Path}/${alObject.FileName}`;
+            this.document.uri = alObject.Uri;
+        } else {
+            this.document = document;
+        }
 
         this.alObject = alObject;
 

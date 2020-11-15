@@ -9,8 +9,8 @@ import { Configuration } from './util/Configuration';
 import { ALObjectExtensionType } from './types/ALObjectExtensionType';
 import { ALObjectType } from './types/ALObjectType';
 import { ALObjectCache } from './ALObjectCache';
-import * as fs from 'fs';
 import { ALCheckDocumentation } from './util/ALCheckDocumentation';
+import * as fs from 'fs';
 
 export class DoComment {
     private disposable: Disposable;
@@ -56,8 +56,8 @@ export class DoComment {
                             ALSyntaxUtil.GetALObject(document);
                         }
                     });
-                }                            
-                ALCheckDocumentation.CheckDocumentationForALObject(alObject);
+                }
+                ALCheckDocumentation.CheckDocumentationForALObject(alObject, activeEditor.document);
             }
         }, this, subscriptions);
         
