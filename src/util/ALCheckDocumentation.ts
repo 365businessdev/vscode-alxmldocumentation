@@ -9,6 +9,7 @@ import { ALDocCommentUtil } from './ALDocCommentUtil';
 import { Configuration } from './Configuration';
 import { StringUtil } from './StringUtil';
 import * as fs from 'fs';
+import { ALProcedureType } from '../types/ALProcedureType';
 
 export class ALCheckDocumentation {
     /**
@@ -227,7 +228,7 @@ export class ALCheckDocumentation {
 
         if (this.IsMissingXmlDocumentation(alProcedure)) {
             let diagnostic = new Diagnostic(alProcedure.Range!, 
-                `XML documentation is expected for procedure ${alProcedure.Name}.`, 
+                `XML documentation is expected for ${ALProcedureType[alProcedure.Type]} ${alProcedure.Name}.`, 
                 Configuration.GetProcedureDocumentationCheckInformationLevel(alObject.Uri));
             diagnostic.source = ALXmlDocDiagnosticPrefix;
             diagnostic.code = ALXmlDocDiagnosticCode.XmlDocumentationMissing;
@@ -240,7 +241,7 @@ export class ALCheckDocumentation {
         if (alProcedure.XmlDocumentation.Exists !== XMLDocumentationExistType.Inherit) {
             if (alProcedure.XmlDocumentation.Exists === XMLDocumentationExistType.No) {
                 let diagnostic = new Diagnostic(alProcedure.Range!, 
-                    `Summary is expected in XML documentation for procedure ${alProcedure.Name}.`, 
+                    `Summary is expected in XML documentation for ${ALProcedureType[alProcedure.Type]} ${alProcedure.Name}.`, 
                     Configuration.GetProcedureDocumentationCheckInformationLevel(alObject.Uri));
                 diagnostic.source = ALXmlDocDiagnosticPrefix;
                 diagnostic.code = ALXmlDocDiagnosticCode.SummaryMissing;
@@ -299,10 +300,10 @@ export class ALCheckDocumentation {
                 if (missingDoc.length > 1) {
                     isAre = 'are';
                 }
-                message = `${message} ${isAre} defined in signature for procedure ${alProcedure.Name}, but ${isAre} not documented.`;
+                message = `${message} ${isAre} defined in signature for ${ALProcedureType[alProcedure.Type]} ${alProcedure.Name}, but ${isAre} not documented.`;
             } else {
                 code = this.GetDiagnosticCode(missingDoc[0].diagnosticCode);
-                message = `The procedure ${alProcedure.Name} is missing XML documentation.`;
+                message = `The ${ALProcedureType[alProcedure.Type]} ${alProcedure.Name} is missing XML documentation.`;
             }
             let diagnostic = new Diagnostic(alProcedure.Range!, 
                 message, 
