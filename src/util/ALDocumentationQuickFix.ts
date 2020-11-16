@@ -31,7 +31,7 @@ export class ALDocumentationQuickFixProvider implements CodeActionProvider {
             }
             diagCodes.forEach(diagnosticCode => {
                 let alProcedure: ALProcedure | undefined;
-                if (diagnosticCode !== ALXmlDocDiagnosticCode.ObjectXmlDocumentationMissing) {
+                if ((diagnosticCode !== ALXmlDocDiagnosticCode.ObjectXmlDocumentationMissing) && (diagnosticCode !== ALXmlDocDiagnosticCode.ParameterUnnecessary)) {
                     alProcedure = alObject?.Procedures?.find(alProcedure => (alProcedure.LineNo === range.start.line));
                     if (alProcedure === undefined) {
                         console.error(`Unable to locate ALProcedure object for diagnostics entry. Please report this Please report this error at https://github.com/365businessdev/vscode-alxmldocumentation/issues`);
