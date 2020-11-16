@@ -216,6 +216,10 @@ export class ALCheckDocumentation {
             return;
         }
 
+        if (!Configuration.IsDocumentationMandatory(alProcedure.Type, alProcedure.Subtype, alProcedure.Access, alObject.Uri)) {
+            return;
+        }
+
         let diag: { 
             diagnosticCode: ALXmlDocDiagnosticCode,
             element: string
