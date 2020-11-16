@@ -48,6 +48,7 @@ export class Configuration {
         if (mandatoryProcedureTypes.length === 0) {
             return false;
         }
+        let isMandatory: boolean = false;
         mandatoryProcedureTypes.forEach(mandatoryProcedureType => {
             switch (mandatoryProcedureType) {
                 case 'Global Procedures':
@@ -55,32 +56,32 @@ export class Configuration {
                 case 'Internal Procedures':
                 case 'Protected Procedures':
                     if ((alProcedureType === ALProcedureType.Procedure) && (alProcedureSubtype === ALProcedureSubtype.Normal)) {
-                        return true;
+                        isMandatory =  true;
                     }
                     break;
                 case 'Event Publisher':
                     if ((alProcedureType === ALProcedureType.Procedure) && (alProcedureSubtype === ALProcedureSubtype.EventPublisher)) {
-                        return true;
+                        isMandatory =  true;
                     }
                     break;
                 case 'Event Subscriber':
                     if ((alProcedureType === ALProcedureType.Procedure) && (alProcedureSubtype === ALProcedureSubtype.EventSubscriber)) {
-                        return true;
+                        isMandatory =  true;
                     }
                     break;
                 case 'Trigger Procedures':
                     if (alProcedureType === ALProcedureType.Trigger) {
-                        return true;
+                        isMandatory =  true;
                     }
                     break;
                 case 'Test Procedures':
                     if ((alProcedureType === ALProcedureType.Procedure) && (alProcedureSubtype === ALProcedureSubtype.Test)) {
-                        return true;
+                        isMandatory =  true;
                     }
                     break;
             }
         });
-        return false;
+        return isMandatory;
     }
 
     /**
