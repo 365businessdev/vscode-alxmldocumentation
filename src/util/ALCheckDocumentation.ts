@@ -327,7 +327,7 @@ export class ALCheckDocumentation {
         if (alObject.XmlDocumentation.Exists === XMLDocumentationExistType.No) {            
             let diagnostic = new Diagnostic(alObject.Range!, 
                 `XML documentation is expected for object ${alObject.Name}.`, 
-                Configuration.GetProcedureDocumentationCheckInformationLevel(alObject.Uri));
+                Configuration.GetObjectDocumentationCheckInformationLevel(alObject.Uri));
             diagnostic.source = ALXmlDocDiagnosticPrefix;
             diagnostic.code = ALXmlDocDiagnosticCode.ObjectXmlDocumentationMissing;
             diagnostic.tags = [alObject.LineNo];
