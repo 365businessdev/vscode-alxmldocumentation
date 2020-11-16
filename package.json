@@ -1,7 +1,7 @@
 {
 	"name": "al-xml-doc",
 	"displayName": "AL XML Documentation",
-	"description": "Generate AL XML documentation comments and create Markdown documentation from your source code.",
+	"description": "Generate XML documentation comments for AL source code and create markdown documentation from it.",
 	"publisher": "365businessdevelopment",
 	"version": "1.0.0",
 	"icon": "res/icon.png",
@@ -11,7 +11,7 @@
 		"url": "https://www.365businessdev.com/"
 	},
 	"engines": {
-		"vscode": "^1.44.0"
+		"vscode": "^1.50.0"
 	},
 	"categories": [
 		"Other"
@@ -35,10 +35,6 @@
 	],
 	"contributes": {
 		"commands": [
-			{
-				"command": "al-xml-doc.test",
-				"title": "AL DOC: Test"
-			},
 			{
 				"command": "al-xml-doc.exportMarkdown",
 				"title": "AL DOC: Generate markdown documentation"
@@ -78,37 +74,6 @@
 						"default": false,
 						"description": "Specifies whether detailed information should be output during markdown documentation creation."
 					},
-					"al-xml-doc.DocumentationExportAccessLevel": {
-						"type": "array",
-						"scope": "resource",
-						"default": [
-							"Public"
-						],
-						"items": {
-							"anyOf": [
-								{
-									"type": "string",
-									"enum": [
-										"Public",
-										"Internal",
-										"Local",
-										"Protected"
-									],
-									"enumDescriptions": [
-										"Procedures which can be accessed by any other code in the same module and in other modules. This is the default value.",
-										"Procedures which can be accessed only by code in the same module, but not from another module.",
-										"Procedures which can be accessed only by code in the same object, but not from another object or an extending object.",
-										"Procedures which can be accessed only by code in the same object, but not from another object."
-									]
-								},
-								{
-									"type": "string"
-								}
-							]
-						},
-						"description": "Specifies the accessibility level of the procedures to be exported as markdown documentation files.",
-						"uniqueItems": true
-					},
 					"al-xml-doc.CheckObjectDocumentationInformationLevel": {
 						"type": "string",
 						"scope": "resource",
@@ -145,7 +110,7 @@
 						],
 						"description": "Specifies whether procedure documentations should be checked and undocumented procedures reported."
 					},
-					"al-xml-doc.CheckProcedureDocumentationProcedureTypes": {
+					"al-xml-doc.CheckProcedureDocumentationForType": {
 						"type": "array",
 						"default": [
 							"Global Procedures",
@@ -188,7 +153,38 @@
 						"description": "Sets the list of procedure types (e.g. event publisher, tests) checked.",
 						"scope": "resource"
 					},
-					"al-xml-doc.AskEnableCheckProcedureDocumentation": {
+					"al-xml-doc.CheckProcedureDocumentationForAccessLevel": {
+						"type": "array",
+						"scope": "resource",
+						"default": [
+							"Public"
+						],
+						"items": {
+							"anyOf": [
+								{
+									"type": "string",
+									"enum": [
+										"Public",
+										"Internal",
+										"Local",
+										"Protected"
+									],
+									"enumDescriptions": [
+										"Procedures which can be accessed by any other code in the same module and in other modules. This is the default value.",
+										"Procedures which can be accessed only by code in the same module, but not from another module.",
+										"Procedures which can be accessed only by code in the same object, but not from another object or an extending object.",
+										"Procedures which can be accessed only by code in the same object, but not from another object."
+									]
+								},
+								{
+									"type": "string"
+								}
+							]
+						},
+						"description": "Specifies the accessibility level of the procedures to be exported as markdown documentation files.",
+						"uniqueItems": true
+					},
+					"al-xml-doc.AskEnableCheckDocumentationForWorkspace": {
 						"type": "boolean",
 						"scope": "resource",
 						"default": false,

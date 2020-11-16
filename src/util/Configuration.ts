@@ -8,8 +8,8 @@ export class Configuration {
     /**
      * Opens confirmation dialog to ask for enabling the procedure documentation check.
      */
-    public static AskEnableCheckProcedureDocumentation() {  
-        if (!this.GetConfigurationValue('AskEnableCheckProcedureDocumentation')) {
+    public static AskEnableCheckDocumentationForWorkspace() {  
+        if (!this.GetConfigurationValue('AskEnableCheckDocumentationForWorkspace')) {
             return;
         }
 
@@ -39,12 +39,12 @@ export class Configuration {
             return false;
         }
 
-        let mandatoryAccessLevel = this.GetConfigurationValue('DocumentationExportAccessLevel');
+        let mandatoryAccessLevel = this.GetConfigurationValue('CheckProcedureDocumentationForAccessLevel');
         if (!mandatoryAccessLevel.includes(ALAccessLevel[alAccessLevel])) {
             return false;
         }
 
-        let mandatoryProcedureTypes: string[] = this.GetConfigurationValue('CheckProcedureDocumentationProcedureTypes');
+        let mandatoryProcedureTypes: string[] = this.GetConfigurationValue('CheckProcedureDocumentationForType');
         if (mandatoryProcedureTypes.length === 0) {
             return false;
         }
