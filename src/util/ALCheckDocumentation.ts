@@ -188,7 +188,6 @@ export class ALCheckDocumentation {
                     Configuration.GetProcedureDocumentationCheckInformationLevel(alObject.Uri));
                 diagnostic.source = ALXmlDocDiagnosticPrefix;
                 diagnostic.code = this.GetDiagnosticCode(ALXmlDocDiagnosticCode.ParameterUnnecessary);
-                diagnostic.tags = [alProcedure.LineNo];
     
                 this.diags.push(diagnostic);
             });
@@ -232,7 +231,6 @@ export class ALCheckDocumentation {
                 Configuration.GetProcedureDocumentationCheckInformationLevel(alObject.Uri));
             diagnostic.source = ALXmlDocDiagnosticPrefix;
             diagnostic.code = ALXmlDocDiagnosticCode.XmlDocumentationMissing;
-            diagnostic.tags = [alProcedure.LineNo];
 
             this.diags.push(diagnostic);
             return;
@@ -245,7 +243,6 @@ export class ALCheckDocumentation {
                     Configuration.GetProcedureDocumentationCheckInformationLevel(alObject.Uri));
                 diagnostic.source = ALXmlDocDiagnosticPrefix;
                 diagnostic.code = ALXmlDocDiagnosticCode.SummaryMissing;
-                diagnostic.tags = [alProcedure.LineNo];
 
                 this.diags.push(diagnostic);
             }
@@ -310,7 +307,6 @@ export class ALCheckDocumentation {
                 Configuration.GetProcedureDocumentationCheckInformationLevel(alObject.Uri));
             diagnostic.source = ALXmlDocDiagnosticPrefix;
             diagnostic.code = code;
-            diagnostic.tags = [alProcedure.LineNo];
 
             this.diags.push(diagnostic);
         }
@@ -327,11 +323,10 @@ export class ALCheckDocumentation {
         
         if (alObject.XmlDocumentation.Exists === XMLDocumentationExistType.No) {            
             let diagnostic = new Diagnostic(alObject.Range!, 
-                `XML documentation is expected for object ${alObject.Name}.`, 
+                `XML documentation is expected for Object ${alObject.Name}.`, 
                 Configuration.GetObjectDocumentationCheckInformationLevel(alObject.Uri));
             diagnostic.source = ALXmlDocDiagnosticPrefix;
             diagnostic.code = ALXmlDocDiagnosticCode.ObjectXmlDocumentationMissing;
-            diagnostic.tags = [alObject.LineNo];
 
             this.diags.push(diagnostic);
         }
