@@ -1,5 +1,5 @@
 {
-	"name": "al-xml-doc",
+	"name": "bdev-al-xml-doc",
 	"displayName": "AL XML Documentation",
 	"description": "Generate XML documentation comments for AL source code and create markdown documentation from it.",
 	"publisher": "365businessdevelopment",
