@@ -191,10 +191,10 @@ This extension is only processing AL language source code files.
 ## License
 This extension is licensed under the [MIT License](https://github.com/365businessdev/vscode-alxmldocumentation/blob/dev/LICENSE.txt).
 
-[GenerateXmlDoc]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/V1.AddXmlDocComment.gif "Generate context aware XML documentation comments"
-[InheritXmlDoc]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/V1.AddInheritXmlDocComment.gif "Link inherit XML documentation comment from interface object"
-[InheritXmlDoc2]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/V1.AddInheritXmlDocComment2.gif "Apply XML documentation comment from interface object"
-[Setup]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/V1.Setup.png "AL XML Documentation setup"
+[GenerateXmlDoc]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/V1.AddXmlDocComment.gif?raw=true "Generate context aware XML documentation comments"
+[InheritXmlDoc]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/V1.AddInheritXmlDocComment.gif?raw=true "Link inherit XML documentation comment from interface object"
+[InheritXmlDoc2]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/V1.AddInheritXmlDocComment2.gif?raw=true "Apply XML documentation comment from interface object"
+[Setup]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/V1.Setup.png?raw=true "AL XML Documentation setup"
 [GenerateMDDoc]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/GenerateMarkdownDoc.gif?raw=true  "Generate markdown files from XML documentation comments"
 [SummaryHover]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/HoverProcedureDescription.gif?raw=true  "Generate markdown files from XML documentation comments"
 [DiagnosticsQuickFix]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/ALCheckDocumentationDiagnosticsQuickFix.gif?raw=true  "Diagnostics and Quick Fix"
