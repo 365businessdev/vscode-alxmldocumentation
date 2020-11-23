@@ -194,7 +194,7 @@ This extension is licensed under the [MIT License](https://github.com/365busines
 [GenerateXmlDoc]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/V1.AddXmlDocComment.gif "Generate context aware XML documentation comments"
 [InheritXmlDoc]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/V1.AddInheritXmlDocComment.gif "Link inherit XML documentation comment from interface object"
 [InheritXmlDoc2]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/V1.AddInheritXmlDocComment2.gif "Apply XML documentation comment from interface object"
-[Setup]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/V1.Setup.gif "AL XML Documentation setup"
+[Setup]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/V1.Setup.png "AL XML Documentation setup"
 [GenerateMDDoc]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/GenerateMarkdownDoc.gif?raw=true  "Generate markdown files from XML documentation comments"
 [SummaryHover]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/HoverProcedureDescription.gif?raw=true  "Generate markdown files from XML documentation comments"
 [DiagnosticsQuickFix]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/ALCheckDocumentationDiagnosticsQuickFix.gif?raw=true  "Diagnostics and Quick Fix"
