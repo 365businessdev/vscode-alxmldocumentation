@@ -90,7 +90,7 @@
 							"Missing XML documentations will be reported as Warning.",
 							"Missing XML documentations will be reported as Error."
 						],
-						"description": "Specifies whether procedure documentations should be checked and undocumented procedures reported."
+						"description": "Specifies whether object documentations should be checked and undocumented objects reported."
 					},
 					"al-xml-doc.CheckProcedureDocumentationInformationLevel": {
 						"type": "string",
@@ -150,7 +150,7 @@
 							]
 						},
 						"uniqueItems": true,
-						"description": "Sets the list of procedure types (e.g. event publisher, tests) checked.",
+						"description": "Specifies the list of procedure types (e.g. event publisher, tests) checked.",
 						"scope": "resource"
 					},
 					"al-xml-doc.CheckProcedureDocumentationForAccessLevel": {
