@@ -1,9 +1,9 @@
 {
-	"name": "bdev-al-xml-doc",
+	"name": "al-xml-doc",
 	"displayName": "AL XML Documentation",
-	"description": "Generate AL XML documentation comments and create Markdown documentation from your source code.",
+	"description": "Generate XML documentation comments for AL source code and create markdown documentation from it.",
 	"publisher": "365businessdevelopment",
-	"version": "0.4.4",
+	"version": "1.0.0",
 	"icon": "res/icon.png",
 	"author": {
 		"name": "Christoph Krieg",
@@ -11,7 +11,7 @@
 		"url": "https://www.365businessdev.com/"
 	},
 	"engines": {
-		"vscode": "^1.44.0"
+		"vscode": "^1.50.0"
 	},
 	"categories": [
 		"Other"
@@ -36,11 +36,11 @@
 	"contributes": {
 		"commands": [
 			{
-				"command": "bdev-al-xml-doc.exportMarkdown",
+				"command": "al-xml-doc.exportMarkdown",
 				"title": "AL DOC: Generate markdown documentation"
 			},
 			{
-				"command": "bdev-al-xml-doc.exportDirectoryToMarkdown",
+				"command": "al-xml-doc.exportDirectoryToMarkdown",
 				"title": "AL DOC: Generate markdown documentation for directory"
 			}
 		],
@@ -48,32 +48,77 @@
 			{
 				"title": "AL XML Documentation",
 				"properties": {
-					"bdev-al-xml-doc.markdown_path": {
+					"al-xml-doc.DocumentationBehavior": {
+						"type": "string",
+						"default": "IntelliSense",
+						"enum": [
+							"IntelliSense",
+							"Direct",
+							"Disabled"
+						],
+						"enumDescriptions": [
+							"After entering '///' IntelliSense will suggest XML documentation comments.",
+							"After entering '///' the standard XML documentation is directly inserted.",
+							"Disable XML documentation comment actions. Do not perform any action after entering '///'."
+						],
+						"description": "Specifies the behavior for inserting the XML documentation comment after entering '///' in an AL source code file."
+					},
+					"al-xml-doc.DocumentationExportPath": {
 						"type": "string",
 						"scope": "resource",
-						"description": "Specifies the path where the markdown files should be created."
+						"description": "Specifies the path where the created markdown documentation files should be stored."
 					},
-					"bdev-al-xml-doc.verbose": {
+					"al-xml-doc.DocumentationExportVerbose": {
 						"type": "boolean",
 						"scope": "resource",
 						"default": false,
-						"description": "Specifies whether detailed information should be output during execution."
+						"description": "Specifies whether detailed information should be output during markdown documentation creation."
 					},
-					"bdev-al-xml-doc.exportScope": {
+					"al-xml-doc.CheckObjectDocumentationInformationLevel": {
 						"type": "string",
-						"default": "global",
+						"scope": "resource",
+						"default": "Information",
 						"enum": [
-							"global",
-							"all"
+							"Disabled",
+							"Information",
+							"Warning",
+							"Error"
 						],
 						"enumDescriptions": [
-							"Only global procedures are recognized in markdown export.",
-							"All procedures are recognized in markdown export."
+							"Completely disables the object XML documentation check.",
+							"Missing XML documentations will be reported as Information.",
+							"Missing XML documentations will be reported as Warning.",
+							"Missing XML documentations will be reported as Error."
 						],
-						"description": "Specifies the accessibility level (scope) of the procedures to be exported as markdown."
+						"description": "Specifies whether object documentations should be checked and undocumented objects reported."
 					},
-					"bdev-al-xml-doc.procedureTypes": {
+					"al-xml-doc.CheckProcedureDocumentationInformationLevel": {
+						"type": "string",
+						"scope": "resource",
+						"default": "Information",
+						"enum": [
+							"Disabled",
+							"Information",
+							"Warning",
+							"Error"
+						],
+						"enumDescriptions": [
+							"Completely disables the procedure XML documentation check.",
+							"Missing or unnecessary XML documentations will be reported as Information.",
+							"Missing or unnecessary XML documentations will be reported as Warning.",
+							"Missing or unnecessary XML documentations will be reported as Error."
+						],
+						"description": "Specifies whether procedure documentations should be checked and undocumented procedures reported."
+					},
+					"al-xml-doc.CheckProcedureDocumentationForType": {
 						"type": "array",
+						"default": [
+							"Global Procedures",
+							"Local Procedures",
+							"Internal Procedures",
+							"Protected Procedures",
+							"Event Publisher"
+						],
 						"items": {
 							"anyOf": [
 								{
@@ -82,6 +127,7 @@
 										"Global Procedures",
 										"Local Procedures",
 										"Internal Procedures",
+										"Protected Procedures",
 										"Event Publisher",
 										"Event Subscriber",
 										"Trigger Procedures",
@@ -91,6 +137,7 @@
 										"Global procedures.",
 										"Local procedures.",
 										"Internal procedures.",
+										"Protected procedures.",
 										"Procedures with [BusinessEvent], [IntegrationEvent] or [InternalEvent] declaration.",
 										"Procedures with [EventSubscriber] declaration.",
 										"Trigger procedures (e.g. OnAfterGetRecord()).",
@@ -103,38 +150,45 @@
 							]
 						},
 						"uniqueItems": true,
-						"description": "Sets the list of procedure types (e.g. event publisher, tests) checked.",
+						"description": "Specifies the list of procedure types (e.g. event publisher, tests) checked.",
 						"scope": "resource"
 					},
-					"bdev-al-xml-doc.enableDocComments": {
-						"type": "boolean",
+					"al-xml-doc.CheckProcedureDocumentationForAccessLevel": {
+						"type": "array",
 						"scope": "resource",
-						"default": true,
-						"description": "Specifies whether typing '///' will insert the xml documentation structure."
+						"default": [
+							"Public"
+						],
+						"items": {
+							"anyOf": [
+								{
+									"type": "string",
+									"enum": [
+										"Public",
+										"Internal",
+										"Local",
+										"Protected"
+									],
+									"enumDescriptions": [
+										"Procedures which can be accessed by any other code in the same module and in other modules. This is the default value.",
+										"Procedures which can be accessed only by code in the same module, but not from another module.",
+										"Procedures which can be accessed only by code in the same object, but not from another object or an extending object.",
+										"Procedures which can be accessed only by code in the same object, but not from another object."
+									]
+								},
+								{
+									"type": "string"
+								}
+							]
+						},
+						"description": "Specifies the accessibility level of the procedures to be exported as markdown documentation files.",
+						"uniqueItems": true
 					},
-					"bdev-al-xml-doc.enableSummaryHover": {
-						"type": "boolean",
-						"scope": "resource",
-						"default": true,
-						"description": "Specifies whether <summary> description should be shown on procedures as tooltip."
-					},
-					"bdev-al-xml-doc.enableSignatureHover": {
-						"type": "boolean",
-						"scope": "resource",
-						"default": true,
-						"description": "Specifies whether <param> description should be shown on procedure signatures."
-					},
-					"bdev-al-xml-doc.askEnableCheckProcedureDocumentation": {
+					"al-xml-doc.AskEnableCheckDocumentationForWorkspace": {
 						"type": "boolean",
 						"scope": "resource",
 						"default": false,
 						"description": "Specifies whether a confirmation will appear to enable procedure documentation for each workspace."
-					},
-					"bdev-al-xml-doc.checkProcedureDocumentation": {
-						"type": "boolean",
-						"scope": "resource",
-						"default": true,
-						"description": "Specifies whether procedure documentations should be checked and undocumented procedures reported."
 					}
 				}
 			}
@@ -148,6 +202,8 @@
 	},
 	"dependencies": {
 		"fast-xml-parser": "^3.17.4",
+		"fs-extra": "^9.0.1",
+		"guid-typescript": "^1.0.9",
 		"vscode-languageclient": "^6.1.3"
 	},
 	"scripts": {
@@ -159,10 +215,11 @@
 		"test": "node ./out/test/runTest.js"
 	},
 	"devDependencies": {
+		"@types/fs-extra": "^9.0.1",
 		"@types/glob": "^7.1.3",
 		"@types/mocha": "^7.0.2",
-		"@types/node": "^13.13.14",
-		"@types/vscode": "^1.44.0",
+		"@types/node": "^13.13.25",
+		"@types/vscode": "^1.50.0",
 		"@typescript-eslint/eslint-plugin": "^2.34.0",
 		"@typescript-eslint/parser": "^2.34.0",
 		"eslint": "^6.8.0",

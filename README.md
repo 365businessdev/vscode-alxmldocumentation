@@ -1,13 +1,26 @@
 # XML Documentation Comments Support for AL language in Visual Studio Code
 
-Generate XML documentation comments for AL language in Visual Studio Code and generate markdown files from Source Code.
+Generate XML documentation comments for AL source code and create markdown documentation from it.
 
 ## Usage
 ### Generate context aware XML documentation comments
-Type `///` in AL source code, it auto-generates an context aware XML documentation comment like this:
+
+> **Note**<br>Due to the new [`Code documentation comments`](https://docs.microsoft.com/en-us/dynamics365-release-plan/2020wave2/smb/dynamics365-business-central/code-documentation-comments) feature released with Microsoft Dynamics 365 Business Central 2020 Release Wave 2 (17) we changed our default behavior to generate XML documentation comments.<br>For additional information please see [Setup](#Setup).
+
+Type `///` in AL source code IntelliSense will suggest XML documentation comments, matching the context of your current position in source code.
 
 ![Generate context aware XML documentation comments][GenerateXmlDoc]
 
+#### Inherit XML documentation comments
+In case you're implementing an AL interface object you are able to use inherit XML documentation comments. Based on the accessibility of the interface object source code (`showMyCode`-flag) there are two additional comments available:
+ - Inherit AL XML Documentation Comment<br>Creates a code reference (`cref`) linking to the original XML documentation comment in interface object. 
+![Link inherit XML documentation comment from interface object][InheritXmlDoc]
+ - AL XML Documentation Interface Comment<br>Copies the original XML documentation comment from the interface object.
+![Apply XML documentation comment from interface object][InheritXmlDoc2]
+
+> **Important**<br>Current version of markdown export does not support inherit documentation. This feature will be released in a future version.
+
+### Additional documentation features
 In addition to the regular documentation activity you can:
  - Add new lines in existing XML Documentation comment section. (`///` will automatically added.)
  - Use [Snippets](#Snippets) directly inside the XML Documentation comment section.
@@ -20,27 +33,26 @@ There are two commands available to generate markdown files from XML documentati
 | `AL DOC: Generate markdown documentation` | Create markdown documentation file for the currently opened AL source code file. |
 | `AL DOC: Generate markdown documentation for directory` | Create markdown documentation files for all AL source code files in the currently opened directory. |
 
-> **Note**<br>All commands start with `AL DOC` prefix to make it easier to find them.
-
-![Generate markdown files from XML documentation comments][GenerateMDDoc]
+ <br>![Generate markdown files from XML documentation comments][GenerateMDDoc]
 
 Generate markdown documentation files, based on the XML documentation in AL source code. For each object file (e.g. `MyCodeunit.Codeunit.al`) a subdirectory inside the export directory will be created.
 Each procedure and trigger method is creating a single file (e.g. `DoSomething.al`) inside the subdirectory. Additionally an index file (`index.md`) will be created per object file and contains a list of every documented element in the source file.
 
-> **Note**<br>This feature exports all valid XML documentation from objects with access modifier `Public` (or not set) and Subtype `Normal` (or not set).<br><br>Additionally warnings will be shown in the output channel in Visual Studio Code to show missing documentations.
-
-### Show summary tag description from XML documentation comments as tooltip
-If `enableSummaryHover` configuration is activated (default) every time hovering over a procedure in your AL source code the XML documentation in the source file or symbols will be searched and presented as tooltip.
+### Show information from XML documentation comments as tooltip
+After hovering over a procedure in your AL source code the XML documentation in the source file or symbols will be searched and presented as tooltip.
+The following information will be displayed in tooltip:
+ - Summary *(only for AL-version older 6.0)*
+ - Returns
+ - Remarks
+ - Example, including syntax highlighted code-section.
 
 ![Show XML documentation summary as Tooltip][SummaryHover]
 
-> **Note**<br>Currently only procedures are supported and only the `<summary>` tag will be presented as tooltip.
-
-> **Important**<br>Due to possible accessibility limitations of symbol files (`showmycode` in AL project `app.json`, etc.) it's not possible to retrieve the XML documentation comments for dependencies in this case.
+> **Important**<br>Due to possible accessibility limitations of symbol files (`showMyCode` in AL project `app.json`, etc.) it's not possible to retrieve the XML documentation comments for dependencies in this case.
 
 ### Diagnostic & Quick Fix actions
-If `checkProcedureDocumentation` configuration is activated (default) every AL source file in current workspace will be checked for complete procedure documentation.
-Incomplete or missing procedure documentations are added as diagnostic entries (information level) and providing quick fix actions to solve.
+If `CheckProcedureDocumentationInformationLevel` or `CheckObjectDocumentationInformationLevel` configuration is set to other then `Disabled` every AL source file in current workspace will be checked for complete XML documentation.
+Incomplete or missing documentations are added as diagnostic entries and providing quick fix actions to solve.
 
 ![Diagnostic & Quick Fix actions][DiagnosticsQuickFix]
 
@@ -49,11 +61,12 @@ Currently the following diagnostic codes and associated actions are implemented:
 
 | Diagnostic Code | Description | Quick Fix Action |
 | --- | --- | --- |
-| DOC0001 | XML documentation for procedure is missing. | Add documentation |
-| DOC0002 | `<summary>` documentation for procedure is missing. | Add `<summary>` documentation |
-| DOC0010 | `<param>` documentation for procedure is missing. | Add `<param>` documentation |
-| DOC0011 | `<param>` documentation exist but referred parameter does not exist. | _no quick fix available_ |
-| DOC0020 | `<returns>` documentation for procedure is missing. | Add `<returns>` documentation |
+| DOC0001 | XML documentation for procedure is missing. | Add XML documentation |
+| DOC0002 | `<summary>` documentation for procedure is missing. | Add summary XML documentation |
+| DOC0010 | `<param>` documentation for procedure is missing. | Add parameter XML documentation |
+| DOC0011 | `<param>` documentation exist but referred parameter does not exist. | Remove unnecessary parameter XML documentation. |
+| DOC0020 | `<returns>` documentation for procedure is missing. | Add return value XML documentation |
+| DOC0101 | XML documentation for object is missing. | Add XML documentation |
 
 ### Snippets
 Three snippets are included into the extension:
@@ -97,34 +110,40 @@ The following configuration parameters are available:
 
 | Configuration Parameter | Description | Default Value |
 | --- | --- | --- |
-| `procedureTypes` | Sets the list of procedure types (e.g. event publisher, tests) checked. | `not defined` (all procedures activated) |
-| `enableDocComments` | Specifies whether typing `///` will insert the xml documentation structure. | `true` |
-| `markdown_path` | Specifies the path where the markdown files should be created. | `doc` folder in workspace root directory |
-| `verbose` | Specifies whether detailed information should be output during markdown creation. | `false` | 
-| `exportScope` | Specifies whether only global procedures (config value: `global`) or whether all procedures (config value: `all`) should be exported as markdown. | `global` |
-| `enableSummaryHover` | Specifies whether `<summary>` description should be shown on procedures as tooltip. | `true` |
-| `askEnableCheckProcedureDocumentation` | Specifies whether a confirmation will appear to enable procedure documentation for each workspace. | `false` | 
-| `checkProcedureDocumentation` | Specifies whether xml documentation should be checked inside current workspace. | `true` | 
+| `DocumentationBehavior` | Specifies the behavior for inserting the XML documentation comment after entering `///` in an AL source code file. | `IntelliSense` (standard behavior to respect AL language XML documentation feature) |
+| `DocumentationExportPath` | Specifies the path where the created markdown documentation files should be stored. | `doc` folder in workspace root directory |
+| `DocumentationExportVerbose` | Specifies whether detailed information should be output during markdown creation. | `false` |
+| `CheckObjectDocumentationInformationLevel` | Specifies whether object documentations should be checked and undocumented objects reported. | `Information` | 
+| `CheckProcedureDocumentationInformationLevel` | Specifies whether procedure documentations should be checked and undocumented procedures reported. | `Information` | 
+| `CheckProcedureDocumentationForType` | Specifies the list of procedure types (e.g. event publisher, tests) checked. | `Global Procedures`<br>`Local Procedures`<br>`Internal Procedures`<br>`Protected Procedures`<br>`Event Publisher` |
+| `CheckProcedureDocumentationForAccessLevel` | Specifies the accessibility level of the procedures to be exported as markdown documentation files. | `Public` |
+| `AskEnableCheckDocumentationForWorkspace` | Specifies whether a confirmation will appear to enable procedure documentation for each workspace. | `false` | 
 
-> **Important**<br>The object directory (e.g. `doc\mycodeunit.codeunit.al\`) will be deleted if already exist.
+> **Important**<br>The object directory for documentation (e.g. `doc\mycodeunit.codeunit.al\`) will be deleted if already exist.
+
+![AL XML Documentation Setup][Setup]
 
 ### settings.json
 ```json 
 {
-    "bdev-al-xml-doc.procedureTypes": [
+    "al-xml-doc.CheckObjectDocumentationInformationLevel": "Disabled",
+    "al-xml-doc.CheckProcedureDocumentationInformationLevel": "Error",
+    "al-xml-doc.CheckProcedureDocumentationForType": [
         "Global Procedures",
         "Local Procedures",
-        "Internal Procedures"
-    ],   
-    "bdev-al-xml-doc.markdown_path": "C:/Documentation/",
-    "bdev-al-xml-doc.verbose": true,
-    "bdev-al-xml-doc.exportScope": "all",
-    "bdev-al-xml-doc.enableSummaryHover": true,
-    "bdev-al-xml-doc.askEnableCheckProcedureDocumentation": true    
+        "Internal Procedures",
+        "Protected Procedures",
+        "Event Publisher"
+    ],
+    "al-xml-doc.CheckProcedureDocumentationForAccessLevel": [    
+        "Public",
+        "Internal",
+        "Local"
+    ]
 }
 ```
 
-> **Note**<br>`markdown_path` does support `${workspaceFolder}` as an placeholder.<br><br>_Example_<br>`"bdev-al-xml-doc.markdown_path": "${workspaceFolder}/documentations/src/"`<br><br>
+> **Note**<br>`DocumentationExportPath` does support `${workspaceFolder}` as an placeholder.<br><br>_Example_<br>`"al-xml-doc.DocumentationExportPath": "${workspaceFolder}/documentations/src/"`<br><br>
 
 ## Supported Languages
 This extension is only processing AL language source code files.
@@ -163,6 +182,7 @@ This extension is only processing AL language source code files.
 | `returns` | ![Supported] |
 | `remarks` | ![Supported] |
 | `example` | ![Supported] |
+| `inherit` | ![Supported] |
 
 ## System Requirements
  - Visual Studio Code 1.44.0 (or higher) - [Download here](https://code.visualstudio.com/Download)
@@ -171,7 +191,10 @@ This extension is only processing AL language source code files.
 ## License
 This extension is licensed under the [MIT License](https://github.com/365businessdev/vscode-alxmldocumentation/blob/dev/LICENSE.txt).
 
-[GenerateXmlDoc]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/AddXmlDocComment.gif?raw=true "Generate context aware XML documentation comments"
+[GenerateXmlDoc]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/V1.AddXmlDocComment.gif "Generate context aware XML documentation comments"
+[InheritXmlDoc]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/V1.AddInheritXmlDocComment.gif "Link inherit XML documentation comment from interface object"
+[InheritXmlDoc2]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/V1.AddInheritXmlDocComment2.gif "Apply XML documentation comment from interface object"
+[Setup]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/V1.Setup.gif "AL XML Documentation setup"
 [GenerateMDDoc]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/GenerateMarkdownDoc.gif?raw=true  "Generate markdown files from XML documentation comments"
 [SummaryHover]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/HoverProcedureDescription.gif?raw=true  "Generate markdown files from XML documentation comments"
 [DiagnosticsQuickFix]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/ALCheckDocumentationDiagnosticsQuickFix.gif?raw=true  "Diagnostics and Quick Fix"
