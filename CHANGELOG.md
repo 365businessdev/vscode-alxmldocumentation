@@ -90,3 +90,28 @@ All notable changes to the "AL XML Documentation" extension will be documented i
 ## [0.4.4] - 2020-07-30
 
 - Upgrade to ALCodeCommentMarkdownCreator 1.3.5 - Issue [#24](https://github.com/365businessdev/vscode-alxmldocumentation/issues/24)
+
+## [1.0.0] - 2020-11-23
+
+- Redesign of the complete extension.
+- Performance optimization for larger AL projects.
+- Added inheritdoc – tag for documentation of inherit interface procedure documentations
+- Added QuickFix for unnecessary parameter documentations
+- New AL Source Code analysis
+- Fixed Issue [#35](https://github.com/365businessdev/vscode-alxmldocumentation/issues/35)
+- Fixed Issue [#33](https://github.com/365businessdev/vscode-alxmldocumentation/issues/33)
+- Fixed Issue [#32](https://github.com/365businessdev/vscode-alxmldocumentation/issues/32)
+- Fixed Issue [#31](https://github.com/365businessdev/vscode-alxmldocumentation/issues/31)
+- Fixed Issue [#30](https://github.com/365businessdev/vscode-alxmldocumentation/issues/30)
+- Fixed Issue [#29](https://github.com/365businessdev/vscode-alxmldocumentation/issues/29)
+- Fixed Issue [#28](https://github.com/365businessdev/vscode-alxmldocumentation/issues/28)
+- Fixed Issue [#27](https://github.com/365businessdev/vscode-alxmldocumentation/issues/27)
+- Fixed Issue [#26](https://github.com/365businessdev/vscode-alxmldocumentation/issues/26)
+
+## [1.0.1] - 2020-11-24
+
+- Fixed Issue [#39](https://github.com/365businessdev/vscode-alxmldocumentation/issues/39)
+
+## [1.0.2] - 2020-11-25
+
+- Optimization: Do not check any kind of procedures in 'Test' codeunits if 'Test Procedures' is disabled in configuration.
