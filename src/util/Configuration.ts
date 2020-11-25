@@ -28,6 +28,18 @@ export class Configuration {
     }
 
     /**
+     * Test whether XML documentation is expected for test object.
+     */
+    public static IsDocumentationMandatoryForTest(): Boolean {
+        let mandatoryProcedureTypes: string[] = this.GetConfigurationValue('CheckProcedureDocumentationForType');
+        if (mandatoryProcedureTypes.length === 0) {
+            return false;
+        }
+        return (mandatoryProcedureTypes.find(mandatoryProcedureTypes => (mandatoryProcedureTypes === 'Test Procedures')) !== undefined);
+    }
+    
+
+    /**
      * Test whether the given AL Procedure properties need to be documented or not.
      * @param alProcedureType ALProcedureType.
      * @param alProcedureSubtype ALProcedureSubtype.

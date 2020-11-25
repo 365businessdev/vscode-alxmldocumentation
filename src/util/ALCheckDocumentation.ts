@@ -10,6 +10,7 @@ import { Configuration } from './Configuration';
 import { StringUtil } from './StringUtil';
 import * as fs from 'fs';
 import { ALProcedureType } from '../types/ALProcedureType';
+import { ALCodeunitType } from '../types/ALCodeunitType';
 
 export class ALCheckDocumentation {
     /**
@@ -85,6 +86,12 @@ export class ALCheckDocumentation {
         if (Configuration.ObjectDocumentationCheckIsEnabled(this.document.uri)) {
             this.AnalyzeObjectDocumentation(this.alObject);
         }
+
+        // do not check any kind of procedures in 'Test' codeunits.
+        if ((this.alObject.Subtype === ALCodeunitType.Test) && (!Configuration.IsDocumentationMandatoryForTest())) {
+            return;
+        }
+
         if (Configuration.ProcedureDocumentationCheckIsEnabled(this.document.uri)) {
             this.alObject.Procedures?.forEach(alProcedure => {
                 this.AnalyzeProcedureDocumentation(this.alObject, alProcedure);
