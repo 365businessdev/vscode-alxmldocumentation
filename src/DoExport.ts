@@ -39,7 +39,7 @@ export class DoExport {
     }
 
     private getExtensionName():string {
-        return '365businessdevelopment.al-xml-doc';
+        return '365businessdevelopment.bdev-al-xml-doc';
     }
 
     private getConfiguration():WorkspaceConfiguration {
