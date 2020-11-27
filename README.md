@@ -115,8 +115,8 @@ The following configuration parameters are available:
 | `DocumentationExportVerbose` | Specifies whether detailed information should be output during markdown creation. | `false` |
 | `CheckObjectDocumentationInformationLevel` | Specifies whether object documentations should be checked and undocumented objects reported. | `Information` | 
 | `CheckProcedureDocumentationInformationLevel` | Specifies whether procedure documentations should be checked and undocumented procedures reported. | `Information` | 
-| `CheckProcedureDocumentationForType` | Specifies the list of procedure types (e.g. event publisher, tests) checked. | `Global Procedures`<br>`Local Procedures`<br>`Internal Procedures`<br>`Protected Procedures`<br>`Event Publisher` |
-| `CheckProcedureDocumentationForAccessLevel` | Specifies the accessibility level of the procedures to be exported as markdown documentation files. | `Public` |
+| `CheckProcedureDocumentationForType` | Specifies the list of procedure types (e.g. event publisher, tests) to be checked. | `Global Procedures`<br>`Local Procedures`<br>`Internal Procedures`<br>`Protected Procedures`<br>`Event Publisher` |
+| `CheckProcedureDocumentationForAccessLevel` | Specifies the accessibility level of the procedures to be checked for documentation and exported as markdown documentation files. | `Public` |
 | `AskEnableCheckDocumentationForWorkspace` | Specifies whether a confirmation will appear to enable procedure documentation for each workspace. | `false` | 
 
 > **Important**<br>The object directory for documentation (e.g. `doc\mycodeunit.codeunit.al\`) will be deleted if already exist.
