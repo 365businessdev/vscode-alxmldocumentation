@@ -64,10 +64,22 @@ export class Configuration {
         mandatoryProcedureTypes.forEach(mandatoryProcedureType => {
             switch (mandatoryProcedureType) {
                 case 'Global Procedures':
+                    if ((alProcedureType === ALProcedureType.Procedure) && (alProcedureSubtype === ALProcedureSubtype.Normal) && (ALAccessLevel.Public === alAccessLevel)) {
+                        isMandatory =  true;
+                    }
+                    break;
                 case 'Local Procedures':
+                    if ((alProcedureType === ALProcedureType.Procedure) && (alProcedureSubtype === ALProcedureSubtype.Normal) && (ALAccessLevel.Local === alAccessLevel)) {
+                        isMandatory =  true;
+                    }
+                    break;
                 case 'Internal Procedures':
+                    if ((alProcedureType === ALProcedureType.Procedure) && (alProcedureSubtype === ALProcedureSubtype.Normal) && (ALAccessLevel.Internal === alAccessLevel)) {
+                        isMandatory =  true;
+                    }
+                    break;
                 case 'Protected Procedures':
-                    if ((alProcedureType === ALProcedureType.Procedure) && (alProcedureSubtype === ALProcedureSubtype.Normal)) {
+                    if ((alProcedureType === ALProcedureType.Procedure) && (alProcedureSubtype === ALProcedureSubtype.Normal) && (ALAccessLevel.Protected === alAccessLevel)) {
                         isMandatory =  true;
                     }
                     break;
