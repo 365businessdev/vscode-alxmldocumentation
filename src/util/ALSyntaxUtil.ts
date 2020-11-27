@@ -483,13 +483,13 @@ export class ALSyntaxUtil {
      * @param code AL Source Code.
      */
     private static GetALObjectObsoleteReason(code: string): string {
-        let obsoleteReason = code.match(/^ObsoleteReason = (.*);/m);
+        let obsoleteReason = code.match(/^(\s*)?ObsoleteReason = (.*);/m);
         try 
         {
-            if ((obsoleteReason === null) || (obsoleteReason[1] === undefined)) {
+            if ((obsoleteReason === null) || (obsoleteReason[2] === undefined)) {
                 return '';
             }
-            return obsoleteReason[1];
+            return obsoleteReason[2];
         }
         catch(ex)
         {
@@ -503,14 +503,14 @@ export class ALSyntaxUtil {
      * @param code AL Source Code.
      */
     private static GetALObjectObsoleteState(code: string): ALObsoleteState {
-        let obsoleteState = code.match(/^ObsoleteState = (.*);/m);
+        let obsoleteState = code.match(/^(\s*)?ObsoleteState = (.*);/m);
         try 
         {
             if ((obsoleteState === null) || (obsoleteState[1] === undefined)) {
                 return ALObsoleteState.No;
             }
             
-            switch(obsoleteState[1].toLowerCase()) {
+            switch(obsoleteState[2].toLowerCase()) {
                 case 'no':
                     return ALObsoleteState.No;
                 case 'pending':
@@ -518,7 +518,7 @@ export class ALSyntaxUtil {
                 case 'removed':
                     return ALObsoleteState.Removed;
                 default:
-                    throw new Error(`Unexpected ObsoleteState: ${obsoleteState[1]}.`);
+                    throw new Error(`Unexpected ObsoleteState: ${obsoleteState[2]}.`);
             }
         }
         catch(ex)
@@ -567,20 +567,20 @@ export class ALSyntaxUtil {
      * @param code AL Source Code.
      */
     private static GetALObjectAccessLevel(code: string): ALAccessLevel {
-        let accessLevel = code.match(/^Access = (.*);/m);
+        let accessLevel = code.match(/^(\s*)?Access = (.*);/m);
         try 
         {
-            if ((accessLevel === null) || (accessLevel[1] === undefined)) {
+            if ((accessLevel === null) || (accessLevel[2] === undefined)) {
                 return ALAccessLevel.Public;;
             }
 
-            switch(accessLevel[1].toLowerCase()) {
+            switch(accessLevel[2].toLowerCase()) {
                 case 'internal':
                     return ALAccessLevel.Internal;
                 case 'public':
                     return ALAccessLevel.Public;
                 default:
-                    throw new Error(`Unexpected Access Modifier: ${accessLevel[1]}.`);
+                    throw new Error(`Unexpected Access Modifier: ${accessLevel[2]}.`);
             }
         }
         catch(ex)

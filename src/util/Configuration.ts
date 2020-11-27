@@ -46,13 +46,13 @@ export class Configuration {
      * @param alAccessLevel ALAccessLevel.
      * @param fileUri Actual file url or undefined.
      */
-    public static IsDocumentationMandatory(alProcedureType: ALProcedureType, alProcedureSubtype: ALProcedureSubtype, alAccessLevel: ALAccessLevel, fileUri: Uri | undefined = undefined): boolean {
+    public static IsDocumentationMandatory(alObjectAccessLevel: ALAccessLevel ,alProcedureType: ALProcedureType, alProcedureSubtype: ALProcedureSubtype, alAccessLevel: ALAccessLevel, fileUri: Uri | undefined = undefined): boolean {
         if (!this.ProcedureDocumentationCheckIsEnabled(fileUri)) {
             return false;
         }
 
         let mandatoryAccessLevel = this.GetConfigurationValue('CheckProcedureDocumentationForAccessLevel');
-        if (!mandatoryAccessLevel.includes(ALAccessLevel[alAccessLevel])) {
+        if ((!mandatoryAccessLevel.includes(ALAccessLevel[alAccessLevel])) || (!mandatoryAccessLevel.includes(ALAccessLevel[alObjectAccessLevel]))) {
             return false;
         }
 
