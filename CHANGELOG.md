@@ -121,3 +121,7 @@ All notable changes to the "AL XML Documentation" extension will be documented i
 - Fixed Issue [#40](https://github.com/365businessdev/vscode-alxmldocumentation/issues/40) - Setting to suppress missing documentation messages for Access <> Public objects
 - Fixed Issue [#28](https://github.com/365businessdev/vscode-alxmldocumentation/issues/28) - Option for no code-analyzer message for procedures in objects with Access=Internal
 - Fixed configuration description for `CheckProcedureDocumentationForAccessLevel`
+
+## [1.0.4] - 2020-12-04
+
+- Fixed Issue [#27](https://github.com/365businessdev/vscode-alxmldocumentation/issues/27) - Inherit documentation for procedures implementing interface methods with underscore in object name
