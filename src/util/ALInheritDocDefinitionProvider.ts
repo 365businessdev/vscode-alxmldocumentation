@@ -4,6 +4,7 @@ import { ALObject } from '../types/ALObject';
 import { ALSyntaxUtil } from './ALSyntaxUtil';
 import { ALProcedure } from '../types/ALProcedure';
 import { ALObjectType } from '../types/ALObjectType';
+import { ALObjectCache } from '../ALObjectCache';
 
 export class ALInheritDocDefinitionProvider implements DefinitionProvider {
     async provideDefinition(document: TextDocument, position: Position, token: CancellationToken): Promise<Location | Location[] | LocationLink[] | null | undefined> {
@@ -14,13 +15,16 @@ export class ALInheritDocDefinitionProvider implements DefinitionProvider {
                 return;
             }
 
-            // split code reference.
-            let codeRefObjectName: string = codeRef.groups!['CodeReference'].split('.')[0];
-            let codeRefProcedureCode: string = codeRef.groups!['CodeReference'].split('.')[1];
-
             // get actual AL Object.
             let alObject: ALObject | null = ALSyntaxUtil.GetALObject(document);
             if ((alObject === null) || (alObject.Uri === undefined)) {
+                return;
+            }
+
+            // split code reference.
+            let codeRefProcedureCode: string = codeRef.groups!['CodeReference'];
+            let codeRefObjectName: string|undefined = alObject?.ExtensionObject;
+            if (!codeRefObjectName) {
                 return;
             }
 
@@ -40,15 +44,20 @@ export class ALInheritDocDefinitionProvider implements DefinitionProvider {
             }
 
             if ((document.lineAt(position.line).text.indexOf(codeRefObjectName)) < position.character) {
-                let alProcedure: ALProcedure | undefined = alObject?.Procedures?.find((alProcedure) => (alProcedure.LineNo > position.line) && (alProcedure.Code === codeRefProcedureCode));
+                let interfaceObj: ALObject | undefined = ALObjectCache.ALObjects.find((interfaceObj) => (interfaceObj.Name === codeRefObjectName));
+                if (!interfaceObj) {
+                    return;
+                }
+
+                let alProcedure: ALProcedure | undefined = interfaceObj?.Procedures?.find((alProcedure) => /*(alProcedure.LineNo > position.line) && */(alProcedure.Code === codeRefProcedureCode));
                 if (alProcedure === undefined) {
                     return;
                 }
 
                 // build return definition.
                 let definition: Location | undefined = new Location(objDefinition[0].uri, new Range(
-                    new Position(alProcedure.Range!.start.line + 1, alProcedure.Range!.start.character),
-                    new Position(alProcedure.Range!.end.line + 1, alProcedure.Range!.end.character)));            
+                    new Position(alProcedure.Range!.start.line, alProcedure.Range!.start.character),
+                    new Position(alProcedure.Range!.end.line, alProcedure.Range!.end.character)));            
 
                 return definition;
             }

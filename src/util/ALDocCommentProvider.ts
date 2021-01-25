@@ -146,7 +146,7 @@ export class ALDocCommentProvider implements CompletionItemProvider {
         );
 
         inheritCompletionItem.detail = 'XML documentation comment to document inherit AL procedures.';
-        let snippetText: string = `/// <inheritdoc cref="${alObject.ExtensionObject}.${alProcedure.Code}"/>`;
+        let snippetText: string = `/// <inheritdoc cref="${alProcedure.Code}"/>`;
         const snippet: SnippetString = new SnippetString(snippetText.replace('///', '')); // delete leading '///'. The trigger character is already in the document when the completion provider is triggered.
         inheritCompletionItem.insertText = snippet;
         inheritCompletionItem.documentation = snippetText;

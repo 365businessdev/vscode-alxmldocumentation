@@ -128,20 +128,25 @@ export class ALCheckDocumentation {
         let i = 0;
         try {
             let codeLines: string[] = ALSyntaxUtil.SplitALCodeToLines(document.getText());
-            let xmlDocumentation: string = '';
+            let xmlDocumentation: string ='';
             for(i = 0; i < codeLines.length; i++) {
                 let line: string = codeLines[i];
                 if (!line.trim().startsWith('///')) {
-                    if (xmlDocumentation !== '') {
-                        let alProcedure: ALProcedure | undefined = alObject.Procedures?.find(alProcedure => (i <= alProcedure.LineNo));
-                        if (alProcedure === undefined) {
-                            console.debug(`Could not find AL Procedure for XML documentation found in ${alObject.FileName} line ${i}.`);
-                            continue;
+                    if (ALSyntaxUtil.IsObjectDefinition(line)) {
+                        xmlDocumentation = '';
+                        continue;
+                    } else {
+                        if (xmlDocumentation !== '') {
+                            let alProcedure: ALProcedure | undefined = alObject.Procedures?.find(alProcedure => (i <= alProcedure.LineNo));
+                            if (alProcedure === undefined) {
+                                console.debug(`Could not find AL Procedure for XML documentation found in ${alObject.FileName} line ${i}.`);
+                                continue;
+                            }
+                            this.GetUnnecessaryProcedureDocumentationDiagnostics(codeLines, i, xmlDocumentation, alObject, alProcedure);
                         }
-                        this.GetUnnecessaryProcedureDocumentationDiagnostics(codeLines, i, xmlDocumentation, alObject, alProcedure);
+                        xmlDocumentation = '';
+                        continue;
                     }
-                    xmlDocumentation = '';
-                    continue;
                 }
 
                 xmlDocumentation += line.trim().replace('///','');
@@ -208,6 +213,10 @@ export class ALCheckDocumentation {
      * @param alProcedure ALProcedure
      */
     private static GetUnnecessaryParameterDocumentationDiagnostics(unnecessaryParameters: Array<string>, param: { value: string, attr: { name: string }}, alProcedure: ALProcedure) {
+        if (!param) {
+            return;
+        }
+        
         if (alProcedure.Parameters.find(alParameter => (alParameter.Name === param.attr.name)) === undefined) {
             unnecessaryParameters.push(param.attr.name);
         }

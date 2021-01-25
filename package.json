@@ -3,7 +3,7 @@
 	"displayName": "AL XML Documentation",
 	"description": "Generate XML documentation comments for AL source code and create markdown documentation from it.",
 	"publisher": "365businessdevelopment",
-	"version": "1.0.4",
+	"version": "1.0.5",
 	"icon": "res/icon.png",
 	"author": {
 		"name": "Christoph Krieg",
@@ -189,6 +189,12 @@
 						"scope": "resource",
 						"default": false,
 						"description": "Specifies whether a confirmation will appear to enable procedure documentation for each workspace."
+					},
+					"al-xml-doc.InitializeALObjectCacheOnStartUp": {
+						"type": "boolean",
+						"scope": "resource",
+						"default": true,
+						"description": "Specifies whether to analyse all AL objects in current workspace when or skip initialization."
 					}
 				}
 			}

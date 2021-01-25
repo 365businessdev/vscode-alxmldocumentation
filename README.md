@@ -118,6 +118,7 @@ The following configuration parameters are available:
 | `CheckProcedureDocumentationForType` | Specifies the list of procedure types (e.g. event publisher, tests) to be checked. | `Global Procedures`<br>`Local Procedures`<br>`Internal Procedures`<br>`Protected Procedures`<br>`Event Publisher` |
 | `CheckProcedureDocumentationForAccessLevel` | Specifies the accessibility level of the procedures to be checked for documentation and exported as markdown documentation files. | `Public` |
 | `AskEnableCheckDocumentationForWorkspace` | Specifies whether a confirmation will appear to enable procedure documentation for each workspace. | `false` | 
+| `InitializeALObjectCacheOnStartUp` | Specifies whether to analyse all AL objects in current workspace when or skip initialization. | `true` | 
 
 > **Important**<br>The object directory for documentation (e.g. `doc\mycodeunit.codeunit.al\`) will be deleted if already exist.
 
@@ -190,6 +191,11 @@ This extension is only processing AL language source code files.
 
 ## License
 This extension is licensed under the [MIT License](https://github.com/365businessdev/vscode-alxmldocumentation/blob/dev/LICENSE.txt).
+
+## Known Issues
+
+### 2020-01 - version 1.0.5
+ - Updating AL Documentation Cache for Interface implementations is completely disabled, due to performance issues. Planned for next minor release 1.1.0.
 
 [GenerateXmlDoc]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/V1.AddXmlDocComment.gif?raw=true "Generate context aware XML documentation comments"
 [InheritXmlDoc]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/V1.AddInheritXmlDocComment.gif?raw=true "Link inherit XML documentation comment from interface object"

@@ -40,7 +40,7 @@ export class ALSyntaxUtil {
 `codeunit 50000 GoToDefinition {
     trigger OnRun()
     var
-        object: ${ALObjectType[alObjectType]} ${alObjectName};
+        object: ${ALObjectType[alObjectType]} "${alObjectName}";
     begin
     end;
 }`);
@@ -212,7 +212,7 @@ export class ALSyntaxUtil {
             console.debug(`Failed to get procedure definition for ${alProcedure.Name}.`);
         } else {
             alProcedure.Name = StringUtil.ReplaceAll(alProcedureDefinition['ProcedureName'], '"');
-            alProcedure.Code = `${StringUtil.ReplaceAll(alProcedure.Name, '"')}(${alProcedureDefinition['Params'] !== undefined ? alProcedureDefinition['Params'] : ''})`;
+            alProcedure.Code = StringUtil.ReplaceAll(`${alProcedure.Name}(${alProcedureDefinition['Params'] !== undefined ? alProcedureDefinition['Params'] : ''})`, '"');
             alProcedure.Access = this.GetALProcedureAccessLevel(alProcedureDefinition['Access']);            
             alProcedure.Type = this.GetALProcedureType(alProcedureDefinition);
 

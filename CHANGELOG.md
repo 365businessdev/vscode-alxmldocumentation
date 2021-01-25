@@ -122,6 +122,8 @@ All notable changes to the "AL XML Documentation" extension will be documented i
 - Fixed Issue [#28](https://github.com/365businessdev/vscode-alxmldocumentation/issues/28) - Option for no code-analyzer message for procedures in objects with Access=Internal
 - Fixed configuration description for `CheckProcedureDocumentationForAccessLevel`
 
-## [1.0.4] - 2020-12-04
-
+## [1.0.5] - 2021-01-25
+- Fixed Issue [#42](https://github.com/365businessdev/vscode-alxmldocumentation/issues/42) - Underscore in Interface Names.
+- Fixed Issue [#43](https://github.com/365businessdev/vscode-alxmldocumentation/issues/43) - "Inherit AL XML Documentation Comment" results in 'badly formed XML' if parameter type object name contains spaces (and therefore surrounded by quotes in the signature) 
 - Fixed Issue [#27](https://github.com/365businessdev/vscode-alxmldocumentation/issues/27) - Inherit documentation for procedures implementing interface methods with underscore in object name
+- Added configuration parameter `InitializeALObjectCacheOnStartUp` to skip initialization while start-up.

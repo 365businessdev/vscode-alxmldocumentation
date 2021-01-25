@@ -26,6 +26,8 @@ export class DoComment {
         const subscriptions: Disposable[] = [];
 
         workspace.onDidChangeTextDocument(event => {
+            return; // TODO: This causes serious problems due to hundreds of calls! :-(
+            /**
             const activeEditor = window.activeTextEditor;
 
             if (event.document.languageId !== 'al') {
@@ -59,6 +61,7 @@ export class DoComment {
                 }
                 ALCheckDocumentation.CheckDocumentationForALObject(alObject, activeEditor.document);
             }
+             */
         }, this, subscriptions);
         
         this.disposable = Disposable.from(...subscriptions);

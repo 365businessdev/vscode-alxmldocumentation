@@ -6,6 +6,13 @@ import { ALProcedureType } from '../types/ALProcedureType';
 
 export class Configuration {
     /**
+     * Get configuration value for InitializeALObjectCacheOnStartUp.
+     */
+    public static InitializeALObjectCacheOnStartUp(): Boolean {
+        return this.GetConfigurationValue('InitializeALObjectCacheOnStartUp');
+    }
+
+    /**
      * Opens confirmation dialog to ask for enabling the procedure documentation check.
      */
     public static AskEnableCheckDocumentationForWorkspace() {  
