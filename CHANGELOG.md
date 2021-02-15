@@ -127,3 +127,6 @@ All notable changes to the "AL XML Documentation" extension will be documented i
 - Fixed Issue [#43](https://github.com/365businessdev/vscode-alxmldocumentation/issues/43) - "Inherit AL XML Documentation Comment" results in 'badly formed XML' if parameter type object name contains spaces (and therefore surrounded by quotes in the signature) 
 - Fixed Issue [#27](https://github.com/365businessdev/vscode-alxmldocumentation/issues/27) - Inherit documentation for procedures implementing interface methods with underscore in object name
 - Added configuration parameter `InitializeALObjectCacheOnStartUp` to skip initialization while start-up.
+
+## [1.0.6] - 2021-02-15
+- Fixed Issue [#45](https://github.com/365businessdev/vscode-alxmldocumentation/issues/45)
