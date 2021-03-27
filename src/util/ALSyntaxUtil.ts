@@ -234,6 +234,12 @@ export class ALSyntaxUtil {
             this.GetALObjectProcedureReturn(alProcedureDefinition, alProcedure, code);
         }
         this.GetALProcedureProperties(alProcedure, code);
+        if (alProcedure.TryFunction) {
+            alProcedure.Return = new ALProcedureReturn();
+            alProcedure.Return.Type = 'Boolean';
+            alProcedure.Return.XmlDocumentation.Exists = XMLDocumentationExistType.Yes;
+            alProcedure.Return.XmlDocumentation.Documentation = '<returns>False if an runtime error occurred. Otherwise true.</returns>';
+        }
 
         // get XML Documentation
         alProcedure.XmlDocumentation = this.GetALObjectProcedureDocumentation(alProcedure, code);
