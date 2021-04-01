@@ -232,7 +232,7 @@ export class ALCheckDocumentation {
             return;
         }
 
-        if (!Configuration.IsDocumentationMandatory(alObject.Access, alProcedure.Type, alProcedure.Subtype, alProcedure.Access, alObject.Uri)) {
+        if (!Configuration.IsProcedureDocumentationMandatory(alObject.Access, alProcedure.Type, alProcedure.Subtype, alProcedure.Access, alObject.Uri)) {
             return;
         }
 
@@ -334,6 +334,10 @@ export class ALCheckDocumentation {
      */
     private static AnalyzeObjectDocumentation(alObject: ALObject) {
         if (alObject === null) {
+            return;
+        }
+
+        if (!Configuration.IsDocumentationMandatoryForAccessLevel(alObject.Access)) {
             return;
         }
         

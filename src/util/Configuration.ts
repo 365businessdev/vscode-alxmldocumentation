@@ -93,6 +93,15 @@ export class Configuration {
         return (mandatoryProcedureTypes.find(mandatoryProcedureTypes => (mandatoryProcedureTypes === 'Test Procedures')) !== undefined);
     }
     
+    /**
+     * Test whether the given access level needs to be documented or not.
+     * @param accessLevel ALAccessLevel
+     * @returns True if documentation is expected. Otherwise false.
+     */
+    public static IsDocumentationMandatoryForAccessLevel(accessLevel: ALAccessLevel): boolean {
+        let mandatoryAccessLevel = this.GetConfigurationValue('CheckProcedureDocumentationForAccessLevel');
+        return (mandatoryAccessLevel.includes(ALAccessLevel[accessLevel]));
+    }
 
     /**
      * Test whether the given AL Procedure properties need to be documented or not.
@@ -101,13 +110,12 @@ export class Configuration {
      * @param alAccessLevel ALAccessLevel.
      * @param fileUri Actual file url or undefined.
      */
-    public static IsDocumentationMandatory(alObjectAccessLevel: ALAccessLevel ,alProcedureType: ALProcedureType, alProcedureSubtype: ALProcedureSubtype, alAccessLevel: ALAccessLevel, fileUri: Uri | undefined = undefined): boolean {
+    public static IsProcedureDocumentationMandatory(alObjectAccessLevel: ALAccessLevel, alProcedureType: ALProcedureType, alProcedureSubtype: ALProcedureSubtype, alAccessLevel: ALAccessLevel, fileUri: Uri | undefined = undefined): boolean {
         if (!this.ProcedureDocumentationCheckIsEnabled(fileUri)) {
             return false;
         }
 
-        let mandatoryAccessLevel = this.GetConfigurationValue('CheckProcedureDocumentationForAccessLevel');
-        if ((!mandatoryAccessLevel.includes(ALAccessLevel[alAccessLevel])) || (!mandatoryAccessLevel.includes(ALAccessLevel[alObjectAccessLevel]))) {
+        if ((!this.IsDocumentationMandatoryForAccessLevel(alAccessLevel)) || (!this.IsDocumentationMandatoryForAccessLevel(alObjectAccessLevel))) {
             return false;
         }
 
