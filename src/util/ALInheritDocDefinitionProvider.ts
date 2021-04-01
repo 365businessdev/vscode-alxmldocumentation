@@ -1,5 +1,5 @@
 import { CancellationToken, DefinitionProvider, Location, LocationLink, Position, Range, TextDocument } from 'vscode';
-import { InheritDocRegEx } from './ALRegEx';
+import { InheritDocRegEx } from './regex/ALRegEx';
 import { ALObject } from '../types/ALObject';
 import { ALSyntaxUtil } from './ALSyntaxUtil';
 import { ALProcedure } from '../types/ALProcedure';

@@ -1,16 +1,11 @@
 import { Position, Disposable, TextDocumentContentChangeEvent, TextEditor, window, workspace, SnippetString } from 'vscode';
-import { StringUtil } from './util/StringUtil';
+import { StringUtil } from './util/string/StringUtil';
 import { ALSyntaxUtil } from './util/ALSyntaxUtil';
 import { VSCodeApi } from './api/VSCodeApi';
 import { ALObject } from './types/ALObject';
 import { ALProcedure } from './types/ALProcedure';
 import { ALDocCommentUtil } from './util/ALDocCommentUtil';
 import { Configuration } from './util/Configuration';
-import { ALObjectExtensionType } from './types/ALObjectExtensionType';
-import { ALObjectType } from './types/ALObjectType';
-import { ALObjectCache } from './ALObjectCache';
-import { ALCheckDocumentation } from './util/ALCheckDocumentation';
-import * as fs from 'fs';
 
 export class DoComment {
     private disposable: Disposable;

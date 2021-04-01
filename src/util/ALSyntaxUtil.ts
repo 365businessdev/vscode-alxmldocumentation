@@ -1,5 +1,5 @@
 import { commands, Location, Position, Range, TextDocument, Uri, workspace } from 'vscode';
-import { FindALProceduresRegEx, ALProcedureDefinitionRegEx, FindALObjectRegEx, FindBeginEndKeywordRegEx, InheritDocRegEx } from './ALRegEx';
+import { FindALProceduresRegEx, ALProcedureDefinitionRegEx, FindALObjectRegEx, FindBeginEndKeywordRegEx, InheritDocRegEx } from './regex/ALRegEx';
 import { ALObject } from '../types/ALObject';
 import { ALProcedure } from '../types/ALProcedure';
 import { ALParameter } from '../types/ALParameter';
@@ -18,7 +18,7 @@ import { XMLDocumentationExistType } from '../types/XMLDocumentationExistType';
 import { ALObjectCache } from '../ALObjectCache';
 import * as fs from 'fs';
 import { Guid } from 'guid-typescript';
-import { StringUtil } from './StringUtil';
+import { StringUtil } from './string/StringUtil';
 
 export class ALSyntaxUtil {
     /**

@@ -7,7 +7,7 @@ import { XMLDocumentationExistType } from '../types/XMLDocumentationExistType';
 import { ALSyntaxUtil } from './ALSyntaxUtil';
 import { ALDocCommentUtil } from './ALDocCommentUtil';
 import { Configuration } from './Configuration';
-import { StringUtil } from './StringUtil';
+import { StringUtil } from './string/StringUtil';
 import * as fs from 'fs';
 import { ALProcedureType } from '../types/ALProcedureType';
 import { ALCodeunitType } from '../types/ALCodeunitType';
