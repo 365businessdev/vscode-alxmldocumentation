@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import path = require('path');
 import { OutputChannel, Uri } from 'vscode';
 import { ALObjectCache } from '../ALObjectCache';
+import { ALAccessLevel } from '../types/ALAccessLevel';
 import { ALCodeunitType } from '../types/ALCodeunitType';
 import { ALObject } from '../types/ALObject';
 import { ALObjectExtensionType } from '../types/ALObjectExtensionType';
@@ -239,6 +240,7 @@ pdf_options:
         if (alObject.ID !== undefined) {
             doc.WriteLine(`| Object ID | ${alObject.ID} |`);
         }
+        doc.WriteLine(`| Accessibility Level | ${ALAccessLevel[alObject.Access]} | `);
         doc.WriteLine();
         
         doc.WriteLine();
