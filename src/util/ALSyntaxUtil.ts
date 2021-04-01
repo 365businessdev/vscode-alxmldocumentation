@@ -160,6 +160,9 @@ export class ALSyntaxUtil {
             let t1 = performance.now();
             console.debug(`Processing time for object ${alObject.Name}: ${Math.round((t1 - t0) * 100 / 100)}ms.`);
 
+            if (this.GetALObjectFromCache(alObject.Type, alObject.Name) !== null) {
+                ALObjectCache.ALObjects.splice(ALObjectCache.ALObjects.indexOf(alObject), 1); 
+            }
             ALObjectCache.ALObjects.push(alObject); // add AL object to AL Object cache.
             return alObject;   
         }
