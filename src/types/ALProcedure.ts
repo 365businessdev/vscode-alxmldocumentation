@@ -85,4 +85,33 @@ export class ALProcedure {
      * @type {XMLDocumentation}
      */
     public XmlDocumentation: XMLDocumentation  = new XMLDocumentation();
+
+    /**
+     * Get AL Example Syntax to call this function.
+     * Example:
+     * [[DataType] := ] ProcedureName([[var ]param1: DataType[temporary]])
+     * @returns AL Code.
+     */
+    public GetSyntax(): string {
+        let syntax: string = `${this.Name}(`;
+        let param: string = '';
+        if (this.Parameters) {
+            this.Parameters.forEach(alParameter => {
+                if (param !== '') {
+                    param += ', ';
+                }
+                if (alParameter.CallByReference) {
+                    param += 'var ';
+                }
+                param += `${alParameter.Name}: ${alParameter.Type}${alParameter.Subtype !== undefined ? ` ${alParameter.Subtype}` : ''}${alParameter.Temporary ? ' temporary': ''}`;
+            });
+        }
+        syntax += `${param})`;
+
+        if (this.Return?.Type !== undefined) {
+            syntax = `[${this.Return.Type}] := ${syntax}`;
+        }
+
+        return syntax;
+    }
 }
