@@ -30,9 +30,6 @@
 		"workspaceContains:app.json"
 	],
 	"main": "./out/extension.js",
-	"files": [
-		"bin/"
-	],
 	"contributes": {
 		"commands": [
 			{
