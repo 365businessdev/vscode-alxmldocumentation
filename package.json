@@ -65,6 +65,24 @@
 						"scope": "resource",
 						"description": "Specifies the path where the created markdown documentation files should be stored."
 					},
+					"al-xml-doc.PdfDocumentationExportCSS": {
+						"type": "string",
+						"scope": "resource",
+						"description": "Specifies the CSS file to use for formatting the PDF Documentation file."
+					},
+					"al-xml-doc.DocumentationExportSchema": {
+						"type": "string",
+						"default": "Project File + Object File",
+						"enum": [
+							"Project File + Object File",
+							"Project File + Object File + Procedure File"
+						],
+						"enumDescriptions": [
+							"Creates one project documentation file and one object documentation file per AL Object.",
+							"Creates one project documentation file, one object documentation file per AL Object and one procedure documentation file per AL Procedure."
+						],
+						"description": "Specifies the behavior for exporting the documentation."
+					},
 					"al-xml-doc.DocumentationExportVerbose": {
 						"type": "boolean",
 						"scope": "resource",

@@ -3,12 +3,60 @@ import { ALXmlDocConfigurationPrefix } from '../types';
 import { ALAccessLevel } from '../types/ALAccessLevel';
 import { ALProcedureSubtype } from '../types/ALProcedureSubtype';
 import { ALProcedureType } from '../types/ALProcedureType';
+import { FilesystemHelper } from './filesystem/FilesystemHelper';
 
 export class Configuration {
+    public static ExtensionName():string {
+        return '365businessdevelopment.bdev-al-xml-doc';
+    }
+
+    public static GetWorkspaceRootFolder(): Uri | null {
+        return workspace.workspaceFolders ? workspace.workspaceFolders[0].uri : null;
+    }
+
+    public static IncludeProcedureDocumentationInObjectDocumentationFile(): boolean {
+        return (this.GetConfigurationValue('DocumentationExportSchema') === 'Project File + Object File');
+    }
+    
+    public static OutputChannelName(): string {
+        return 'AL XML Documentation';
+    }
+
+    public static PdfDocumentationExportCSS(): string {
+        var cssFile = this.GetConfigurationValue('PdfDocumentationExportCSS');
+        if (cssFile === '') {
+            return '';
+        }
+        return FilesystemHelper.ReadFile(cssFile);
+    }
+
+    /**
+     * Return Documentation Export Path, if specified
+     * @returns Documentation Export Path
+     */
+    public static DocumentationExportPath(): string {
+        var path = require('path');
+        var documentationPath = this.GetConfigurationValue('DocumentationExportPath');
+        if (documentationPath === undefined || documentationPath === null || documentationPath === '') {
+            let workspaceRoot : Uri | null = this.GetWorkspaceRootFolder();
+            if (workspaceRoot === null) {
+                window.showErrorMessage('Please setup \'DocumentationExportPath\' in workspace settings to define the export directory.');
+                return '';
+            }
+            // fallback scenario
+            documentationPath = path.join(workspaceRoot.fsPath, 'doc');			
+        } else {
+            if (workspace.workspaceFolders) {
+                documentationPath = path.replace('${workspaceFolder}', path.dirname(workspace.workspaceFolders[0].uri.toString()));
+            }
+        }
+        return documentationPath;
+    }
+
     /**
      * Get configuration value for InitializeALObjectCacheOnStartUp.
      */
-    public static InitializeALObjectCacheOnStartUp(): Boolean {
+    public static InitializeALObjectCacheOnStartUp(): boolean {
         return this.GetConfigurationValue('InitializeALObjectCacheOnStartUp');
     }
 
@@ -37,7 +85,7 @@ export class Configuration {
     /**
      * Test whether XML documentation is expected for test object.
      */
-    public static IsDocumentationMandatoryForTest(): Boolean {
+    public static IsDocumentationMandatoryForTest(): boolean {
         let mandatoryProcedureTypes: string[] = this.GetConfigurationValue('CheckProcedureDocumentationForType');
         if (mandatoryProcedureTypes.length === 0) {
             return false;
