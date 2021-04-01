@@ -47,4 +47,17 @@ export class StringUtil {
     public static ReplaceAll(string: string, search: string, replaceWith: string = ''): string {
         return string.replace(new RegExp(search, 'g'), replaceWith);
     }
+
+    public static GetTimestamp(): string {
+        let date: Date = new Date();
+        return `[${this.GetDatePart(date)} ${this.GetTimePart(date)}]`;
+    }
+
+    private static GetDatePart(date: Date): string {
+        return `${date.getFullYear()}-${(date.getMonth() < 10 ? '0' : '') + date.getMonth()}-${(date.getDay() < 10 ? '0' : '') + date.getDay()}`;
+    }
+
+    private static GetTimePart(date: Date): string {
+        return `${(date.getHours() < 10 ? '0' : '') + date.getHours()}:${(date.getMinutes() < 10 ? '0' : '') + date.getMinutes()}:${(date.getSeconds() < 10 ? '0' : '') + date.getSeconds()}.${date.getMilliseconds().toString().substring(0, 3).padStart(3, "0")}`;
+    }
 }
