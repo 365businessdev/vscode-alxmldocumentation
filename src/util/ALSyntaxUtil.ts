@@ -722,7 +722,7 @@ export class ALSyntaxUtil {
         try {
             let codeLines: Array<string> = this.SplitALCodeToLines(code);
 
-            let collect: Boolean = false;
+            let collect: boolean = false;
 
             for (var i = (alProcedure.LineNo - 1); (i > 0); i--) {
                 let line: string = codeLines[i];
@@ -776,7 +776,7 @@ export class ALSyntaxUtil {
         try {
             let codeLines: Array<string> = this.SplitALCodeToLines(code);
 
-            let collect: Boolean = false;
+            let collect: boolean = false;
 
             for (var i = (alProcedure.LineNo - 1); (i > 0); i--) {
                 let line: string = codeLines[i];
@@ -829,7 +829,7 @@ export class ALSyntaxUtil {
         try {
             let codeLines: Array<string> = this.SplitALCodeToLines(code);
 
-            let collect: Boolean = false;
+            let collect: boolean = false;
 
             for (var i = (alProcedure.LineNo - 1); (i > 0); i--) {
                 let line: string = codeLines[i];
