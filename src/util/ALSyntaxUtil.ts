@@ -103,16 +103,26 @@ export class ALSyntaxUtil {
         let alObject: ALObject|null;
 
         try {
+            console.debug(`Processing object . . .`);
+
+            let t2 = performance.now();
             let alObjectDefinition = this.GetALObjectDefinition(document.getText());
             if ((alObjectDefinition?.groups === null) || (alObjectDefinition?.groups === undefined)) {
                 throw new Error(`Fatal error: Could not analyze ${document.fileName}.`);
             }
             let objectName: string = alObjectDefinition.groups['ObjectName'];
             let objectType: ALObjectType = this.SelectALObjectType(alObjectDefinition.groups['ObjectType']);
-            alObject = this.GetALObjectFromCache(objectType, objectName);
+            console.debug(`   Getting Object Definition for ${ALObjectType[objectType]} ${objectName} took ${Math.round(((performance.now()) - t2) * 100 / 100)}ms.`);
+
+            t2 = performance.now();
+            alObject = this.GetALObjectFromCache(objectType, objectName);            
+            console.debug(`   Looking up in Object Cache for ${ALObjectType[objectType]} ${objectName} took ${Math.round(((performance.now()) - t2) * 100 / 100)}ms.`);
             if (alObject !== null) {
+                console.debug(`   Object ${ALObjectType[objectType]} ${objectName} found in Cache.`);
                 return alObject;
             }
+
+            t2 = performance.now();
             alObject = new ALObject();
             alObject.Type = objectType;
             alObject.Name = StringUtil.ReplaceAll(objectName, '"');
@@ -133,12 +143,17 @@ export class ALSyntaxUtil {
                 }
                 alObject.ExtensionObject = StringUtil.ReplaceAll(alObjectDefinition.groups['ExtensionObject'].trim(), '"', '');
             }
+            console.debug(`   Creating new Object for ${ALObjectType[objectType]} ${objectName} took ${Math.round(((performance.now()) - t2) * 100 / 100)}ms.`);
 
+            t2 = performance.now();
             // get AL object properties
             this.GetALObjectProperties(alObject, document.getText());
+            console.debug(`   Getting Object Properties for ${ALObjectType[objectType]} ${objectName} took ${Math.round(((performance.now()) - t2) * 100 / 100)}ms.`);
 
+            t2 = performance.now();
             // get AL procedures
             this.GetALObjectProcedures(alObject, document.getText());
+            console.debug(`   Getting Object Procedures for ${ALObjectType[objectType]} ${objectName} took ${Math.round(((performance.now()) - t2) * 100 / 100)}ms.`);
                         
             // get AL file properties
             if (document.fileName !== '__symbol__') {
@@ -149,16 +164,16 @@ export class ALSyntaxUtil {
                 alObject.FileName = `${alObject.Name.replace(' ','')}.${ALObjectType[alObject.Type]}.dal`;
             }
 
+            t2 = performance.now();
             // get XML Documentation
             alObject.XmlDocumentation = this.GetALObjectDocumentation(alObject, document.getText());
             if ((alObject.XmlDocumentation.Exists === XMLDocumentationExistType.No)) {
                 ALDocCommentUtil.GenerateObjectDocString(alObject);
             }
-
-            // console.debug(alObject);            
+            console.debug(`   Getting XML Documentation for ${ALObjectType[objectType]} ${objectName} took ${Math.round(((performance.now()) - t2) * 100 / 100)}ms.`);
 
             let t1 = performance.now();
-            console.debug(`Processing time for object ${alObject.Name}: ${Math.round((t1 - t0) * 100 / 100)}ms.`);
+            console.debug(`Overall processing time for object ${alObject.Name}: ${Math.round((t1 - t0) * 100 / 100)}ms.`);
 
             if (this.GetALObjectFromCache(alObject.Type, alObject.Name) !== null) {
                 ALObjectCache.ALObjects.splice(ALObjectCache.ALObjects.indexOf(alObject), 1); 
