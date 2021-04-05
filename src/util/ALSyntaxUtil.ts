@@ -87,7 +87,7 @@ export class ALSyntaxUtil {
      * @param objectName AL Object Name.
      */
     public static GetALObjectFromCache(objectType: ALObjectType, objectName: string): ALObject | null {
-        let alObject: ALObject | undefined = ALObjectCache.ALObjects.find(alObject => ((alObject.Name === objectName) && (alObject.Type === objectType)));
+        let alObject: ALObject | undefined = ALObjectCache.ALObjects.find(alObject => ((alObject.Name === StringUtil.ReplaceAll(objectName, '"')) && (alObject.Type === objectType)));
         if (alObject !== undefined) {
             return alObject;
         }
