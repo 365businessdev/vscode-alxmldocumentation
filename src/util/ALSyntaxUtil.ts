@@ -193,18 +193,19 @@ export class ALSyntaxUtil {
      * @param alObject ALObject object.
      * @param code AL Source Code.
      */
-    private static GetALObjectProcedures(alObject: ALObject, code: string) {
+    private static async GetALObjectProcedures(alObject: ALObject, code: string) {
         try
         {
-            let alProcedures: Array<ALProcedure> = [];
+            let procedures: RegExpMatchArray | null = code.match(FindALProceduresRegEx);
+            if (procedures === null) {
+                return;
+            }
 
-            code.match(FindALProceduresRegEx)?.forEach(match => {
-                alProcedures.push(
-                    this.GetALObjectProcedureDefinition(code, match)    
-                );
-            });
-
-            alObject.Procedures = alProcedures;
+            alObject.Procedures = [];
+            await Promise.all(procedures.map(async(procedureMatch) => {
+                let procedure: ALProcedure = this.GetALObjectProcedureDefinition(code, procedureMatch);
+                alObject.Procedures!.push(procedure);
+            }));
         }
         catch (ex)
         {
