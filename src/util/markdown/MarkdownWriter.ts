@@ -17,7 +17,7 @@ export class MarkdownWriter {
         this.IndentationLevel = 0;
 
         if (initialContent === '') {
-            MarkdownWriter.GetInitialContent();
+            initialContent = MarkdownWriter.GetInitialContent();
         }
         if (!FilesystemHelper.CreateFile(this.Filename.fsPath, initialContent)) {
             throw new Error(`Unable to create ${this.Filename}. Please verify permission set properly.`);            
@@ -77,7 +77,7 @@ export class MarkdownWriter {
      * @returns Initial content for markdown files, containing style definitions.
      */
     private static GetInitialContent(): string {
-        return `${this.GetDefaultStylesheet()}
+        return `<style>${this.GetDefaultStylesheet()}</style>
 
 `;
     }
