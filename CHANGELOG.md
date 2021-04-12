@@ -128,14 +128,20 @@ All notable changes to the "AL XML Documentation" extension will be documented i
 - Fixed Issue [#27](https://github.com/365businessdev/vscode-alxmldocumentation/issues/27) - Inherit documentation for procedures implementing interface methods with underscore in object name
 - Added configuration parameter `InitializeALObjectCacheOnStartUp` to skip initialization while start-up.
 
-## [1.1.0] - 2021-04-01
+## [1.1.0] - 2021-04-16
 - Fixed Issue [#45](https://github.com/365businessdev/vscode-alxmldocumentation/issues/45) - Code analyzer rules for missing procedure XML documentation also reacts on 'procedure' in comments.
+  > Thanks to @rvanbekkum for reporting.
 - Fixed missing example code in inherit procedure documentation.
 - Redesigned inherit procedure documentation logic.
+- Removed ALCodeCommentMarkdownCreator.
 - Added new markdown documentation export.
 - Added pdf documentation export.
 - Added custom stylesheet (css) support for documentation export.
 - Fixed Issue [#41](https://github.com/365businessdev/vscode-alxmldocumentation/issues/41) - &lt;returns&gt; tag contents are missing from generated markdown.
 - Added markdown documentation export project index [#49](https://github.com/365businessdev/vscode-alxmldocumentation/issues/49). 
-  > Thanks at @spookymattress and @MacWin77 for the idea and feedback.
+  > Thanks to @spookymattress and @MacWin77 for the idea and feedback.
 - Fixed Issue [#48](https://github.com/365businessdev/vscode-alxmldocumentation/issues/48) - Option for no code-analyzer message for objects with Access=Internal
+  > Thanks to @rvanbekkum for reporting.
+- Implemented [Cancellation Token](https://www.npmjs.com/package/cancellationtoken) node module
+- Fixed Issue [#52](https://github.com/365businessdev/vscode-alxmldocumentation/issues/52) - Analyze AL object asynchronously
+  > Thanks to @TCMatthiasMartin for reporting.
