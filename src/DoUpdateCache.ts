@@ -41,7 +41,7 @@ export class DoUpdateCache {
 
                 ALSyntaxUtil.ClearALObjectFromCache(event.document);
                 ALSyntaxUtil.GetALObject(event.document, token);
-            }, 1000, cancellation.token);
+            }, 500, cancellation.token);
         }, this, subscriptions);
         
         this.disposable = Disposable.from(...subscriptions);
