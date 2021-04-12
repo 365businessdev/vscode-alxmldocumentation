@@ -16,7 +16,7 @@ export class ALInheritDocDefinitionProvider implements DefinitionProvider {
             }
 
             // get actual AL Object.
-            let alObject: ALObject | null = ALSyntaxUtil.GetALObject(document);
+            let alObject: ALObject | null = await ALSyntaxUtil.GetALObject(document);
             if ((alObject === null) || (alObject.Uri === undefined)) {
                 return;
             }

@@ -50,7 +50,7 @@ export class ALCheckDocumentation {
      * Check documentation for passed AL Object.
      * @param alObject {ALObject}
      */
-    public static CheckDocumentationForALObject(alObject: ALObject, document: TextDocument | undefined = undefined) {
+    public static async CheckDocumentationForALObject(alObject: ALObject, document: TextDocument | undefined = undefined) {
         if (document === undefined) {
             this.document = Object.assign({});
             this.document.getText = () => fs.readFileSync(`${alObject.Path}/${alObject.FileName}`, 'utf8');
@@ -72,8 +72,8 @@ export class ALCheckDocumentation {
     /**
      * General documentation check procedure.
      */
-    private static CheckDocumentation() {
-        this.Initialize();
+    private static async CheckDocumentation() {
+        await this.Initialize();
         
         if ((!Configuration.ProcedureDocumentationCheckIsEnabled(this.document.uri)) && (!Configuration.ObjectDocumentationCheckIsEnabled(this.document.uri))) {
             return;
@@ -106,13 +106,13 @@ export class ALCheckDocumentation {
     /**
      * Initialize documentation check and clear previously reported diagnostics.
      */
-    private static Initialize() {
+    private static async Initialize() {
         // clear all diagnostics
         this.diags = [];
         this.UpdateDiagnosticCollection();
 
         if (this.alObject === null) {
-            this.alObject = ALSyntaxUtil.GetALObject(this.document);
+            this.alObject = await ALSyntaxUtil.GetALObject(this.document);
         }
     }
     

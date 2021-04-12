@@ -34,7 +34,7 @@ export class ALDocCommentProvider implements CompletionItemProvider {
             return;
         }        
 
-        let alObject: ALObject | null = ALSyntaxUtil.GetALObject(document);
+        let alObject: ALObject | null = await ALSyntaxUtil.GetALObject(document);
         if (alObject === null) {
             return;
         }

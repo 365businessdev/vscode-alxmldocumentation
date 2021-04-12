@@ -62,10 +62,7 @@ export class Controller {
                         document.fileName = file.uri.fsPath;
                         document.uri = file.uri;
                         
-                        let alObject: ALObject|null = ALSyntaxUtil.GetALObject(document as any);
-                        if (alObject !== null) {                    
-                            ALCheckDocumentation.CheckDocumentationForALObject(alObject);
-                        }
+                        ALSyntaxUtil.GetALObject(document as any);
                     };
                     let max = relevantFiles.length;
                     for (let i = 0; i < max; i++) {

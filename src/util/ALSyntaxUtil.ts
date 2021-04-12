@@ -4,7 +4,6 @@ import { ALObject } from '../types/ALObject';
 import { ALProcedure } from '../types/ALProcedure';
 import { ALParameter } from '../types/ALParameter';
 import { ALDocCommentUtil } from './ALDocCommentUtil';
-import { performance } from 'perf_hooks';
 import { ALProcedureReturn } from '../types/ALProcedureReturn';
 import { ALAccessLevel } from '../types/ALAccessLevel';
 import { ALCodeunitType } from '../types/ALCodeunitType';
@@ -19,6 +18,9 @@ import { ALObjectCache } from '../ALObjectCache';
 import * as fs from 'fs';
 import { Guid } from 'guid-typescript';
 import { StringUtil } from './string/StringUtil';
+import CancellationToken from 'cancellationtoken';
+import { ProcessingTimeUtil } from './ProcessingTimeUtil';
+import { ALCheckDocumentation } from './ALCheckDocumentation';
 
 export class ALSyntaxUtil {
     /**
@@ -95,41 +97,64 @@ export class ALSyntaxUtil {
     }
 
     /**
+     * Checks whether the CancellationToken is set and cancelled or not.
+     * @param token CancellationToken|null
+     * @returns True if the CancellationToken were set and is cancelled. Otherwise false.
+     */
+    private static TokenIsCancelled(token: CancellationToken|null): boolean {
+        if (token === null) {
+            return false;
+        }
+        return token.isCancelled;
+    }
+
+    /**
      * Get ALObject from currently loaded text document object.
      * @param document TextDocument to be analyzed.
      */
-    public static GetALObject(document: TextDocument): ALObject|null {
-        let t0 = performance.now();
+    public static async GetALObject(document: TextDocument, token: CancellationToken|null = null): Promise<ALObject | null> {
+        let totalPerfUtil: ProcessingTimeUtil = new ProcessingTimeUtil();
         let alObject: ALObject|null;
 
         try {
-            console.debug(`Processing object . . .`);
+            let code: string = document.getText();
 
-            let t2 = performance.now();
-            let alObjectDefinition = this.GetALObjectDefinition(document.getText());
+            let perfUtil: ProcessingTimeUtil = new ProcessingTimeUtil();
+            let alObjectDefinition = this.GetALObjectDefinition(code);
             if ((alObjectDefinition?.groups === null) || (alObjectDefinition?.groups === undefined)) {
                 throw new Error(`Fatal error: Could not analyze ${document.fileName}.`);
             }
             let objectName: string = alObjectDefinition.groups['ObjectName'];
             let objectType: ALObjectType = this.SelectALObjectType(alObjectDefinition.groups['ObjectType']);
-            console.debug(`   Getting Object Definition for ${ALObjectType[objectType]} ${objectName} took ${Math.round(((performance.now()) - t2) * 100 / 100)}ms.`);
+            perfUtil.Measure(`Getting Object Definition for ${ALObjectType[objectType]} ${objectName}`);
 
-            t2 = performance.now();
-            alObject = this.GetALObjectFromCache(objectType, objectName);            
-            console.debug(`   Looking up in Object Cache for ${ALObjectType[objectType]} ${objectName} took ${Math.round(((performance.now()) - t2) * 100 / 100)}ms.`);
-            if (alObject !== null) {
-                console.debug(`   Object ${ALObjectType[objectType]} ${objectName} found in Cache.`);
-                return alObject;
+            if (this.TokenIsCancelled(token)) {
+                return null;
             }
 
-            t2 = performance.now();
+            perfUtil = new ProcessingTimeUtil();
+            alObject = this.GetALObjectFromCache(objectType, objectName);            
+            perfUtil.Measure(`Looking up in Object Cache for ${ALObjectType[objectType]} ${objectName}`);
+            if (alObject !== null) {
+                return alObject;
+            }
+            
+            if (this.TokenIsCancelled(token)) {
+                return null;
+            }
+
+            perfUtil = new ProcessingTimeUtil();
             alObject = new ALObject();
             alObject.Type = objectType;
             alObject.Name = StringUtil.ReplaceAll(objectName, '"');
-            alObject.LineNo = this.GetALKeywordDefinitionLineNo(document.getText(), alObjectDefinition[0]);
-            alObject.Range = this.GetRange(document.getText(), alObject.LineNo);
+            alObject.LineNo = this.GetALKeywordDefinitionLineNo(code, alObjectDefinition[0]);
+            alObject.Range = this.GetRange(code, alObject.LineNo);
             if (!((alObjectDefinition.groups['ObjectID'] === null) || (alObjectDefinition.groups['ObjectID'] === undefined))) {
                 alObject.ID = parseInt(alObjectDefinition.groups['ObjectID']);
+            }
+            
+            if (this.TokenIsCancelled(token)) {
+                return null;
             }
 
             if (!((alObjectDefinition.groups['ExtensionType'] === null) || (alObjectDefinition.groups['ExtensionType'] === undefined))) {
@@ -143,17 +168,22 @@ export class ALSyntaxUtil {
                 }
                 alObject.ExtensionObject = StringUtil.ReplaceAll(alObjectDefinition.groups['ExtensionObject'].trim(), '"', '');
             }
-            console.debug(`   Creating new Object for ${ALObjectType[objectType]} ${objectName} took ${Math.round(((performance.now()) - t2) * 100 / 100)}ms.`);
+            perfUtil.Measure(`Creating new Object ${ALObjectType[objectType]} ${objectName}`);
 
-            t2 = performance.now();
+            if (this.TokenIsCancelled(token)) {
+                return null;
+            }
+
+            perfUtil = new ProcessingTimeUtil();
             // get AL object properties
-            this.GetALObjectProperties(alObject, document.getText());
-            console.debug(`   Getting Object Properties for ${ALObjectType[objectType]} ${objectName} took ${Math.round(((performance.now()) - t2) * 100 / 100)}ms.`);
-
-            t2 = performance.now();
+            this.GetALObjectProperties(alObject, code);
+            perfUtil.Measure(`Getting Object Properties for ${ALObjectType[objectType]} ${objectName}`);
+            
+            if (this.TokenIsCancelled(token)) {
+                return null;
+            }
             // get AL procedures
-            this.GetALObjectProcedures(alObject, document.getText());
-            console.debug(`   Getting Object Procedures for ${ALObjectType[objectType]} ${objectName} took ${Math.round(((performance.now()) - t2) * 100 / 100)}ms.`);
+            await this.GetALObjectProcedures(alObject, code, token);
                         
             // get AL file properties
             if (document.fileName !== '__symbol__') {
@@ -163,26 +193,32 @@ export class ALSyntaxUtil {
             } else {
                 alObject.FileName = `${alObject.Name.replace(' ','')}.${ALObjectType[alObject.Type]}.dal`;
             }
+            
+            if (this.TokenIsCancelled(token)) {
+                return null;
+            }
 
-            t2 = performance.now();
+            perfUtil = new ProcessingTimeUtil();
             // get XML Documentation
-            alObject.XmlDocumentation = this.GetALObjectDocumentation(alObject, document.getText());
+            alObject.XmlDocumentation = this.GetALObjectDocumentation(alObject, code);
             if ((alObject.XmlDocumentation.Exists === XMLDocumentationExistType.No)) {
                 ALDocCommentUtil.GenerateObjectDocString(alObject);
             }
-            console.debug(`   Getting XML Documentation for ${ALObjectType[objectType]} ${objectName} took ${Math.round(((performance.now()) - t2) * 100 / 100)}ms.`);
-
-            let t1 = performance.now();
-            console.debug(`Overall processing time for object ${alObject.Name}: ${Math.round((t1 - t0) * 100 / 100)}ms.`);
+            perfUtil.Measure(`Getting XML Documentation for ${ALObjectType[objectType]} ${objectName}`);
+            ALCheckDocumentation.CheckDocumentationForALObject(alObject, document);
 
             if (this.GetALObjectFromCache(alObject.Type, alObject.Name) !== null) {
                 ALObjectCache.ALObjects.splice(ALObjectCache.ALObjects.indexOf(alObject), 1); 
             }
             ALObjectCache.ALObjects.push(alObject); // add AL object to AL Object cache.
+            totalPerfUtil.Measure(`Overall processing for ${ALObjectType[alObject.Type]} ${alObject.Name}`, 50, 200);
             return alObject;   
         }
         catch (ex)
         {
+            if (this.TokenIsCancelled(token)) {
+                return null; // silently quit on cancellation request
+            }
             console.error(`${ex} Please report this error at https://github.com/365businessdev/vscode-alxmldocumentation/issues.`);
             return null;
         }
@@ -193,22 +229,46 @@ export class ALSyntaxUtil {
      * @param alObject ALObject object.
      * @param code AL Source Code.
      */
-    private static async GetALObjectProcedures(alObject: ALObject, code: string) {
+    private static async GetALObjectProcedures(alObject: ALObject, code: string, token: CancellationToken|null) {
         try
         {
             let procedures: RegExpMatchArray | null = code.match(FindALProceduresRegEx);
             if (procedures === null) {
                 return;
             }
+            
+            if (this.TokenIsCancelled(token)) {
+                return;
+            }
 
-            alObject.Procedures = [];
-            await Promise.all(procedures.map(async(procedureMatch) => {
-                let procedure: ALProcedure = this.GetALObjectProcedureDefinition(code, procedureMatch);
-                alObject.Procedures!.push(procedure);
-            }));
+            let alProcedures: Array<ALProcedure> = [];
+            let alProcedureDefinitionTasks: Promise<ALProcedure>[] = [];
+            for (let procedureMatch in procedures) {
+                let procedureSignature: string = procedures[procedureMatch];
+                if (this.TokenIsCancelled(token)) {
+                    throw new Error("Cancellation requested.");
+                }
+
+                alProcedureDefinitionTasks.push(this.GetALObjectProcedureDefinition(code, procedureSignature, token));
+            }
+            
+            let perfUtil: ProcessingTimeUtil = new ProcessingTimeUtil();
+            let alProcedureDefinitions: ALProcedure[] = await Promise.all(alProcedureDefinitionTasks);
+            alProcedureDefinitions.forEach(alProcedure => {
+                alProcedures.push(alProcedure);
+            });            
+            perfUtil.Measure(`Adding Procedure Definitions to ${ALObjectType[alObject.Type]} ${alObject.Name}`);
+
+            if (alProcedures.length === 0) {
+                throw new Error('Fatal Error: Unable to collect procedure information. Please report this error at https://github.com/365businessdev/vscode-alxmldocumentation/issues.');
+            }
+            alObject.Procedures = alProcedures;
         }
         catch (ex)
         {
+            if (this.TokenIsCancelled(token)) {
+                return; // quit silently if exception is caused by token cancellation.
+            }
             console.error(`Unable to retrieve procedures from object ${alObject.Name}. Please report this error at https://github.com/365businessdev/vscode-alxmldocumentation/issues.`);
             console.error(ex);
         }
@@ -219,12 +279,20 @@ export class ALSyntaxUtil {
      * @param code AL Source Code.
      * @param procedureName AL procedure name.
      */
-    private static GetALObjectProcedureDefinition(code: string, procedureName: string): ALProcedure {
-        let alProcedure = new ALProcedure();
+    private static async GetALObjectProcedureDefinition(code: string, procedureName: string, token: CancellationToken|null): Promise<ALProcedure> {
+        if (this.TokenIsCancelled(token)) {
+            throw new Error("Cancellation requested.");
+        }
+        let perfUtil: ProcessingTimeUtil = new ProcessingTimeUtil();
+        let alProcedure: ALProcedure = new ALProcedure();
 
         alProcedure.Name = StringUtil.ReplaceAll(procedureName, '"');
         alProcedure.LineNo = this.GetALKeywordDefinitionLineNo(code, procedureName);
         alProcedure.Range = this.GetRange(code, alProcedure.LineNo);
+
+        if (this.TokenIsCancelled(token)) {
+            throw new Error("Cancellation requested.");
+        }
 
         let alProcedureDefinition = procedureName.match(ALProcedureDefinitionRegEx)?.groups;
         if ((alProcedureDefinition === undefined) || (alProcedureDefinition === null)) {
@@ -235,6 +303,10 @@ export class ALSyntaxUtil {
             alProcedure.Access = this.GetALProcedureAccessLevel(alProcedureDefinition['Access']);            
             alProcedure.Type = this.GetALProcedureType(alProcedureDefinition);
 
+            if (this.TokenIsCancelled(token)) {
+                throw new Error("Cancellation requested.");
+            }
+
             // get parameters from procedure definition
             if (alProcedureDefinition['Params'] !== undefined) {
                 let alProcedureParams: Array<string> = [];
@@ -242,6 +314,9 @@ export class ALSyntaxUtil {
                     alProcedureParams.push(alProcedureDefinition['Params']);
                 } else { // multiple parameters
                     alProcedureDefinition['Params'].split(';').forEach(param => {
+                        if (this.TokenIsCancelled(token)) {
+                            throw new Error("Cancellation requested.");
+                        }
                         alProcedureParams.push(param);
                     });
                 }
@@ -252,12 +327,18 @@ export class ALSyntaxUtil {
             }
             this.GetALObjectProcedureReturn(alProcedureDefinition, alProcedure, code);
         }
+        if (this.TokenIsCancelled(token)) {
+            throw new Error("Cancellation requested.");
+        }
         this.GetALProcedureProperties(alProcedure, code);
         if (alProcedure.TryFunction) {
             alProcedure.Return = new ALProcedureReturn();
             alProcedure.Return.Type = 'Boolean';
             alProcedure.Return.XmlDocumentation.Exists = XMLDocumentationExistType.Yes;
             alProcedure.Return.XmlDocumentation.Documentation = '<returns>False if an runtime error occurred. Otherwise true.</returns>';
+        }
+        if (this.TokenIsCancelled(token)) {
+            throw new Error("Cancellation requested.");
         }
 
         // get XML Documentation
@@ -278,7 +359,11 @@ export class ALSyntaxUtil {
                 }
                 break;
         }
+        if (this.TokenIsCancelled(token)) {
+            throw new Error("Cancellation requested.");
+        }
 
+        perfUtil.Measure(`Getting ${alProcedure.Name}`);
         return alProcedure;
     }
 

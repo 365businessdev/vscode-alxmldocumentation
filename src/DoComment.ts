@@ -67,7 +67,7 @@ export class DoComment {
      * @param activeEditor TextEditor object.
      * @param event TextDocumentContentChangeEvent object.
      */
-    public DoComment(activeEditor: TextEditor, event: TextDocumentContentChangeEvent) {
+    public async DoComment(activeEditor: TextEditor, event: TextDocumentContentChangeEvent) {
         this.event = event;
         this.vsCodeApi = new VSCodeApi(activeEditor);
         this.activeEditor = activeEditor;
@@ -114,7 +114,7 @@ export class DoComment {
         if (this.vsCodeApi.ReadLine(this.vsCodeApi.GetNextLine()).trim().startsWith('///')) {
             return;
         }
-        this.WriteDocString();
+        await this.WriteDocString();
     }
 
     /**
@@ -160,9 +160,9 @@ export class DoComment {
     /**
      * Write XML Documentation string to current editor.
      */
-    public WriteDocString() {
+    public async WriteDocString() {
         // Analyze current AL Object.
-        let alObject: ALObject | null = ALSyntaxUtil.GetALObject(this.activeEditor.document);
+        let alObject: ALObject | null = await ALSyntaxUtil.GetALObject(this.activeEditor.document);
         if ((alObject === null) || (alObject === undefined)) {
             return;
         }
