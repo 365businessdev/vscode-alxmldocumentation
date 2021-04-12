@@ -30,8 +30,10 @@ There are two commands available to generate markdown files from XML documentati
 
 | Command | Description | 
 | --- | --- |
-| `AL DOC: Generate markdown documentation` | Create markdown documentation file for the currently opened AL source code file. |
-| `AL DOC: Generate markdown documentation for directory` | Create markdown documentation files for all AL source code files in the currently opened directory. |
+| `AL DOC: Export documentation as PDF` | Create a single PDF file containing all documentations for current project. | 
+| `AL DOC: Export documentation` | Create markdown documentation files for all AL source code files in current project, including the project documentation file. |
+| `AL DOC: Export documentation for file` | Create markdown documentation file for the currently opened AL source code file. |
+| `AL DOC: Delete documentation` | Delete documentation files. |
 
  <br>![Generate markdown files from XML documentation comments][GenerateMDDoc]
 
@@ -112,6 +114,8 @@ The following configuration parameters are available:
 | --- | --- | --- |
 | `DocumentationBehavior` | Specifies the behavior for inserting the XML documentation comment after entering `///` in an AL source code file. | `IntelliSense` (standard behavior to respect AL language XML documentation feature) |
 | `DocumentationExportPath` | Specifies the path where the created markdown documentation files should be stored. | `doc` folder in workspace root directory |
+| `DocumentationExportSchema` | Specifies the structure how to export the markdown documentation files. Options:<br>- Project File + Object File<br>- Project File + Object File + Procedure File | Project File + Object File |
+| `PDF Documentation Export CSS` | Specifies a Stylesheet files (CSS) which contains custom CSS definitions for documentation export |  |
 | `DocumentationExportVerbose` | Specifies whether detailed information should be output during markdown creation. | `false` |
 | `CheckObjectDocumentationInformationLevel` | Specifies whether object documentations should be checked and undocumented objects reported. | `Information` | 
 | `CheckProcedureDocumentationInformationLevel` | Specifies whether procedure documentations should be checked and undocumented procedures reported. | `Information` | 
@@ -187,15 +191,15 @@ This extension is only processing AL language source code files.
 
 ## System Requirements
  - Visual Studio Code 1.44.0 (or higher) - [Download here](https://code.visualstudio.com/Download)
- - .NET Core 3.0 (or higher) - [Download here](https://dotnet.microsoft.com/download/dotnet-core/3.0)
 
 ## License
 This extension is licensed under the [MIT License](https://github.com/365businessdev/vscode-alxmldocumentation/blob/dev/LICENSE.txt).
 
 ## Known Issues
 
-### 2020-01 - version 1.0.5
- - Updating AL Documentation Cache for Interface implementations is completely disabled, due to performance issues. Planned for next minor release 1.1.0.
+### 2020-04 - version 1.1.0
+ - In large AL files (e.g. `Sales-Post` codeunit, +600 procedures) the analysis of the AL object can take several seconds. In this case the updating of diagnostic information and quick fixes is time delayed
+
 
 [GenerateXmlDoc]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/V1.AddXmlDocComment.gif?raw=true "Generate context aware XML documentation comments"
 [InheritXmlDoc]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/V1.AddInheritXmlDocComment.gif?raw=true "Link inherit XML documentation comment from interface object"
