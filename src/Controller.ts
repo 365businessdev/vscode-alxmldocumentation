@@ -1,10 +1,8 @@
-import { ALObject } from './types/ALObject';
 import { workspace, window, ProgressLocation, RelativePattern, Uri, ExtensionContext } from 'vscode';
 import { readFile } from 'fs-extra';
 import { ALSyntaxUtil } from './util/ALSyntaxUtil';
 import { DoComment } from './doComment';
 import { RegisterProvider } from './RegisterProvider';
-import { ALCheckDocumentation } from './util/ALCheckDocumentation';
 import { DoExport } from './DoExport';
 import { DoUpdateCache } from './DoUpdateCache';
 
