@@ -221,7 +221,7 @@ export class ALLangServerProxy {
         }
         catch(ex) 
         {
-            console.error(`[GetALObjectFromDefinition] - ${ex} Please report this Please report this error at https://github.com/365businessdev/vscode-alxmldocumentation/issues`);
+            console.error(`[GetALObjectFromDefinition] - ${ex} Please report this error at https://github.com/365businessdev/vscode-alxmldocumentation/issues`);
             return undefined;
         }
 

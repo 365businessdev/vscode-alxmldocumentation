@@ -128,7 +128,7 @@ export class ALDocCommentProvider implements CompletionItemProvider {
                 }
             }
         } catch(ex) {
-            console.error(`[AddXmlDocFromInterfaceCompletionItem] - ${ex} Please report this Please report this error at https://github.com/365businessdev/vscode-alxmldocumentation/issues`);
+            console.error(`[AddXmlDocFromInterfaceCompletionItem] - ${ex} Please report this error at https://github.com/365businessdev/vscode-alxmldocumentation/issues`);
             return undefined;
         }
 
