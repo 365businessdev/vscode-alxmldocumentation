@@ -205,7 +205,11 @@ export class ALSyntaxUtil {
                 ALDocCommentUtil.GenerateObjectDocString(alObject);
             }
             perfUtil.Measure(`Getting XML Documentation for ${ALObjectType[objectType]} ${objectName}`);
-            ALCheckDocumentation.CheckDocumentationForALObject(alObject, document);
+            
+            perfUtil = new ProcessingTimeUtil();
+            const alCheckDoc = new ALCheckDocumentation(document, alObject);
+            alCheckDoc.CheckDocumentation();
+            perfUtil.Measure(`Checking XML Documentation for ${ALObjectType[objectType]} ${objectName}`);
 
             if (this.GetALObjectFromCache(alObject.Type, alObject.Name) !== null) {
                 ALObjectCache.ALObjects.splice(ALObjectCache.ALObjects.indexOf(alObject), 1); 

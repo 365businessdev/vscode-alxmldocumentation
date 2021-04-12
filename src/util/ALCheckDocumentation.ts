@@ -1,4 +1,4 @@
-import { Diagnostic, DiagnosticCollection, languages, Range, TextDocument } from 'vscode';
+import { Diagnostic, Range, TextDocument } from 'vscode';
 import { ALXmlDocDiagnosticCode, ALXmlDocDiagnosticPrefix } from '../types';
 import { ALObject } from '../types/ALObject';
 import { ALObjectType } from '../types/ALObjectType';
@@ -8,72 +8,39 @@ import { ALSyntaxUtil } from './ALSyntaxUtil';
 import { ALDocCommentUtil } from './ALDocCommentUtil';
 import { Configuration } from './Configuration';
 import { StringUtil } from './string/StringUtil';
-import * as fs from 'fs';
 import { ALProcedureType } from '../types/ALProcedureType';
 import { ALCodeunitType } from '../types/ALCodeunitType';
+import { ALDiagnosticCollection } from './ALDiagnosticCollection';
 
-export class ALCheckDocumentation {
-    /**
-     * Collection to store all gathered diagnostics.
-     */
-    private static diagCollection: DiagnosticCollection = languages.createDiagnosticCollection(ALXmlDocDiagnosticPrefix);
-    
+export class ALCheckDocumentation {    
     /**
      * Gathered diagnostics.
      */
-    private static diags: Diagnostic[] = [];
+    private diags: Diagnostic[] = [];
 
     /**
      * Actual AL Source Code file.
      */
-    private static document: any;
+    private document: any;
 
     /**
      * AL Object.
      */
-    private static alObject: ALObject | null = null;
+    private alObject: ALObject;
 
-    /**
-     * Check documentation for passed TextDocument.
-     * @param document {TextDocument}
-     */
-    public static CheckDocumentationForDocument(document: TextDocument) {
-        if (document.languageId !== 'al') {
-            return;
-        }
+    public constructor(document: TextDocument, alObject: ALObject) {
         this.document = document;
-
-        this.CheckDocumentation();
-    }
-
-    /**
-     * Check documentation for passed AL Object.
-     * @param alObject {ALObject}
-     */
-    public static async CheckDocumentationForALObject(alObject: ALObject, document: TextDocument | undefined = undefined) {
-        if (document === undefined) {
-            this.document = Object.assign({});
-            this.document.getText = () => fs.readFileSync(`${alObject.Path}/${alObject.FileName}`, 'utf8');
-            this.document.fileName = `${alObject.Path}/${alObject.FileName}`;
-            this.document.uri = alObject.Uri;
-        } else {
-            this.document = document;
-
-            if (document.languageId !== 'al') {
-                return;
-            }
-        }
-
         this.alObject = alObject;
-
-        this.CheckDocumentation();
+        
+        // clear all diagnostics
+        this.diags = [];
+        this.UpdateDiagnosticCollection();
     }
 
     /**
      * General documentation check procedure.
      */
-    private static async CheckDocumentation() {
-        await this.Initialize();
+    public CheckDocumentation() {
         
         if ((!Configuration.ProcedureDocumentationCheckIsEnabled(this.document.uri)) && (!Configuration.ObjectDocumentationCheckIsEnabled(this.document.uri))) {
             return;
@@ -102,26 +69,13 @@ export class ALCheckDocumentation {
         
         this.UpdateDiagnosticCollection();
     }
-
-    /**
-     * Initialize documentation check and clear previously reported diagnostics.
-     */
-    private static async Initialize() {
-        // clear all diagnostics
-        this.diags = [];
-        this.UpdateDiagnosticCollection();
-
-        if (this.alObject === null) {
-            this.alObject = await ALSyntaxUtil.GetALObject(this.document);
-        }
-    }
     
     /**
      * Analyze source code for unnecessary XML documentations.
      * @param alObject ALObject
      * @param document TextDocument
      */
-    private static AnalyzeUnnecessaryDocumentation(alObject: ALObject | null, document: TextDocument) {
+    private AnalyzeUnnecessaryDocumentation(alObject: ALObject | null, document: TextDocument) {
         if (alObject === null) {
             return;
         }
@@ -164,7 +118,7 @@ export class ALCheckDocumentation {
      * @param alObject ALObject
      * @param alProcedure ALProcedure
      */
-    private static GetUnnecessaryProcedureDocumentationDiagnostics(codeLines: string[], currentLineNo: number, xmlDocumentation: string, alObject: ALObject, alProcedure: ALProcedure) {
+    private GetUnnecessaryProcedureDocumentationDiagnostics(codeLines: string[], currentLineNo: number, xmlDocumentation: string, alObject: ALObject, alProcedure: ALProcedure) {
         // convert to JSON to make it more accessible 
         let jsonDocumentation = ALDocCommentUtil.GetJsonFromXmlDocumentation(xmlDocumentation);
         if (!jsonDocumentation.param) {
@@ -212,7 +166,7 @@ export class ALCheckDocumentation {
      * @param param Documented parameter
      * @param alProcedure ALProcedure
      */
-    private static GetUnnecessaryParameterDocumentationDiagnostics(unnecessaryParameters: Array<string>, param: { value: string, attr: { name: string }}, alProcedure: ALProcedure) {
+    private GetUnnecessaryParameterDocumentationDiagnostics(unnecessaryParameters: Array<string>, param: { value: string, attr: { name: string }}, alProcedure: ALProcedure) {
         if (!param) {
             return;
         }
@@ -227,7 +181,7 @@ export class ALCheckDocumentation {
      * @param alObject {ALObject}
      * @param alProcedure {ALProcedure}
      */
-    private static AnalyzeProcedureDocumentation(alObject: ALObject | null, alProcedure: ALProcedure) {
+    private AnalyzeProcedureDocumentation(alObject: ALObject | null, alProcedure: ALProcedure) {
         if (alObject === null) {
             return;
         }
@@ -332,7 +286,7 @@ export class ALCheckDocumentation {
      * Analyse documentation of the given object.
      * @param alObject 
      */
-    private static AnalyzeObjectDocumentation(alObject: ALObject) {
+    private AnalyzeObjectDocumentation(alObject: ALObject) {
         if (alObject === null) {
             return;
         }
@@ -356,7 +310,7 @@ export class ALCheckDocumentation {
      * Checks whether any XML documentation is present for AL Procedure or not.
      * @param alProcedure ALProcedure to search for any XML documentation present
      */
-    private static IsMissingXmlDocumentation(alProcedure: ALProcedure): boolean {
+    private IsMissingXmlDocumentation(alProcedure: ALProcedure): boolean {
         return (alProcedure.XmlDocumentation.Exists === XMLDocumentationExistType.No) && 
             ((alProcedure.Return === undefined) || (alProcedure.Return?.XmlDocumentation.Exists === XMLDocumentationExistType.No)) && 
             (alProcedure.Parameters?.find(alProcedure => (alProcedure.XmlDocumentation.Exists === XMLDocumentationExistType.Yes)) === undefined);
@@ -366,14 +320,14 @@ export class ALCheckDocumentation {
      * Returns diagnostics string.
      * @param diagnosticCode {ALXmlDocDiagnosticCode}
      */
-    private static GetDiagnosticCode(diagnosticCode: ALXmlDocDiagnosticCode): any {
+    private GetDiagnosticCode(diagnosticCode: ALXmlDocDiagnosticCode): any {
         return diagnosticCode.toString();
     }
 
     /**
      * Returns true if actual diagnostic code is representing a missing documentation.
      */
-    private static IsMissingDocumentationDiag(element: { diagnosticCode: ALXmlDocDiagnosticCode; }, index: any, array: any) {
+    private IsMissingDocumentationDiag(element: { diagnosticCode: ALXmlDocDiagnosticCode; }, index: any, array: any) {
         return (
             (element.diagnosticCode === ALXmlDocDiagnosticCode.XmlDocumentationMissing) || 
             (element.diagnosticCode === ALXmlDocDiagnosticCode.SummaryMissing) ||
@@ -384,20 +338,20 @@ export class ALCheckDocumentation {
     /**
      * Returns true if actual diagnostic code is representing a unnecessary documentation.
      */
-    private static IsUnnecessaryDocumentationDiag(element: { diagnosticCode: ALXmlDocDiagnosticCode; }, index: any, array: any) {
+    private IsUnnecessaryDocumentationDiag(element: { diagnosticCode: ALXmlDocDiagnosticCode; }, index: any, array: any) {
         return ((element.diagnosticCode === ALXmlDocDiagnosticCode.ParameterUnnecessary));
     }
 
     /**
      * Update DiagnosticCollection to present them to the user.
      */
-    private static UpdateDiagnosticCollection() {
+    private UpdateDiagnosticCollection() {
         if (this.diags === []) {
-            this.diagCollection.clear();
+            ALDiagnosticCollection.Diagnostics.clear();
             return;
         }
         
-        this.diagCollection.set(this.document.uri, this.diags);
+        ALDiagnosticCollection.Diagnostics.set(this.document.uri, this.diags);
     }
 
 }
