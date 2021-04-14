@@ -99,7 +99,7 @@ Three snippets are included into the extension:
 ```
 
 ## Installation
-1. Install Visual Studio Code 1.44.0 or higher
+1. Install Visual Studio Code 1.55.0 or higher
 2. Launch Visual Studio Code
 3. From the extension view Ctrl-Shift-X (Windows, Linux) or Cmd-Shift-X (macOS)
 4. Search and Choose the extension AL XML Documentation
@@ -190,7 +190,7 @@ This extension is only processing AL language source code files.
 | `inherit` | ![Supported] |
 
 ## System Requirements
- - Visual Studio Code 1.44.0 (or higher) - [Download here](https://code.visualstudio.com/Download)
+ - Visual Studio Code 1.55.0 (or higher) - [Download here](https://code.visualstudio.com/Download)
 
 ## License
 This extension is licensed under the [MIT License](https://github.com/365businessdev/vscode-alxmldocumentation/blob/dev/LICENSE.txt).
