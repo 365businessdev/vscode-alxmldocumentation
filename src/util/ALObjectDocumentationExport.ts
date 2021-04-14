@@ -224,7 +224,23 @@ pdf_options:
         let headingLevel = 1;
 
         // write object summary
-        doc.WriteHeading(alObject.Name!, headingLevel);                
+        doc.WriteHeading(alObject.Name!, headingLevel); 
+        
+        doc.WriteLine();
+        switch (alObject.XmlDocumentation.Exists) {
+            case XMLDocumentationExistType.No:
+                this.WriteOutput(`Warning: XML documentation could not been found for ${ALObjectType[alObject.Type]} ${alObject.Name}.`);
+                break;
+            case XMLDocumentationExistType.Yes:
+                let documentation: any = await alObject.GetDocumentationAsJsonObject();
+                doc.WriteLine(documentation.summary);
+                if (documentation.remarks) {
+                    doc.WriteHeading('Remarks', headingLevel);
+                    doc.WriteLine(documentation.remarks);
+                }
+                break;
+        }
+        doc.WriteLine();               
         headingLevel++;
 
         doc.WriteHeading('Properties', headingLevel);         
@@ -241,22 +257,6 @@ pdf_options:
             doc.WriteLine(`| Object ID | ${alObject.ID} |`);
         }
         doc.WriteLine(`| Accessibility Level | ${ALAccessLevel[alObject.Access]} | `);
-        doc.WriteLine();
-        
-        doc.WriteLine();
-        switch (alObject.XmlDocumentation.Exists) {
-            case XMLDocumentationExistType.No:
-                this.WriteOutput(`Warning: XML documentation could not been found for ${ALObjectType[alObject.Type]} ${alObject.Name}.`);
-                break;
-            case XMLDocumentationExistType.Yes:
-                let documentation: any = alObject.GetDocumentationAsJsonObject();
-                doc.WriteLine(documentation.summary);
-                if (documentation.remarks) {
-                    doc.WriteHeading('Remarks', headingLevel);
-                    doc.WriteLine(documentation.remarks);
-                }
-                break;
-        }
         doc.WriteLine();
 
         if (alObject.ObsoleteState !== ALObsoleteState.No) {
