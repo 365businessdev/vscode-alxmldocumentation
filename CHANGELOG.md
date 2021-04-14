@@ -145,3 +145,5 @@ All notable changes to the "AL XML Documentation" extension will be documented i
 - Implemented [Cancellation Token](https://www.npmjs.com/package/cancellationtoken) node module
 - Fixed Issue [#52](https://github.com/365businessdev/vscode-alxmldocumentation/issues/52) - Analyze AL object asynchronously
   > Thanks to @TCMatthiasMartin for reporting.
+- Fixed Issue [#53](https://github.com/365businessdev/vscode-alxmldocumentation/issues/53) - Ignoring empty lines when creating MarkDown documentation
+  > Thanks to @horribleCodes for reporting.
