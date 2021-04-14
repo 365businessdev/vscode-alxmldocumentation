@@ -67,15 +67,25 @@ export class ALSyntaxUtil {
      * @param document Current TextDocument.
      */    
     public static ClearALObjectFromCache(document: TextDocument) {
-        let alObjectDefinition = this.GetALObjectDefinition(document.getText());
-        if ((alObjectDefinition?.groups === null) || (alObjectDefinition?.groups === undefined)) {
-            return;
+        let alObjects: ALObject[] = ALObjectCache.ALObjects.filter(alObject => (alObject.Uri === document.uri));
+        let alObject: ALObject|null = null;
+        if (alObjects.length === 0) {
+            let alObjectDefinition = this.GetALObjectDefinition(document.getText());
+            if ((alObjectDefinition?.groups === null) || (alObjectDefinition?.groups === undefined)) {
+                return;
+            }
+
+            let objectName: string = alObjectDefinition.groups['ObjectName'];
+            let objectType: ALObjectType = this.SelectALObjectType(alObjectDefinition.groups['ObjectType']);
+
+            alObject = this.GetALObjectFromCache(objectType, objectName);
+            if (alObject === null) {
+                return;
+            }
+        } else {
+            alObject = alObjects[0];
         }
 
-        let objectName: string = alObjectDefinition.groups['ObjectName'];
-        let objectType: ALObjectType = this.SelectALObjectType(alObjectDefinition.groups['ObjectType']);
-
-        let alObject: ALObject|null = this.GetALObjectFromCache(objectType, objectName);
         if (alObject === null) {
             return;
         }
