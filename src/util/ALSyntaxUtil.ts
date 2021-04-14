@@ -798,7 +798,7 @@ export class ALSyntaxUtil {
 
             for (var i = 0; (i < codeLines.length); i++) {
                 let line: string = codeLines[i];
-                if ((line.trim().startsWith('///')) && (line.trim().replace('///','').trim() !== '')) {
+                if ((line.trim().startsWith('///'))) {
                     result.Documentation = `${result.Documentation}\r\n${line.replace('///','').trim()}`;
                 }
                 if ((ALSyntaxUtil.IsProcedureDefinition(line)) || (ALSyntaxUtil.IsObjectDefinition(line)) || (ALSyntaxUtil.IsBeginEnd(line))) {
