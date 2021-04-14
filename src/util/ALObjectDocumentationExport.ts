@@ -11,6 +11,7 @@ import { ALObsoleteState } from '../types/ALObsoleteState';
 import { ALProcedure } from '../types/ALProcedure';
 import { ALProcedureType } from '../types/ALProcedureType';
 import { XMLDocumentationExistType } from '../types/XMLDocumentationExistType';
+import { ALAppJsonReader } from './ALAppJsonReader';
 import { ALDocCommentUtil } from './ALDocCommentUtil';
 import { Configuration } from './Configuration';
 import { FilesystemHelper } from './filesystem/FilesystemHelper';
@@ -43,8 +44,7 @@ export class ALObjectDocumentationExport {
             this.WriteOutput('Unable to find app.json for current workspace. Please report this issue to https://github.com/365businessdev/vscode-alxmldocumentation/issues/ for further investigation.');
             throw new Error('Unable to find app.json for current workspace.');
         }
-        
-        return require(path.join(appJsonPath.fsPath, 'app.json'));
+        return ALAppJsonReader.ReadManifest(path.join(appJsonPath.fsPath, 'app.json'));
     }
 
     /**
