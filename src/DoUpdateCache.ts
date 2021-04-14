@@ -1,6 +1,7 @@
-import { Disposable, TextDocumentChangeEvent, workspace } from 'vscode';
+import { Disposable, FileDeleteEvent, TextDocumentChangeEvent, workspace } from 'vscode';
 import { ALSyntaxUtil } from './util/ALSyntaxUtil';
 import CancellationToken from 'cancellationtoken';
+import { ALObjectCache } from './ALObjectCache';
 
 export class DoUpdateCache {
     private disposable: Disposable;
@@ -8,7 +9,15 @@ export class DoUpdateCache {
     constructor() {
         const subscriptions: Disposable[] = []; 
         var changeTimeout: NodeJS.Timeout | null;
-        var cancellation: { cancel: (reason?: any) => void, token: CancellationToken } | null = null;       
+        var cancellation: { cancel: (reason?: any) => void, token: CancellationToken } | null = null;
+        
+        workspace.onDidDeleteFiles(async (event: FileDeleteEvent) => {
+            event.files.forEach(fileUri => {
+                ALObjectCache.ALObjects.filter(alObject => (alObject.Uri === fileUri)).forEach(alObject => {
+                    ALObjectCache.ALObjects.splice(ALObjectCache.ALObjects.indexOf(alObject), 1); // remove object from cache
+                });
+            });
+        });
 
         workspace.onDidChangeTextDocument(async (event: TextDocumentChangeEvent) => {
             if ((!event.document) || (event.document.languageId !== 'al')) {
