@@ -104,7 +104,7 @@ pdf_options:
             doc.WriteLine('<div class="page-break"></div>');
             doc.WriteLine();
             output.appendLine(`${StringUtil.GetTimestamp()} Exporting documentation for ${ALObjectType[alObject.Type]} ${alObject.Name} . . . `);
-            await ALObjectDocumentationExport.ExportObject(alObject, output, Configuration.IncludeProcedureDocumentationInObjectDocumentationFile(), doc);
+            await ALObjectDocumentationExport.ExportObject(alObject, output, true, doc);
         };
 
         try
