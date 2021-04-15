@@ -187,7 +187,7 @@ pdf_options:
         headingLevel--;
 
         // write app dependencies
-        if (appJson.dependencies.length !== 0) {
+        if ((appJson.dependencies) && (appJson.dependencies.length !== 0)) {
             doc.WriteLine();
             doc.WriteHeading('Dependencies', headingLevel);
             appJson.dependencies.forEach((alDependency: { name: string; publisher: string; version: string; }) => {
