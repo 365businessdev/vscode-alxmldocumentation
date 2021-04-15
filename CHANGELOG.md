@@ -90,3 +90,60 @@ All notable changes to the "AL XML Documentation" extension will be documented i
 ## [0.4.4] - 2020-07-30
 
 - Upgrade to ALCodeCommentMarkdownCreator 1.3.5 - Issue [#24](https://github.com/365businessdev/vscode-alxmldocumentation/issues/24)
+
+## [1.0.0] - 2020-11-23
+
+- Redesign of the complete extension.
+- Performance optimization for larger AL projects.
+- Added inheritdoc – tag for documentation of inherit interface procedure documentations
+- Added QuickFix for unnecessary parameter documentations
+- New AL Source Code analysis
+- Fixed Issue [#35](https://github.com/365businessdev/vscode-alxmldocumentation/issues/35)
+- Fixed Issue [#33](https://github.com/365businessdev/vscode-alxmldocumentation/issues/33)
+- Fixed Issue [#32](https://github.com/365businessdev/vscode-alxmldocumentation/issues/32)
+- Fixed Issue [#31](https://github.com/365businessdev/vscode-alxmldocumentation/issues/31)
+- Fixed Issue [#30](https://github.com/365businessdev/vscode-alxmldocumentation/issues/30)
+- Fixed Issue [#29](https://github.com/365businessdev/vscode-alxmldocumentation/issues/29)
+- Fixed Issue [#28](https://github.com/365businessdev/vscode-alxmldocumentation/issues/28)
+- Fixed Issue [#27](https://github.com/365businessdev/vscode-alxmldocumentation/issues/27)
+- Fixed Issue [#26](https://github.com/365businessdev/vscode-alxmldocumentation/issues/26)
+
+## [1.0.1] - 2020-11-24
+
+- Fixed Issue [#39](https://github.com/365businessdev/vscode-alxmldocumentation/issues/39)
+
+## [1.0.2] - 2020-11-25
+
+- Optimization: Do not check any kind of procedures in 'Test' codeunits if 'Test Procedures' is disabled in configuration.
+
+## [1.0.3] - 2020-11-27
+
+- Fixed Issue [#40](https://github.com/365businessdev/vscode-alxmldocumentation/issues/40) - Setting to suppress missing documentation messages for Access <> Public objects
+- Fixed Issue [#28](https://github.com/365businessdev/vscode-alxmldocumentation/issues/28) - Option for no code-analyzer message for procedures in objects with Access=Internal
+- Fixed configuration description for `CheckProcedureDocumentationForAccessLevel`
+
+## [1.0.5] - 2021-01-25
+- Fixed Issue [#42](https://github.com/365businessdev/vscode-alxmldocumentation/issues/42) - Underscore in Interface Names.
+- Fixed Issue [#43](https://github.com/365businessdev/vscode-alxmldocumentation/issues/43) - "Inherit AL XML Documentation Comment" results in 'badly formed XML' if parameter type object name contains spaces (and therefore surrounded by quotes in the signature) 
+- Fixed Issue [#27](https://github.com/365businessdev/vscode-alxmldocumentation/issues/27) - Inherit documentation for procedures implementing interface methods with underscore in object name
+- Added configuration parameter `InitializeALObjectCacheOnStartUp` to skip initialization while start-up.
+
+## [1.1.0] - 2021-04-16
+- Fixed Issue [#45](https://github.com/365businessdev/vscode-alxmldocumentation/issues/45) - Code analyzer rules for missing procedure XML documentation also reacts on 'procedure' in comments.
+  > Thanks to @rvanbekkum for reporting.
+- Fixed missing example code in inherit procedure documentation.
+- Redesigned inherit procedure documentation logic.
+- Removed ALCodeCommentMarkdownCreator.
+- Added new markdown documentation export.
+- Added pdf documentation export.
+- Added custom stylesheet (css) support for documentation export.
+- Fixed Issue [#41](https://github.com/365businessdev/vscode-alxmldocumentation/issues/41) - &lt;returns&gt; tag contents are missing from generated markdown.
+- Added markdown documentation export project index [#49](https://github.com/365businessdev/vscode-alxmldocumentation/issues/49). 
+  > Thanks to @spookymattress and @MacWin77 for the idea and feedback.
+- Fixed Issue [#48](https://github.com/365businessdev/vscode-alxmldocumentation/issues/48) - Option for no code-analyzer message for objects with Access=Internal
+  > Thanks to @rvanbekkum for reporting.
+- Implemented [Cancellation Token](https://www.npmjs.com/package/cancellationtoken) node module
+- Fixed Issue [#52](https://github.com/365businessdev/vscode-alxmldocumentation/issues/52) - Analyze AL object asynchronously
+  > Thanks to @TCMatthiasMartin for reporting.
+- Fixed Issue [#53](https://github.com/365businessdev/vscode-alxmldocumentation/issues/53) - Ignoring empty lines when creating MarkDown documentation
+  > Thanks to @horribleCodes for reporting.

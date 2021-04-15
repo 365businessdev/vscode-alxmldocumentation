@@ -34,7 +34,7 @@ export class ALDocCommentProvider implements CompletionItemProvider {
             return;
         }        
 
-        let alObject: ALObject | null = ALSyntaxUtil.GetALObject(document);
+        let alObject: ALObject | null = await ALSyntaxUtil.GetALObject(document);
         if (alObject === null) {
             return;
         }
@@ -128,7 +128,7 @@ export class ALDocCommentProvider implements CompletionItemProvider {
                 }
             }
         } catch(ex) {
-            console.error(`[AddXmlDocFromInterfaceCompletionItem] - ${ex} Please report this Please report this error at https://github.com/365businessdev/vscode-alxmldocumentation/issues`);
+            console.error(`[AddXmlDocFromInterfaceCompletionItem] - ${ex} Please report this error at https://github.com/365businessdev/vscode-alxmldocumentation/issues`);
             return undefined;
         }
 
@@ -146,7 +146,7 @@ export class ALDocCommentProvider implements CompletionItemProvider {
         );
 
         inheritCompletionItem.detail = 'XML documentation comment to document inherit AL procedures.';
-        let snippetText: string = `/// <inheritdoc cref="${alObject.ExtensionObject}.${alProcedure.Code}"/>`;
+        let snippetText: string = `/// <inheritdoc cref="${alProcedure.Code}"/>`;
         const snippet: SnippetString = new SnippetString(snippetText.replace('///', '')); // delete leading '///'. The trigger character is already in the document when the completion provider is triggered.
         inheritCompletionItem.insertText = snippet;
         inheritCompletionItem.documentation = snippetText;

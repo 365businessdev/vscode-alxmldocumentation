@@ -1,16 +1,11 @@
 import { Position, Disposable, TextDocumentContentChangeEvent, TextEditor, window, workspace, SnippetString } from 'vscode';
-import { StringUtil } from './util/StringUtil';
+import { StringUtil } from './util/string/StringUtil';
 import { ALSyntaxUtil } from './util/ALSyntaxUtil';
 import { VSCodeApi } from './api/VSCodeApi';
 import { ALObject } from './types/ALObject';
 import { ALProcedure } from './types/ALProcedure';
 import { ALDocCommentUtil } from './util/ALDocCommentUtil';
 import { Configuration } from './util/Configuration';
-import { ALObjectExtensionType } from './types/ALObjectExtensionType';
-import { ALObjectType } from './types/ALObjectType';
-import { ALObjectCache } from './ALObjectCache';
-import { ALCheckDocumentation } from './util/ALCheckDocumentation';
-import * as fs from 'fs';
 
 export class DoComment {
     private disposable: Disposable;
@@ -26,6 +21,8 @@ export class DoComment {
         const subscriptions: Disposable[] = [];
 
         workspace.onDidChangeTextDocument(event => {
+            return; // TODO: This causes serious problems due to hundreds of calls! :-(
+            /**
             const activeEditor = window.activeTextEditor;
 
             if (event.document.languageId !== 'al') {
@@ -59,6 +56,7 @@ export class DoComment {
                 }
                 ALCheckDocumentation.CheckDocumentationForALObject(alObject, activeEditor.document);
             }
+             */
         }, this, subscriptions);
         
         this.disposable = Disposable.from(...subscriptions);
@@ -69,7 +67,7 @@ export class DoComment {
      * @param activeEditor TextEditor object.
      * @param event TextDocumentContentChangeEvent object.
      */
-    public DoComment(activeEditor: TextEditor, event: TextDocumentContentChangeEvent) {
+    public async DoComment(activeEditor: TextEditor, event: TextDocumentContentChangeEvent) {
         this.event = event;
         this.vsCodeApi = new VSCodeApi(activeEditor);
         this.activeEditor = activeEditor;
@@ -116,7 +114,7 @@ export class DoComment {
         if (this.vsCodeApi.ReadLine(this.vsCodeApi.GetNextLine()).trim().startsWith('///')) {
             return;
         }
-        this.WriteDocString();
+        await this.WriteDocString();
     }
 
     /**
@@ -162,9 +160,9 @@ export class DoComment {
     /**
      * Write XML Documentation string to current editor.
      */
-    public WriteDocString() {
+    public async WriteDocString() {
         // Analyze current AL Object.
-        let alObject: ALObject | null = ALSyntaxUtil.GetALObject(this.activeEditor.document);
+        let alObject: ALObject | null = await ALSyntaxUtil.GetALObject(this.activeEditor.document);
         if ((alObject === null) || (alObject === undefined)) {
             return;
         }

@@ -11,7 +11,13 @@ export class ALDocumentationQuickFixProvider implements CodeActionProvider {
     public provideCodeActions(document: TextDocument, range: Range | Selection, context: CodeActionContext, token: CancellationToken): ProviderResult<(CodeAction | Command)[]> {
         this.QuickFixActions = [];
 
-        let alObject: ALObject | null = ALSyntaxUtil.GetALObject(document);
+        return new Promise(resolve => {
+            resolve(this.ProvideCodeActionsAsync(document, range, context, token));
+         });
+    }
+
+    private async ProvideCodeActionsAsync(document: TextDocument, range: Range | Selection, context: CodeActionContext, token: CancellationToken): Promise<(CodeAction | Command)[] | null | undefined> {
+        let alObject: ALObject | null = await ALSyntaxUtil.GetALObject(document);
         if (alObject === null) {
             return;
         }
@@ -34,7 +40,7 @@ export class ALDocumentationQuickFixProvider implements CodeActionProvider {
                 if ((diagnosticCode !== ALXmlDocDiagnosticCode.ObjectXmlDocumentationMissing) && (diagnosticCode !== ALXmlDocDiagnosticCode.ParameterUnnecessary)) {
                     alProcedure = alObject?.Procedures?.find(alProcedure => (alProcedure.LineNo === range.start.line));
                     if (alProcedure === undefined) {
-                        console.error(`Unable to locate ALProcedure object for diagnostics entry. Please report this Please report this error at https://github.com/365businessdev/vscode-alxmldocumentation/issues`);
+                        console.error(`[ProvideCodeActionsAsync] - Unable to locate ALProcedure object for diagnostics entry. Please report this error at https://github.com/365businessdev/vscode-alxmldocumentation/issues`);
                         return;
                     }
                 }

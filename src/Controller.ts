@@ -1,10 +1,8 @@
-import { ALObject } from './types/ALObject';
 import { workspace, window, ProgressLocation, RelativePattern, Uri, ExtensionContext } from 'vscode';
 import { readFile } from 'fs-extra';
 import { ALSyntaxUtil } from './util/ALSyntaxUtil';
 import { DoComment } from './doComment';
 import { RegisterProvider } from './RegisterProvider';
-import { ALCheckDocumentation } from './util/ALCheckDocumentation';
 import { DoExport } from './DoExport';
 import { DoUpdateCache } from './DoUpdateCache';
 
@@ -62,10 +60,7 @@ export class Controller {
                         document.fileName = file.uri.fsPath;
                         document.uri = file.uri;
                         
-                        let alObject: ALObject|null = ALSyntaxUtil.GetALObject(document as any);
-                        if (alObject !== null) {                    
-                            ALCheckDocumentation.CheckDocumentationForALObject(alObject);
-                        }
+                        ALSyntaxUtil.GetALObject(document as any);
                     };
                     let max = relevantFiles.length;
                     for (let i = 0; i < max; i++) {

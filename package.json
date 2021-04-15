@@ -3,7 +3,7 @@
 	"displayName": "AL XML Documentation",
 	"description": "Generate XML documentation comments for AL source code and create markdown documentation from it.",
 	"publisher": "365businessdevelopment",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"icon": "res/icon.png",
 	"author": {
 		"name": "Christoph Krieg",
@@ -11,7 +11,7 @@
 		"url": "https://www.365businessdev.com/"
 	},
 	"engines": {
-		"vscode": "^1.50.0"
+		"vscode": "^1.55.0"
 	},
 	"categories": [
 		"Other"
@@ -30,18 +30,23 @@
 		"workspaceContains:app.json"
 	],
 	"main": "./out/extension.js",
-	"files": [
-		"bin/"
-	],
 	"contributes": {
 		"commands": [
 			{
-				"command": "al-xml-doc.exportMarkdown",
-				"title": "AL DOC: Generate markdown documentation"
+				"command": "al-xml-doc.exportPdf",
+				"title": "AL DOC: Export documentation as PDF"
 			},
 			{
-				"command": "al-xml-doc.exportDirectoryToMarkdown",
-				"title": "AL DOC: Generate markdown documentation for directory"
+				"command": "al-xml-doc.exportMarkdown",
+				"title": "AL DOC: Export documentation for file"
+			},
+			{
+				"command": "al-xml-doc.exportProjectToMarkdown",
+				"title": "AL DOC: Export documentation"
+			},
+			{
+				"command": "al-xml-doc.deleteExportedMarkdown",
+				"title": "AL DOC: Delete documentation"
 			}
 		],
 		"configuration": [
@@ -67,6 +72,24 @@
 						"type": "string",
 						"scope": "resource",
 						"description": "Specifies the path where the created markdown documentation files should be stored."
+					},
+					"al-xml-doc.PdfDocumentationExportCSS": {
+						"type": "string",
+						"scope": "resource",
+						"description": "Specifies the CSS file to use for formatting the PDF Documentation file."
+					},
+					"al-xml-doc.DocumentationExportSchema": {
+						"type": "string",
+						"default": "Project File + Object File",
+						"enum": [
+							"Project File + Object File",
+							"Project File + Object File + Procedure File"
+						],
+						"enumDescriptions": [
+							"Creates one project documentation file and one object documentation file per AL Object.",
+							"Creates one project documentation file, one object documentation file per AL Object and one procedure documentation file per AL Procedure."
+						],
+						"description": "Specifies the behavior for exporting the documentation."
 					},
 					"al-xml-doc.DocumentationExportVerbose": {
 						"type": "boolean",
@@ -189,6 +212,12 @@
 						"scope": "resource",
 						"default": false,
 						"description": "Specifies whether a confirmation will appear to enable procedure documentation for each workspace."
+					},
+					"al-xml-doc.InitializeALObjectCacheOnStartUp": {
+						"type": "boolean",
+						"scope": "resource",
+						"default": true,
+						"description": "Specifies whether to analyse all AL objects in current workspace when or skip initialization."
 					}
 				}
 			}
@@ -201,10 +230,12 @@
 		]
 	},
 	"dependencies": {
-		"fast-xml-parser": "^3.17.4",
-		"fs-extra": "^9.0.1",
+		"cancellationtoken": "^2.2.0",
+		"fast-xml-parser": "^3.19.0",
+		"fs-extra": "^9.1.0",
 		"guid-typescript": "^1.0.9",
-		"vscode-languageclient": "^6.1.3"
+		"md-to-pdf": "^3.3.2",
+		"vscode-languageclient": "^6.1.4"
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
@@ -215,18 +246,18 @@
 		"test": "node ./out/test/runTest.js"
 	},
 	"devDependencies": {
-		"@types/fs-extra": "^9.0.1",
+		"@types/fs-extra": "^9.0.11",
 		"@types/glob": "^7.1.3",
 		"@types/mocha": "^7.0.2",
-		"@types/node": "^13.13.25",
-		"@types/vscode": "^1.50.0",
+		"@types/node": "^13.13.48",
+		"@types/vscode": "^1.55.0",
 		"@typescript-eslint/eslint-plugin": "^2.34.0",
 		"@typescript-eslint/parser": "^2.34.0",
 		"eslint": "^6.8.0",
 		"glob": "^7.1.6",
 		"mocha": "^7.2.0",
-		"typescript": "^3.9.7",
-		"vscode-test": "^1.4.0"
+		"typescript": "^3.9.9",
+		"vscode-test": "^1.5.2"
 	},
 	"repository": {
 		"type": "git",
@@ -235,5 +266,5 @@
 	"bugs": {
 		"url": "https://github.com/365businessdev/vscode-alxmldocumentation/issues"
 	},
-	"license": "https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/LICENSE.txt"
+	"license": "SEE LICENSE IN https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/LICENSE.txt"
 }

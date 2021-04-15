@@ -3,8 +3,63 @@ import { ALXmlDocConfigurationPrefix } from '../types';
 import { ALAccessLevel } from '../types/ALAccessLevel';
 import { ALProcedureSubtype } from '../types/ALProcedureSubtype';
 import { ALProcedureType } from '../types/ALProcedureType';
+import { FilesystemHelper } from './filesystem/FilesystemHelper';
 
 export class Configuration {
+    public static ExtensionName():string {
+        return '365businessdevelopment.bdev-al-xml-doc';
+    }
+
+    public static GetWorkspaceRootFolder(): Uri | null {
+        return workspace.workspaceFolders ? workspace.workspaceFolders[0].uri : null;
+    }
+
+    public static IncludeProcedureDocumentationInObjectDocumentationFile(): boolean {
+        return (this.GetConfigurationValue('DocumentationExportSchema') === 'Project File + Object File');
+    }
+    
+    public static OutputChannelName(): string {
+        return 'AL XML Documentation';
+    }
+
+    public static PdfDocumentationExportCSS(): string {
+        var cssFile = this.GetConfigurationValue('PdfDocumentationExportCSS');
+        if (cssFile === '') {
+            return '';
+        }
+        return FilesystemHelper.ReadFile(cssFile);
+    }
+
+    /**
+     * Return Documentation Export Path, if specified
+     * @returns Documentation Export Path
+     */
+    public static DocumentationExportPath(): string {
+        var path = require('path');
+        var documentationPath = this.GetConfigurationValue('DocumentationExportPath');
+        if (documentationPath === undefined || documentationPath === null || documentationPath === '') {
+            let workspaceRoot : Uri | null = this.GetWorkspaceRootFolder();
+            if (workspaceRoot === null) {
+                window.showErrorMessage('Please setup \'DocumentationExportPath\' in workspace settings to define the export directory.');
+                return '';
+            }
+            // fallback scenario
+            documentationPath = path.join(workspaceRoot.fsPath, 'doc');			
+        } else {
+            if (workspace.workspaceFolders) {
+                documentationPath = path.replace('${workspaceFolder}', path.dirname(workspace.workspaceFolders[0].uri.toString()));
+            }
+        }
+        return documentationPath;
+    }
+
+    /**
+     * Get configuration value for InitializeALObjectCacheOnStartUp.
+     */
+    public static InitializeALObjectCacheOnStartUp(): boolean {
+        return this.GetConfigurationValue('InitializeALObjectCacheOnStartUp');
+    }
+
     /**
      * Opens confirmation dialog to ask for enabling the procedure documentation check.
      */
@@ -28,19 +83,39 @@ export class Configuration {
     }
 
     /**
+     * Test whether XML documentation is expected for test object.
+     */
+    public static IsDocumentationMandatoryForTest(): boolean {
+        let mandatoryProcedureTypes: string[] = this.GetConfigurationValue('CheckProcedureDocumentationForType');
+        if (mandatoryProcedureTypes.length === 0) {
+            return false;
+        }
+        return (mandatoryProcedureTypes.find(mandatoryProcedureTypes => (mandatoryProcedureTypes === 'Test Procedures')) !== undefined);
+    }
+    
+    /**
+     * Test whether the given access level needs to be documented or not.
+     * @param accessLevel ALAccessLevel
+     * @returns True if documentation is expected. Otherwise false.
+     */
+    public static IsDocumentationMandatoryForAccessLevel(accessLevel: ALAccessLevel): boolean {
+        let mandatoryAccessLevel = this.GetConfigurationValue('CheckProcedureDocumentationForAccessLevel');
+        return (mandatoryAccessLevel.includes(ALAccessLevel[accessLevel]));
+    }
+
+    /**
      * Test whether the given AL Procedure properties need to be documented or not.
      * @param alProcedureType ALProcedureType.
      * @param alProcedureSubtype ALProcedureSubtype.
      * @param alAccessLevel ALAccessLevel.
      * @param fileUri Actual file url or undefined.
      */
-    public static IsDocumentationMandatory(alProcedureType: ALProcedureType, alProcedureSubtype: ALProcedureSubtype, alAccessLevel: ALAccessLevel, fileUri: Uri | undefined = undefined): boolean {
+    public static IsProcedureDocumentationMandatory(alObjectAccessLevel: ALAccessLevel, alProcedureType: ALProcedureType, alProcedureSubtype: ALProcedureSubtype, alAccessLevel: ALAccessLevel, fileUri: Uri | undefined = undefined): boolean {
         if (!this.ProcedureDocumentationCheckIsEnabled(fileUri)) {
             return false;
         }
 
-        let mandatoryAccessLevel = this.GetConfigurationValue('CheckProcedureDocumentationForAccessLevel');
-        if (!mandatoryAccessLevel.includes(ALAccessLevel[alAccessLevel])) {
+        if ((!this.IsDocumentationMandatoryForAccessLevel(alAccessLevel)) || (!this.IsDocumentationMandatoryForAccessLevel(alObjectAccessLevel))) {
             return false;
         }
 
@@ -52,10 +127,22 @@ export class Configuration {
         mandatoryProcedureTypes.forEach(mandatoryProcedureType => {
             switch (mandatoryProcedureType) {
                 case 'Global Procedures':
+                    if ((alProcedureType === ALProcedureType.Procedure) && (alProcedureSubtype === ALProcedureSubtype.Normal) && (ALAccessLevel.Public === alAccessLevel)) {
+                        isMandatory =  true;
+                    }
+                    break;
                 case 'Local Procedures':
+                    if ((alProcedureType === ALProcedureType.Procedure) && (alProcedureSubtype === ALProcedureSubtype.Normal) && (ALAccessLevel.Local === alAccessLevel)) {
+                        isMandatory =  true;
+                    }
+                    break;
                 case 'Internal Procedures':
+                    if ((alProcedureType === ALProcedureType.Procedure) && (alProcedureSubtype === ALProcedureSubtype.Normal) && (ALAccessLevel.Internal === alAccessLevel)) {
+                        isMandatory =  true;
+                    }
+                    break;
                 case 'Protected Procedures':
-                    if ((alProcedureType === ALProcedureType.Procedure) && (alProcedureSubtype === ALProcedureSubtype.Normal)) {
+                    if ((alProcedureType === ALProcedureType.Procedure) && (alProcedureSubtype === ALProcedureSubtype.Normal) && (ALAccessLevel.Protected === alAccessLevel)) {
                         isMandatory =  true;
                     }
                     break;
