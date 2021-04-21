@@ -1,15 +1,5 @@
 # XML Documentation Comments Support for AL language in Visual Studio Code
 
-> **Hi there!**
->
-> Please stop for a moment. Do you like our work and want to give some love back?<br>
-> No problem! We've created a fundraising event with which we would like to do something for a good cause.<br>
-> We would be very happy if you participate and support our **#LeaveNoOneBehind** campaign.
->
-> [![DonateNow]](https://www.betterplace.org/en/fundraising-events/37670-leavenoonebehind?utm_campaign=user_share&utm_medium=fepp_stats&utm_source=Link)
->
-> Thank you very much!
-
 Generate XML documentation comments for AL source code and create markdown documentation from it.
 
 ## Usage
@@ -28,12 +18,31 @@ In case you're implementing an AL interface object you are able to use inherit X
  - AL XML Documentation Interface Comment<br>Copies the original XML documentation comment from the interface object.<br>
 ![Apply XML documentation comment from interface object][InheritXmlDoc2]
 
-> **Important**<br>Current version of markdown export does not support inherit documentation. This feature will be released in a future version.
-
 ### Additional documentation features
 In addition to the regular documentation activity you can:
  - Add new lines in existing XML Documentation comment section. (`///` will automatically added.)
  - Use [Snippets](#Snippets) directly inside the XML Documentation comment section.
+
+#### Code documentation
+Sometimes it's useful to describe usage of parameters or procedures by simple example code. AL XML Documentation now supports `<code>` tags in `<param>` and `<summary>` documentations for procedures.
+
+> **Important**<br>Currently only one `<code>`-tag per `<param>` or `<summary>` is supported.
+
+![Use code-tag in Summary or Parameter description to explain usage][CodeDocumentation]
+
+Additionally you can specify the language by using the `lang`-attribute in the `<code>` tag:
+```js
+/// <summary>
+/// ...
+/// <code lang="json">
+/// {
+///     "key": "value"    
+/// }
+/// </code>
+/// </summary>
+```
+
+> **Important**<br>If you omit the `lang`-attribute, the default value is `al`.
 
 ### Generate markdown files from XML documentation comments
 The following commands are available to generate documentation files from XML documentation in AL source code:
@@ -190,6 +199,7 @@ This extension is only processing AL language source code files.
 | `local procedure` | ![Supported] |
 | `internal procedure` | ![Supported] |
 | `trigger` | ![Supported] |
+| `event` | ![Supported] |
 
 > **Note**<br>The purpose of the AL XML Documentation is to document your AL Source Code, not to document structures, controls or table fields.<br><br>Therefor it's currently not planned to add support for AL keywords, other the currently supported.
 
@@ -205,6 +215,7 @@ This extension is only processing AL language source code files.
 | `table extension` | ![Supported] |
 | `page extension` | ![Supported] |
 | `enum extension` | ![Supported] |
+| `controladdin` | ![Supported] |
 | `page customization` | ![NotSupport] |
 | `profile` | ![NotSupport] |
 
@@ -225,10 +236,20 @@ This extension is only processing AL language source code files.
 ## License
 This extension is licensed under the [MIT License](https://github.com/365businessdev/vscode-alxmldocumentation/blob/dev/LICENSE.txt).
 
-## Known Issues
+> **Hi there!**
+>
+> Please stop for a moment. Do you like our work and want to give some love back?<br>
+> No problem! We've created a fundraising event with which we would like to do something for a good cause.<br>
+> We would be very happy if you participate and support our **#LeaveNoOneBehind** campaign.
+>
+> [![DonateNow]](https://www.betterplace.org/en/fundraising-events/37670-leavenoonebehind?utm_campaign=user_share&utm_medium=fepp_stats&utm_source=Link)
+>
+> Thank you very much!
 
+## Known Issues
 ### 2020-04 - version 1.1.0
  - In large AL files (e.g. `Sales-Post` codeunit, +600 procedures) the analysis of the AL object can take several seconds. In this case the updating of diagnostic information and quick fixes is time delayed
+ - PDF Documentation Creation is failing under MacOS.
 
 
 [GenerateXmlDoc]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/V1.AddXmlDocComment.gif?raw=true "Generate context aware XML documentation comments"
@@ -237,6 +258,7 @@ This extension is licensed under the [MIT License](https://github.com/365busines
 [Setup]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/V1.Setup.png?raw=true "AL XML Documentation setup"
 [SummaryHover]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/HoverProcedureDescription.gif?raw=true  "Procedure documentation on hover"
 [DiagnosticsQuickFix]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/master/doc/ALCheckDocumentationDiagnosticsQuickFix.gif?raw=true  "Diagnostics and Quick Fix"
+[CodeDocumentation]: https://raw.githubusercontent.com/365businessdev/vscode-alxmldocumentation/dev/doc/CodeDocumentation.png?raw=true "Use code-tag in Summary or Parameter description to explain usage"
 [DonateNow]: https://github.com/365businessdev/vscode-alxmldocumentation/blob/dev/doc/donate.png?raw=true  "Donate at betterplace.org"
 [Supported]: https://cdn4.iconfinder.com/data/icons/icocentre-free-icons/137/f-check_256-16.png "Supported"
 [NotSupport]: https://cdn2.iconfinder.com/data/icons/circular%20icons/no.png "Not Supported"
