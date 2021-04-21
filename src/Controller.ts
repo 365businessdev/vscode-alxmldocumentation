@@ -44,7 +44,7 @@ export class Controller {
                     let allFiles = await workspace.findFiles(new RelativePattern(validPath, '**/*.al'), undefined, undefined, token);
                     let relevantFileTasks = allFiles.map(async (file: Uri) => {
                         let content = await readFile(file.fsPath, 'utf-8');
-                        if (content.match(/(procedure|trigger)\s+(.*?)\(/gm)) {
+                        if (content.match(/(procedure|trigger|event)\s+(.*?)\(/gm)) {
                             return { uri: file, content: content };
                         }
     
