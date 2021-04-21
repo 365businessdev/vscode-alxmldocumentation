@@ -163,6 +163,30 @@ export class ALDocCommentUtil {
             return;
         }
 
+        if ((jsonDocumentation.root.summary) && (jsonDocumentation.root.summary.code)) {
+            if (!jsonDocumentation.root.summary.value) {
+                jsonDocumentation.root.summary.value = '';
+            }
+            let codeTag: any = jsonDocumentation.root.summary.code;
+            if ((!codeTag.attr) || (!codeTag.attr.lang)) {
+                jsonDocumentation.root.summary.value += '\n```al\n' + codeTag + '\n```\n';
+            } else {
+                jsonDocumentation.root.summary.value += '\n```' + codeTag.attr.lang + '\n' + codeTag.value + '\n```\n';
+            }
+        }
+
+        if ((jsonDocumentation.root.param) && (jsonDocumentation.root.param.code)) {
+            if (!jsonDocumentation.root.param.value) {
+                jsonDocumentation.root.param.value = '';
+            }
+            let codeTag: any = jsonDocumentation.root.param.code;
+            if ((!codeTag.attr) || (!codeTag.attr.lang)) {
+                jsonDocumentation.root.param.value += '\n```al\n' + codeTag + '\n```\n';
+            } else {
+                jsonDocumentation.root.param.value += '\n```' + codeTag.attr.lang + '\n' + codeTag.value + '\n```\n';
+            }
+        }
+
         return jsonDocumentation.root;
     }
 

@@ -901,10 +901,14 @@ export class ALSyntaxUtil {
                     }
 
                     if (collect) {
+                        let docLine: string = line.trimLeft().replace('///','');
+                        if (docLine.substr(0, 1) === ' ') {
+                            docLine = docLine.substr(1);
+                        }
                         if (result.Documentation !== '') {
-                            result.Documentation = `${line.replace('///','').trim()}\r\n${result.Documentation}`;
+                            result.Documentation = `${docLine}\r\n${result.Documentation}`;
                         } else {
-                            result.Documentation = line.replace('///','').trim();
+                            result.Documentation = docLine;
                         }
                     }
 
