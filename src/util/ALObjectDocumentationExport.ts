@@ -179,7 +179,7 @@ pdf_options:
                     doc.WriteLine(` - [${alObject.Name}${alObject.ID !== undefined ? " (ID " + alObject.ID + ")" : ""}](${link})<br>`);
                     if (alObject.XmlDocumentation.Exists === XMLDocumentationExistType.Yes) {
                         let documentation = await alObject.GetDocumentationAsJsonObject();
-                        doc.WriteLine(`   &emsp;*${documentation.summary}*`);
+                        doc.WriteLine(`<ul id="object-description"><i>${documentation.summary}</i></ul>\n`);
                     }
                 }
             };
