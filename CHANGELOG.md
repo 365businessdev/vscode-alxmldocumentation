@@ -128,7 +128,7 @@ All notable changes to the "AL XML Documentation" extension will be documented i
 - Fixed Issue [#27](https://github.com/365businessdev/vscode-alxmldocumentation/issues/27) - Inherit documentation for procedures implementing interface methods with underscore in object name
 - Added configuration parameter `InitializeALObjectCacheOnStartUp` to skip initialization while start-up.
 
-## [1.1.0] - 2021-04-16
+## [1.1.1] - 2021-04-21
 - Fixed Issue [#45](https://github.com/365businessdev/vscode-alxmldocumentation/issues/45) - Code analyzer rules for missing procedure XML documentation also reacts on 'procedure' in comments.
   > Thanks to @rvanbekkum for reporting.
 - Fixed missing example code in inherit procedure documentation.
@@ -147,3 +147,6 @@ All notable changes to the "AL XML Documentation" extension will be documented i
   > Thanks to @TCMatthiasMartin for reporting.
 - Fixed Issue [#53](https://github.com/365businessdev/vscode-alxmldocumentation/issues/53) - Ignoring empty lines when creating MarkDown documentation
   > Thanks to @horribleCodes for reporting.
+- Fixed Issue [[#57](https://github.com/365businessdev/vscode-alxmldocumentation/issues/57)] - Multi-line documentation in markdown export
+- Add `event` support
+- Add `<code>` support for `<param>` and `<summary>`, including language specification.

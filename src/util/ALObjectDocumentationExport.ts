@@ -104,7 +104,7 @@ pdf_options:
             doc.WriteLine('<div class="page-break"></div>');
             doc.WriteLine();
             output.appendLine(`${StringUtil.GetTimestamp()} Exporting documentation for ${ALObjectType[alObject.Type]} ${alObject.Name} . . . `);
-            await ALObjectDocumentationExport.ExportObject(alObject, output, Configuration.IncludeProcedureDocumentationInObjectDocumentationFile(), doc);
+            await ALObjectDocumentationExport.ExportObject(alObject, output, true, doc);
         };
 
         try
@@ -179,7 +179,7 @@ pdf_options:
                     doc.WriteLine(` - [${alObject.Name}${alObject.ID !== undefined ? " (ID " + alObject.ID + ")" : ""}](${link})<br>`);
                     if (alObject.XmlDocumentation.Exists === XMLDocumentationExistType.Yes) {
                         let documentation = await alObject.GetDocumentationAsJsonObject();
-                        doc.WriteLine(`   &emsp;*${documentation.summary}*`);
+                        doc.WriteLine(`<ul id="object-description"><i>${documentation.summary}</i></ul>\n`);
                     }
                 }
             };
@@ -187,7 +187,7 @@ pdf_options:
         headingLevel--;
 
         // write app dependencies
-        if (appJson.dependencies.length !== 0) {
+        if ((appJson.dependencies) && (appJson.dependencies.length !== 0)) {
             doc.WriteLine();
             doc.WriteHeading('Dependencies', headingLevel);
             appJson.dependencies.forEach((alDependency: { name: string; publisher: string; version: string; }) => {
