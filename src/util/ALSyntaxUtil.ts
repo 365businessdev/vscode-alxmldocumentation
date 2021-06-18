@@ -848,9 +848,9 @@ export class ALSyntaxUtil {
 
                     if (collect) {
                         if (result.Documentation !== '') {
-                            result.Documentation = `${line.replace('///','').trim()}\r\n${result.Documentation}`;
+                            result.Documentation = `${line.trimLeft().replace('/// ','').trimRight()}\r\n${result.Documentation}`;
                         } else {
-                            result.Documentation = line.replace('///','').trim();
+                            result.Documentation = line.trimLeft().replace('/// ','').trimRight();
                         }
                     }
 
