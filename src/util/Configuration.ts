@@ -1,3 +1,4 @@
+import { match } from 'assert';
 import { workspace, window, WorkspaceConfiguration, WorkspaceFolder, Uri, DiagnosticSeverity } from 'vscode';
 import { ALXmlDocConfigurationPrefix } from '../types';
 import { ALAccessLevel } from '../types/ALAccessLevel';
@@ -37,17 +38,19 @@ export class Configuration {
     public static DocumentationExportPath(): string {
         var path = require('path');
         var documentationPath = this.GetConfigurationValue('DocumentationExportPath');
+        let workspaceRoot : Uri | null = this.GetWorkspaceRootFolder();
+        if (workspaceRoot === null) {
+            window.showErrorMessage('Please setup \'DocumentationExportPath\' in workspace settings to define the export directory.');
+            return '';
+        }
         if (documentationPath === undefined || documentationPath === null || documentationPath === '') {
-            let workspaceRoot : Uri | null = this.GetWorkspaceRootFolder();
-            if (workspaceRoot === null) {
-                window.showErrorMessage('Please setup \'DocumentationExportPath\' in workspace settings to define the export directory.');
-                return '';
-            }
             // fallback scenario
             documentationPath = path.join(workspaceRoot.fsPath, 'doc');			
         } else {
-            if (workspace.workspaceFolders) {
-                documentationPath = path.replace('${workspaceFolder}', path.dirname(workspace.workspaceFolders[0].uri.toString()));
+            if ((documentationPath.includes('${workspaceFolder}')) && (workspace.workspaceFolders)) {
+                documentationPath = documentationPath.replace('${workspaceFolder}', path.dirname(workspace.workspaceFolders[0].uri.toString()));
+            } else {
+                documentationPath = path.join(workspaceRoot.fsPath, documentationPath);
             }
         }
         return documentationPath;
