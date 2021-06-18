@@ -151,6 +151,7 @@ All notable changes to the "AL XML Documentation" extension will be documented i
 - Add `event` support
 - Add `<code>` support for `<param>` and `<summary>`, including language specification.
 
-## [1.1.2] - 2021-06-18
+## [1.1.3] - 2021-06-18
 - Fixed Issue [[#62](https://github.com/365businessdev/vscode-alxmldocumentation/issues/62)] - Change export path to root directory of app and test projects
 - Fixed additional '///' in snippet usage.
+- Fixed example code formatting.
