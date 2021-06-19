@@ -397,6 +397,16 @@ pdf_options:
                 if (documentation.returns) {
                     doc.WriteLine(documentation.returns);
                 }
+                doc.WriteLine();
+            }
+
+            let documentation: any = ALDocCommentUtil.GetJsonFromXmlDocumentation(alProcedure.XmlDocumentation.Documentation);
+            if (documentation.example) {
+                doc.WriteHeading('Example', headingLevel);
+                doc.WriteLine(documentation.example.value);
+                doc.WriteLine();
+                doc.WriteCode(documentation.example.code);
+                doc.WriteLine();
             }
         }
         headingLevel -= 2;
