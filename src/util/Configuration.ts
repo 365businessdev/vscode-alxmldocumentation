@@ -1,4 +1,3 @@
-import { match } from 'assert';
 import { workspace, window, WorkspaceConfiguration, WorkspaceFolder, Uri, DiagnosticSeverity } from 'vscode';
 import { ALXmlDocConfigurationPrefix } from '../types';
 import { ALAccessLevel } from '../types/ALAccessLevel';
