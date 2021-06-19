@@ -8,7 +8,7 @@ import { ALObjectExtensionType } from './ALObjectExtensionType';
 import { ALObjectType } from './ALObjectType';
 import { ALObsoleteState } from './ALObsoleteState';
 import { ALProcedure } from './ALProcedure';
-import { XMLDocumentation } from './XmlDocumentation';
+import { XMLDocumentation } from './XMLDocumentation';
 import { XMLDocumentationExistType } from './XMLDocumentationExistType';
 
 export class ALObject {

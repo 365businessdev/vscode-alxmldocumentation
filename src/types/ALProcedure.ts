@@ -5,7 +5,7 @@ import { ALParameter } from './ALParameter';
 import { ALProcedureReturn } from './ALProcedureReturn';
 import { ALProcedureSubtype } from './ALProcedureSubtype';
 import { ALProcedureType } from './ALProcedureType';
-import { XMLDocumentation } from './XmlDocumentation';
+import { XMLDocumentation } from './XMLDocumentation';
 
 export class ALProcedure {
     /**
