@@ -12,7 +12,7 @@ import { ALObjectType } from '../types/ALObjectType';
 import { ALObsoleteState } from '../types/ALObsoleteState';
 import { ALProcedureSubtype } from '../types/ALProcedureSubtype';
 import { ALProcedureType } from '../types/ALProcedureType';
-import { XMLDocumentation } from '../types/XmlDocumentation';
+import { XMLDocumentation } from '../types/XMLDocumentation';
 import { XMLDocumentationExistType } from '../types/XMLDocumentationExistType';
 import { ALObjectCache } from '../ALObjectCache';
 import * as fs from 'fs';

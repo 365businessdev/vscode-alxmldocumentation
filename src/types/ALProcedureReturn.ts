@@ -1,4 +1,4 @@
-import { XMLDocumentation } from './XmlDocumentation';
+import { XMLDocumentation } from './XMLDocumentation';
 
 export class ALProcedureReturn {
     /**

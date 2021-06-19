@@ -47,7 +47,7 @@ export class Configuration {
             documentationPath = path.join(workspaceRoot.fsPath, 'doc');			
         } else {
             if ((documentationPath.includes('${workspaceFolder}')) && (workspace.workspaceFolders)) {
-                documentationPath = documentationPath.replace('${workspaceFolder}', path.dirname(workspace.workspaceFolders[0].uri.toString()));
+                documentationPath = documentationPath.replace('${workspaceFolder}', path.dirname(workspace.workspaceFolders[0].uri.fsPath));
             } else {
                 documentationPath = path.join(workspaceRoot.fsPath, documentationPath);
             }
