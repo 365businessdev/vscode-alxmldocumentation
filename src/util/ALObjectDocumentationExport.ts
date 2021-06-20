@@ -301,7 +301,7 @@ pdf_options:
                             await this.WriteProcedureDocumentation(doc, alObject, alProcedure, headingLevel);
                         } else {                            
                             let documentation = await alObject.GetDocumentationAsJsonObject(alProcedure);
-                            doc.WriteLine(`| [${'`' + alProcedure.Name + '()`'}](${alProcedure.Name?.replace(/\s/mg, '_')}.md) | ${documentation.summary} |`);
+                            doc.WriteLine(`| [${'`' + alProcedure.Name + '()`'}](${alProcedure.Name?.replace(/\s/mg, '_')}.md) | ${documentation.summary.replace(/\n/gm, '<br>')} |`);
                             await ALObjectDocumentationExport.ExportProcedure(alObject, alProcedure, output);
                         }
                     }
