@@ -65,10 +65,6 @@ export class DoComment {
             if (this.event.text !== '/') {
                 return;
             }
-            
-            if (!Configuration.DirectDocumentationIsEnabled(this.activeEditor.document.uri)) {
-                return;
-            }
         }
 
         if (!this.IsDoCommentTrigger()) {
@@ -89,6 +85,10 @@ export class DoComment {
         }
 
         if (this.vsCodeApi.ReadLine(this.vsCodeApi.GetNextLine()).trim().startsWith('///')) {
+            return;
+        }
+            
+        if (!Configuration.DirectDocumentationIsEnabled(this.activeEditor.document.uri)) {
             return;
         }
         await this.WriteDocString();
