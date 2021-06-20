@@ -168,12 +168,12 @@ pdf_options:
                 let link: string = '';
                 if (isNewDoc) {
                     if (Configuration.IncludeProcedureDocumentationInObjectDocumentationFile()) {
-                        link = `${alObject.Name?.replace(/\s/mg, '_')}.md`;
+                        link = `${alObject.FileName!.replace(/\s/mg, '_').replace('.al', '')}.md`;
                     } else {                    
-                        link = `${alObject.Name?.replace(/\s/mg, '_')}/index.md`;
+                        link = `${alObject.FileName!.replace(/\s/mg, '_').replace('.al', '')}/index.md`;
                     }
                 } else {
-                    link = `#${alObject.Name?.replace(/[\s\.]/mg, '-').toLowerCase()}`;
+                    link = `#${alObject.FileName!.replace(/\s/mg, '_').replace('.al', '').toLowerCase()}`;
                 }
                 if (doc !== null) {
                     doc.WriteLine(` - [${alObject.Name}${alObject.ID !== undefined ? " (ID " + alObject.ID + ")" : ""}](${link})<br>`);
@@ -213,9 +213,9 @@ pdf_options:
         // determine export file name
         let fileName: string = '';
         if (!includeProcedure) {
-            fileName = `${this.GetDocumentationExportPath()}/${alObject.Name!.replace(/\s/mg, '_')}/index.md`;
+            fileName = `${this.GetDocumentationExportPath()}/${alObject.FileName!.replace(/\s/mg, '_').replace('.al', '')}/index.md`;
         } else {
-            fileName = `${this.GetDocumentationExportPath()}/${alObject.Name!.replace(/\s/mg, '_')}.md`;
+            fileName = `${this.GetDocumentationExportPath()}/${alObject.FileName!.replace(/\s/mg, '_').replace('.al', '')}.md`;
         }
         if (doc === null) {
             doc = new MarkdownWriter(fileName);
@@ -278,7 +278,7 @@ pdf_options:
                             await this.WriteProcedureDocumentation(doc, alObject, alProcedure, headingLevel);
                         } else {
                             let documentation = await alObject.GetDocumentationAsJsonObject(alProcedure);
-                            doc.WriteLine(`| [${'`' + alProcedure.Name + '()`'}](${alObject.Name?.replace(/\s/mg, '_')}/${alProcedure.Name?.replace(/\s/mg, '_')}.md) | ${documentation.summary} |`);
+                            doc.WriteLine(`| [${'`' + alProcedure.Name + '()`'}](${alObject.FileName!.replace(/\s/mg, '_').replace('.al', '')}/${alProcedure.Name?.replace(/\s/mg, '_')}.md) | ${documentation.summary} |`);
                             await ALObjectDocumentationExport.ExportProcedure(alObject, alProcedure, output);
                         }
                     }
@@ -336,7 +336,7 @@ pdf_options:
             this.WriteOutput(`Warning: No documentation found for ${ALProcedureType[alProcedure.Type]} ${alProcedure.Name}()`);
             return;
         }
-        let doc = new MarkdownWriter(`${this.GetDocumentationExportPath()}/${alObject.Name!.replace(/\s/mg, '_')}/${alProcedure.Name!.replace(/\s/mg, '_')}.md`);
+        let doc = new MarkdownWriter(`${this.GetDocumentationExportPath()}/${alObject.FileName!.replace(/\s/mg, '_').replace('.al', '')}/${alProcedure.Name!.replace(/\s/mg, '_')}.md`);
         await this.WriteProcedureDocumentation(doc, alObject, alProcedure, headingLevel);
     }
 
