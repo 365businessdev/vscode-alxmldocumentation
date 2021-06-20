@@ -153,5 +153,13 @@ All notable changes to the "AL XML Documentation" extension will be documented i
 
 ## [1.1.3] - 2021-06-18
 - Fixed Issue [[#62](https://github.com/365businessdev/vscode-alxmldocumentation/issues/62)] - Change export path to root directory of app and test projects
+  > Thanks to @OtterWhisperer for reporting.
 - Fixed additional '///' in snippet usage.
 - Fixed example code formatting.
+
+## [1.1.4] - 2021-06-20
+- Merged contribution for Issue [#62](https://github.com/365businessdev/vscode-alxmldocumentation/issues/62) - Change export path to root directory of app and test projects.
+  > Thanks to @OtterWhisperer.
+- Updated node modules.
+- Fixed Issue [#64](https://github.com/365businessdev/vscode-alxmldocumentation/issues/64) - Example Code from procedure documentation is missing in documentation export.
+- Use AL filename for documentation export (`ObjectName.Type.al` => `ObjectName.Type.md`)
