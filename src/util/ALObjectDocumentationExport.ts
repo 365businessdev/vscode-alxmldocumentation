@@ -10,7 +10,7 @@ import { ALObjectType } from '../types/ALObjectType';
 import { ALObsoleteState } from '../types/ALObsoleteState';
 import { ALProcedure } from '../types/ALProcedure';
 import { ALProcedureType } from '../types/ALProcedureType';
-import { XMLDocumentationExistType } from '../types/XMLDocumentationExistType';
+import { ALDocumentationExists } from '../types/ALDocumentationExists';
 import { ALAppJsonReader } from './ALAppJsonReader';
 import { ALDocCommentUtil } from './ALDocCommentUtil';
 import { Configuration } from './Configuration';
@@ -177,7 +177,7 @@ pdf_options:
                 }
                 if (doc !== null) {
                     doc.WriteLine(` - [${alObject.Name}${alObject.ID !== undefined ? " (ID " + alObject.ID + ")" : ""}](${link})<br>`);
-                    if (alObject.XmlDocumentation.Exists === XMLDocumentationExistType.Yes) {
+                    if (alObject.ALDocumentation.Exists === ALDocumentationExists.Yes) {
                         let documentation = await alObject.GetDocumentationAsJsonObject();
                         doc.WriteLine(`<ul id="object-description"><i>${documentation.summary}</i></ul>\n`);
                     }
@@ -227,11 +227,11 @@ pdf_options:
         doc.WriteHeading(alObject.Name!, headingLevel); 
         
         doc.WriteLine();
-        switch (alObject.XmlDocumentation.Exists) {
-            case XMLDocumentationExistType.No:
+        switch (alObject.ALDocumentation.Exists) {
+            case ALDocumentationExists.No:
                 this.WriteOutput(`Warning: XML documentation could not been found for ${ALObjectType[alObject.Type]} ${alObject.Name}.`);
                 break;
-            case XMLDocumentationExistType.Yes:
+            case ALDocumentationExists.Yes:
                 let documentation: any = await alObject.GetDocumentationAsJsonObject();
                 doc.WriteLine(documentation.summary);
                 if (documentation.remarks) {
@@ -264,7 +264,7 @@ pdf_options:
         }
         // write procedure / trigger documentation
         if (alObject.Procedures) {
-            if (alObject.Procedures.filter(alProcedure => ((alProcedure.Type === ALProcedureType.Trigger) && (alProcedure.XmlDocumentation.Exists !== XMLDocumentationExistType.No))).length !== 0) {
+            if (alObject.Procedures.filter(alProcedure => ((alProcedure.Type === ALProcedureType.Trigger) && (alProcedure.ALDocumentation.Exists !== ALDocumentationExists.No))).length !== 0) {
                 doc.WriteHeading('Triggers', headingLevel);
                 if (!includeProcedure) {
                     doc.WriteLine();
@@ -287,7 +287,7 @@ pdf_options:
                     doc.WriteLine();
                 }
             }
-            if (alObject.Procedures.filter(alProcedure => ((alProcedure.Type === ALProcedureType.Procedure) && (alProcedure.XmlDocumentation.Exists !== XMLDocumentationExistType.No))).length !== 0) {
+            if (alObject.Procedures.filter(alProcedure => ((alProcedure.Type === ALProcedureType.Procedure) && (alProcedure.ALDocumentation.Exists !== ALDocumentationExists.No))).length !== 0) {
                 doc.WriteHeading('Procedures', headingLevel);
                 if (!includeProcedure) {
                     doc.WriteLine();
@@ -313,7 +313,7 @@ pdf_options:
         }
 
         // write example
-        let documentation: any = ALDocCommentUtil.GetJsonFromXmlDocumentation(alObject.XmlDocumentation.Documentation);
+        let documentation: any = ALDocCommentUtil.GetJsonFromALDocumentation(alObject.ALDocumentation.Documentation);
         if (documentation.example) {            
             doc.WriteHeading('Example', headingLevel);
             doc.WriteLine(documentation.example.value);
@@ -332,7 +332,7 @@ pdf_options:
     public static async ExportProcedure(alObject: ALObject, alProcedure: ALProcedure, output: OutputChannel, headingLevel: number = 0) {   
         this.Initialize(output);
         // do not export procedures w/o documentation
-        if (alProcedure.XmlDocumentation.Exists === XMLDocumentationExistType.No) {
+        if (alProcedure.ALDocumentation.Exists === ALDocumentationExists.No) {
             this.WriteOutput(`Warning: No documentation found for ${ALProcedureType[alProcedure.Type]} ${alProcedure.Name}()`);
             return;
         }
@@ -351,7 +351,7 @@ pdf_options:
         
         headingLevel++;
         doc.WriteHeading('`' + alProcedure.Name + '()`', headingLevel);
-        if (alProcedure.XmlDocumentation.Exists !== XMLDocumentationExistType.No) {
+        if (alProcedure.ALDocumentation.Exists !== ALDocumentationExists.No) {
             let documentation: any = await alObject.GetDocumentationAsJsonObject(alProcedure);
             doc.WriteLine(documentation.summary);
             if (documentation.remarks) {
@@ -379,8 +379,8 @@ pdf_options:
                 doc.WriteLine(`*${alParameter.Name}*<br>`);
                 doc.WriteLine(`&emsp;Type: ${alParameter.Type} ${alParameter.Subtype !== undefined ? ` ${alParameter.Subtype}` : '' }<br>`);
                 doc.WriteLine();
-                if (alParameter.XmlDocumentation.Exists === XMLDocumentationExistType.Yes) {
-                    let documentation: any = ALDocCommentUtil.GetJsonFromXmlDocumentation(alParameter.XmlDocumentation.Documentation);
+                if (alParameter.ALDocumentation.Exists === ALDocumentationExists.Yes) {
+                    let documentation: any = ALDocCommentUtil.GetJsonFromALDocumentation(alParameter.ALDocumentation.Documentation);
                     doc.WriteLine(documentation.param.value);
                     doc.WriteLine();
                 }
@@ -389,18 +389,18 @@ pdf_options:
         }
 
         if (alProcedure.Type === ALProcedureType.Procedure) {
-            if ((alProcedure.Return) && (alProcedure.Return.XmlDocumentation.Exists === XMLDocumentationExistType.Yes)) {
+            if ((alProcedure.Return) && (alProcedure.Return.ALDocumentation.Exists === ALDocumentationExists.Yes)) {
                 doc.WriteHeading('Return', headingLevel);
                 doc.WriteLine(`*${alProcedure.Return.Name !== "" ? alProcedure.Return.Name + ': ' : ''}${alProcedure.Return.Type}*<br>`);
                 doc.WriteLine();
-                let documentation: any = ALDocCommentUtil.GetJsonFromXmlDocumentation(alProcedure.Return.XmlDocumentation.Documentation);
+                let documentation: any = ALDocCommentUtil.GetJsonFromALDocumentation(alProcedure.Return.ALDocumentation.Documentation);
                 if (documentation.returns) {
                     doc.WriteLine(documentation.returns);
                 }
                 doc.WriteLine();
             }
 
-            let documentation: any = ALDocCommentUtil.GetJsonFromXmlDocumentation(alProcedure.XmlDocumentation.Documentation);
+            let documentation: any = ALDocCommentUtil.GetJsonFromALDocumentation(alProcedure.ALDocumentation.Documentation);
             if (documentation.example) {
                 doc.WriteHeading('Example', headingLevel);
                 doc.WriteLine(documentation.example.value);

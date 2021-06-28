@@ -1,6 +1,6 @@
 import { CancellationToken, Hover, HoverProvider, Location, MarkdownString, Position, TextDocument } from 'vscode';
 import { ALProcedure } from '../types/ALProcedure';
-import { XMLDocumentationExistType } from '../types/XMLDocumentationExistType';
+import { ALDocumentationExists } from '../types/ALDocumentationExists';
 import { ALDocCommentUtil } from './ALDocCommentUtil';
 import { ALLangServerProxy } from './ALLangServerProxy';
 
@@ -17,13 +17,13 @@ export class ALHoverProvider implements HoverProvider {
 
         // find AL procedure by line no.
         let alProcedure: ALProcedure | undefined = alDefinition.ALObject.Procedures?.find(procedure => procedure.LineNo === alDefinition.Position.line);
-        if ((alProcedure === undefined) || (alProcedure.XmlDocumentation.Exists === XMLDocumentationExistType.No)) {
+        if ((alProcedure === undefined) || (alProcedure.ALDocumentation.Exists === ALDocumentationExists.No)) {
             return; // not found
         }
 
         let jsonDocumentation: any = await alDefinition.ALObject.GetDocumentationAsJsonObject(alProcedure);                
         // AL Language Version 6.x is providing simple XML Documentation capabilities. Do not push procedure summary in this case.
-        if ((alLangServerProxy.GetALExtension()?.packageJSON.version < '6.0.0') || (alProcedure.XmlDocumentation.Exists === XMLDocumentationExistType.Inherit)) {
+        if ((alLangServerProxy.GetALExtension()?.packageJSON.version < '6.0.0') || (alProcedure.ALDocumentation.Exists === ALDocumentationExists.Inherit)) {
             // add Summary to hover message.
             if ((jsonDocumentation.summary) && (jsonDocumentation.summary !== '')) {
                 result.appendMarkdown(`${jsonDocumentation.summary} \n`);
@@ -37,9 +37,9 @@ export class ALHoverProvider implements HoverProvider {
         } 
 
         // add Return to hover message.
-        if ((alProcedure.Return !== undefined) && (alProcedure.Return.XmlDocumentation.Exists === XMLDocumentationExistType.Yes)) {
+        if ((alProcedure.Return !== undefined) && (alProcedure.Return.ALDocumentation.Exists === ALDocumentationExists.Yes)) {
             // convert XML Documentation to more readable JSON object.
-            let returnDocumentation = ALDocCommentUtil.GetJsonFromXmlDocumentation(alProcedure.Return.XmlDocumentation.Documentation);
+            let returnDocumentation = ALDocCommentUtil.GetJsonFromALDocumentation(alProcedure.Return.ALDocumentation.Documentation);
             if ((returnDocumentation.returns) && (returnDocumentation.returns.trim() !== '')) {
                 result.appendMarkdown(`${returnDocumentation.returns} \n`);
             }
