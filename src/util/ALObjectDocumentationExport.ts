@@ -317,7 +317,12 @@ pdf_options:
         if (documentation.example) {            
             doc.WriteHeading('Example', headingLevel);
             doc.WriteLine(documentation.example.value);
-            doc.WriteCode(documentation.example.code);
+            
+            if(documentation.example.lang) {
+                doc.WriteCode(documentation.example.code, documentation.example.lang);
+            } else{
+                doc.WriteCode(documentation.example.code);
+            }
         }
     }
 
