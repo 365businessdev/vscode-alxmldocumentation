@@ -1,21 +1,29 @@
 'use strict';
 
-import { Location, extensions, workspace, Uri, Range } from 'vscode';
+import { Location, extensions, workspace, Uri, Range, Extension } from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { LanguageClient, Position, CancellationTokenSource, CancellationToken } from 'vscode-languageclient';
+import { ALObject } from '../types/ALObject';
+import { ALSyntaxUtil } from './ALSyntaxUtil';
 
 export class ALLangServerProxy {
     private langClient : LanguageClient | undefined;
     public extensionPath : string | undefined;
     public alEditorService: any;
 
+    /**
+     * ALLangServerProxy constructor.
+     */
     constructor() {
         this.langClient = undefined;
         this.alEditorService = undefined;
     }
 
-    protected GetALExtension() : any {
+    /**
+     * Get actual AL Language extension.
+     */
+    public GetALExtension() : Extension<any> | undefined {
         let storeVersion = extensions.getExtension('ms-dynamics-smb.al'); 
         let vsixVersion = extensions.getExtension('Microsoft.al');
 
@@ -36,6 +44,10 @@ export class ALLangServerProxy {
         return vsixVersion;
     }
 
+    /**
+     * Initialize Language Client
+     * @returns False, if language client could not be loaded.
+     */
     protected IsALLanguageClient() : boolean {
         if (!this.langClient) {
             let alExtension = this.GetALExtension();
@@ -76,6 +88,9 @@ export class ALLangServerProxy {
         return true;
     }
 
+    /**
+     * Retrieve first launch configuration to retrieve symbols from.
+     */
     async GetFirstLaunchConfiguration() : Promise<any|undefined> {
         if ((!workspace.workspaceFolders) || (workspace.workspaceFolders.length === 0)) {
             return undefined;
@@ -97,35 +112,14 @@ export class ALLangServerProxy {
             return configList[0];
         }
 
-        // This would be a way to handle multiple configuration.
-        // To be honest it's really frustrating the the pop-up occurs every time to
-        // select configuration.
-        // We've decided to simple use the first configuration.
-        //
-        // if (configList.length === 1) {
-        //     return configList[0];
-        // }
-        // //select configuration from drop down list
-        // let configItems : string[] = [];
-        // for (let i=0; i<configList.length; i++) {
-        //     if (configList[i].name) {
-        //         configItems.push(configList[i].name);
-        //     }
-        // }
-        // let selectedItem = await window.showQuickPick(configItems, {
-        //     placeHolder: 'Please select launch configuration'
-        // });
-        // if (selectedItem) {
-        //     for (let i=0; i<configList.length; i++) {
-        //         if (configList[i].name === selectedItem) {
-        //             return configList[i];
-        //         }
-        //     }
-        // }
-
         return undefined;
     }
 
+    /**
+     * Perform go-to-definition call.
+     * @param docUri URI of the source document.
+     * @param pos Position to perform go-to-definition on.
+     */
     async ALGoToDefinition(docUri: string, pos: Position) : Promise<Location | undefined> {
         let docPos : Location | undefined = undefined;
         try {
@@ -172,50 +166,64 @@ export class ALLangServerProxy {
         return docPos; 
     }
 
-    async GetALSourceCode(docUri: string, pos: Position): Promise<{ value: string; pos: Position; } | undefined> {  
-        this.IsALLanguageClient();
-        if (!this.langClient) {
-            return undefined;
-        }
-
-        // get definition
-        let definitionDocPos: Location | undefined = await this.ALGoToDefinition(docUri, pos);
-        if ((!definitionDocPos) || ((definitionDocPos.range.start.character === 0) && (definitionDocPos.range.end.character === 0))) {
-            return undefined;
-        }
+    /**
+     * Retrieve AL Object from Language Server.
+     * @param docUri Actual Document file path.
+     * @param pos Actual Position to retrieve AL Object from.
+     */
+    async GetALObjectFromDefinition(docUri: string, pos: Position): Promise<{ ALObject: ALObject | null, Position: Position} | undefined> {
+        try { 
+            if ((!this.IsALLanguageClient()) || (!this.langClient)) {
+                throw new Error(`Fatal error: Unable to contact language server.`);
+            }     
         
-        try {
             var __awaiter : any = (this && __awaiter) || function (thisArg: any, _arguments: any, P: PromiseConstructor, generator: { [x: string]: (arg0: any) => any; next: (arg0: any) => any; apply: any; }) {
                 function adopt(value: unknown) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
                 return new (P || (P = Promise))(function (resolve, reject) {
                     function fulfilled(value: any) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-                    function rejected(value: any) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+                    function rejected(value: any) { try { step(generator['throw'](value)); } catch (e) { reject(e); } }
                     function step(result: any) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
                     step((generator = generator.apply(thisArg, _arguments || [])).next());
                 });
             };
 
-            var alSourceCode = { 
-                "value": "", // just initialize
-                "pos": definitionDocPos.range.end
-            };
-            // if scheme is 'al-preview' try get the source code from language server
-            if (definitionDocPos.uri.scheme === 'al-preview') {            
-                const request = { Uri: definitionDocPos.uri.toString() };                        
-                alSourceCode.value = await this.langClient.sendRequest('al/previewDocument', request).then((result: any) => __awaiter(this, void 0, void 0, function* () {
+            // Execute AL Go to Definition
+            let alDefinition: Location | undefined = await this.ALGoToDefinition(docUri, pos).then((result: any) => __awaiter(this, void 0, void 0, function* () {
+                return Promise.resolve(result);
+            }));
+
+            if ((!alDefinition) || ((alDefinition.range.start.character === 0) && (alDefinition.range.end.character === 0))) {
+                return undefined;
+            }
+
+            let alSourceCode: string = '';
+            if (alDefinition.uri.scheme === 'al-preview') {      
+                // For al-preview try get source code from language server.
+                const request = { Uri: alDefinition.uri.toString() };                        
+                alSourceCode = await this.langClient.sendRequest('al/previewDocument', request).then((result: any) => __awaiter(this, void 0, void 0, function* () {
                     return Promise.resolve(result.content);
                 }));
             } else {
-                alSourceCode.value = fs.readFileSync(definitionDocPos.uri.fsPath, 'utf8');
+                // If file is available just read from filesystem.
+                alSourceCode = fs.readFileSync(alDefinition.uri.fsPath, 'utf8');
             }
-            if (alSourceCode.value === "") {
-                return undefined;
-            } else {
-                return alSourceCode;
-            }
-        } catch (ex) {
-            console.debug(ex.message);
+
+            let document = Object.assign({});
+            document.getText = () => alSourceCode;
+            document.fileName = (alDefinition.uri.scheme === 'al-preview') ? '__symbol__' : alDefinition.uri.fsPath;
+
+            let result: { ALObject: ALObject | null, Position: Position} = {
+                ALObject: await ALSyntaxUtil.GetALObject(document),
+                Position: alDefinition.range.end
+            };
+
+            return result;
+        }
+        catch(ex) 
+        {
+            console.error(`[GetALObjectFromDefinition] - ${ex} Please report this error at https://github.com/365businessdev/vscode-alxmldocumentation/issues`);
             return undefined;
         }
+
     }
 }

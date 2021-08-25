@@ -1,228 +1,357 @@
-import { languages, Range, Diagnostic, DiagnosticCollection, TextDocument } from "vscode";
-import { DiagnosticSeverity } from "vscode-languageclient";
-import { ALSyntaxUtil } from "./ALSyntaxUtil";
-import { ALDocCommentUtil } from "./ALDocCommentUtil";
-import { ALXmlDocDiagnosticCode, ALXmlDocDiagnosticPrefix } from "../types";
-import { Configuration } from "./Configuration";
+import { Diagnostic, Range, TextDocument } from 'vscode';
+import { ALXmlDocDiagnosticCode, ALXmlDocDiagnosticPrefix } from '../types';
+import { ALObject } from '../types/ALObject';
+import { ALObjectType } from '../types/ALObjectType';
+import { ALProcedure } from '../types/ALProcedure';
+import { XMLDocumentationExistType } from '../types/XMLDocumentationExistType';
+import { ALSyntaxUtil } from './ALSyntaxUtil';
+import { ALDocCommentUtil } from './ALDocCommentUtil';
+import { Configuration } from './Configuration';
+import { StringUtil } from './string/StringUtil';
+import { ALProcedureType } from '../types/ALProcedureType';
+import { ALCodeunitType } from '../types/ALCodeunitType';
+import { ALDiagnosticCollection } from './ALDiagnosticCollection';
 
-export class ALCheckDocumentation { 
-    private document!: TextDocument;
-    private diagnosticsCollection: DiagnosticCollection = languages.createDiagnosticCollection('al-xml-doc');
-    private diagnostics: Diagnostic[] = [];
+export class ALCheckDocumentation {    
+    /**
+     * Gathered diagnostics.
+     */
+    private diags: Diagnostic[] = [];
 
-    public CheckDocumentation(document: TextDocument) {
+    /**
+     * Actual AL Source Code file.
+     */
+    private document: any;
+
+    /**
+     * AL Object.
+     */
+    private alObject: ALObject;
+
+    public constructor(document: TextDocument, alObject: ALObject) {
         this.document = document;
-
+        this.alObject = alObject;
+        
         // clear all diagnostics
-        this.diagnostics = [];
-        this.UpdateDiagnostics();
-
-        // check configuration
-        if (!Configuration.CheckProcedureDocumentationIsEnabled(document.uri)) {
-            return;
-        }
-
-        // retrieve all procedures in current document
-        let alProcedures = ALSyntaxUtil.FindProcedures(this.document.getText());
-        if (!alProcedures) {
-            return;
-        }
-
-        // check documentation
-        alProcedures.forEach((alProcedure: { procedureName : string, lineNo: number }) => {
-            this.UpdateMissingDocumentations(ALSyntaxUtil.GetALProcedureState(this.document, alProcedure.lineNo));
-        });        
-        this.UpdateDiagnostics();
+        this.diags = [];
+        this.UpdateDiagnosticCollection();
     }
 
-    private UpdateMissingDocumentations(alProcedureState: { name: string; position: Range; definition: { [key: string]: string; }; documentation: string } | null) {      
-        if ((alProcedureState === null) || (alProcedureState === undefined)) {
+    /**
+     * General documentation check procedure.
+     */
+    public CheckDocumentation() {
+        
+        if ((!Configuration.ProcedureDocumentationCheckIsEnabled(this.document.uri)) && (!Configuration.ObjectDocumentationCheckIsEnabled(this.document.uri))) {
+            return;
+        }        
+
+        if ((this.alObject === null) || (this.alObject.Uri?.scheme === 'al-preview')) {
+            return;
+        }
+
+        if (Configuration.ObjectDocumentationCheckIsEnabled(this.document.uri)) {
+            this.AnalyzeObjectDocumentation(this.alObject);
+        }
+
+        // do not check any kind of procedures in 'Test' codeunits.
+        if ((this.alObject.Subtype === ALCodeunitType.Test) && (!Configuration.IsDocumentationMandatoryForTest())) {
+            return;
+        }
+
+        if (Configuration.ProcedureDocumentationCheckIsEnabled(this.document.uri)) {
+            this.alObject.Procedures?.forEach(alProcedure => {
+                this.AnalyzeProcedureDocumentation(this.alObject, alProcedure);
+            });
+            
+            this.AnalyzeUnnecessaryDocumentation(this.alObject, this.document);
+        }
+        
+        this.UpdateDiagnosticCollection();
+    }
+    
+    /**
+     * Analyze source code for unnecessary XML documentations.
+     * @param alObject ALObject
+     * @param document TextDocument
+     */
+    private AnalyzeUnnecessaryDocumentation(alObject: ALObject | null, document: TextDocument) {
+        if (alObject === null) {
+            return;
+        }
+        let i = 0;
+        try {
+            let codeLines: string[] = ALSyntaxUtil.SplitALCodeToLines(document.getText());
+            let xmlDocumentation: string ='';
+            for(i = 0; i < codeLines.length; i++) {
+                let line: string = codeLines[i];
+                if (!line.trim().startsWith('///')) {
+                    if (ALSyntaxUtil.IsObjectDefinition(line)) {
+                        xmlDocumentation = '';
+                        continue;
+                    } else {
+                        if (xmlDocumentation !== '') {
+                            let alProcedure: ALProcedure | undefined = alObject.Procedures?.find(alProcedure => (i <= alProcedure.LineNo));
+                            if (alProcedure === undefined) {
+                                console.debug(`Could not find AL Procedure for XML documentation found in ${alObject.FileName} line ${i}.`);
+                                continue;
+                            }
+                            this.GetUnnecessaryProcedureDocumentationDiagnostics(codeLines, i, xmlDocumentation, alObject, alProcedure);
+                        }
+                        xmlDocumentation = '';
+                        continue;
+                    }
+                }
+
+                xmlDocumentation += line.trim().replace('///','');
+            }
+        } catch (ex) {
+            console.debug(`An error occurred in ${alObject.FileName} during analyze unnecessary documentations.\r\n${ex}`);
+        }
+    }
+
+    /**
+     * Analyze procedure for unnecessary XML documentations.
+     * @param codeLines AL Source Code.
+     * @param currentLineNo Actual line no. in AL Source Code.
+     * @param xmlDocumentation Captured XML documentation.
+     * @param alObject ALObject
+     * @param alProcedure ALProcedure
+     */
+    private GetUnnecessaryProcedureDocumentationDiagnostics(codeLines: string[], currentLineNo: number, xmlDocumentation: string, alObject: ALObject, alProcedure: ALProcedure) {
+        // convert to JSON to make it more accessible 
+        let jsonDocumentation = ALDocCommentUtil.GetJsonFromXmlDocumentation(xmlDocumentation);
+        if (!jsonDocumentation.param) {
+            return;
+        }
+
+        let unnecessaryParameters: Array<string> = [];
+
+        if (jsonDocumentation.param.length) { // multiple parameters
+            for (let i = 0; i < jsonDocumentation.param.length; i++) {
+                this.GetUnnecessaryParameterDocumentationDiagnostics(unnecessaryParameters, jsonDocumentation.param[i], alProcedure);
+            }
+        } else { // one parameter
+            this.GetUnnecessaryParameterDocumentationDiagnostics(unnecessaryParameters, jsonDocumentation.param, alProcedure);
+        }
+
+        if (unnecessaryParameters.length !== 0) {
+            let message = '';
+            unnecessaryParameters.forEach(parameter => {
+                message = StringUtil.AppendString(message, `'${parameter}'`, ', ');
+
+                let paramRange: Range = alProcedure.Range!;
+                for (let i = currentLineNo; i >= 0; i--) {
+                    if (codeLines[i].indexOf(`/// <param name="${parameter}">`) !== -1) {
+                        paramRange = ALSyntaxUtil.GetRange(codeLines.join('\r\n'), i);
+                        break;
+                    }
+                }
+
+                message = `Parameter '${parameter}' is described in XML documentation for procedure ${alProcedure.Name}, but do not exist in procedure signature.`;
+                let diagnostic = new Diagnostic(paramRange,
+                    message, 
+                    Configuration.GetProcedureDocumentationCheckInformationLevel(alObject.Uri));
+                diagnostic.source = ALXmlDocDiagnosticPrefix;
+                diagnostic.code = this.GetDiagnosticCode(ALXmlDocDiagnosticCode.ParameterUnnecessary);
+    
+                this.diags.push(diagnostic);
+            });
+        }
+    }
+
+    /**
+     * Search for documented parameter in ALProcedure and add to array if unnecessary.
+     * @param unnecessaryParameters Array<string> to collect unnecessary parameters.
+     * @param param Documented parameter
+     * @param alProcedure ALProcedure
+     */
+    private GetUnnecessaryParameterDocumentationDiagnostics(unnecessaryParameters: Array<string>, param: { value: string, attr: { name: string }}, alProcedure: ALProcedure) {
+        if (!param) {
+            return;
+        }
+        
+        if (alProcedure.Parameters.find(alParameter => (alParameter.Name === param.attr.name)) === undefined) {
+            unnecessaryParameters.push(param.attr.name);
+        }
+    }
+
+    /**
+     * Analyse documentation of the given procedure.
+     * @param alObject {ALObject}
+     * @param alProcedure {ALProcedure}
+     */
+    private AnalyzeProcedureDocumentation(alObject: ALObject | null, alProcedure: ALProcedure) {
+        if (alObject === null) {
+            return;
+        }
+
+        if (!Configuration.IsProcedureDocumentationMandatory(alObject.Access, alProcedure.Type, alProcedure.Subtype, alProcedure.Access, alObject.Uri)) {
             return;
         }
 
         let diag: { 
-            type: DiagnosticSeverity, 
             diagnosticCode: ALXmlDocDiagnosticCode,
             element: string
         }[] = [];
 
-        if (alProcedureState.documentation === "") {
-            diag.push({
-                type: DiagnosticSeverity.Warning,
-                diagnosticCode: ALXmlDocDiagnosticCode.XmlDocumentationMissing,
-                element: ''
+        if (this.IsMissingXmlDocumentation(alProcedure)) {
+            let diagnostic = new Diagnostic(alProcedure.Range!, 
+                `XML documentation is expected for ${ALProcedureType[alProcedure.Type]} ${alProcedure.Name}.`, 
+                Configuration.GetProcedureDocumentationCheckInformationLevel(alObject.Uri));
+            diagnostic.source = ALXmlDocDiagnosticPrefix;
+            diagnostic.code = ALXmlDocDiagnosticCode.XmlDocumentationMissing;
+
+            this.diags.push(diagnostic);
+            return;
+        }
+
+        if (alProcedure.XmlDocumentation.Exists !== XMLDocumentationExistType.Inherit) {
+            if (alProcedure.XmlDocumentation.Exists === XMLDocumentationExistType.No) {
+                let diagnostic = new Diagnostic(alProcedure.Range!, 
+                    `Summary is expected in XML documentation for ${ALProcedureType[alProcedure.Type]} ${alProcedure.Name}.`, 
+                    Configuration.GetProcedureDocumentationCheckInformationLevel(alObject.Uri));
+                diagnostic.source = ALXmlDocDiagnosticPrefix;
+                diagnostic.code = ALXmlDocDiagnosticCode.SummaryMissing;
+
+                this.diags.push(diagnostic);
+            }
+
+            alProcedure.Parameters?.forEach(alParameter => {
+                if (alParameter.XmlDocumentation.Exists === XMLDocumentationExistType.No) {
+                    diag.push({
+                        diagnosticCode: ALXmlDocDiagnosticCode.ParameterMissing,
+                        element: alParameter.Name!
+                    });
+                }
             });
+
+            if (alProcedure.Return?.XmlDocumentation.Exists === XMLDocumentationExistType.No) {
+                diag.push({
+                    diagnosticCode: ALXmlDocDiagnosticCode.ReturnTypeMissing,
+                    element: `${((alProcedure.Return.Name !== '') ? alProcedure.Return.Name : '')}`
+                });
+            }
         } else {
-            let jsonDocumentation = ALDocCommentUtil.GetJsonFromXmlDocumentation(alProcedureState.documentation);
-            if ((jsonDocumentation === undefined) || (jsonDocumentation === null)) {
-                console.debug(`${this.document.fileName}, ${alProcedureState.name} could not be analyzed. Please report this error at https://github.com/365businessdev/vscode-alxmldocumentation/issues`);
+            if ((alObject === null) || (alObject.ExtensionObject === undefined)) {
                 return;
             }
-            if ((!jsonDocumentation.summary) || (jsonDocumentation.summary === "")) {
-                diag.push({
-                    type: DiagnosticSeverity.Warning,
-                    diagnosticCode: ALXmlDocDiagnosticCode.SummaryMissing,
-                    element: 'summary'
-                });
+            let inheritALObject: ALObject | null = ALSyntaxUtil.GetALObjectFromCache(ALObjectType.Interface, alObject.ExtensionObject);
+            if (inheritALObject === null) {
+                return;
             }
-            if ((!(alProcedureState.definition['Params'] === null) || (alProcedureState.definition['Params'] === undefined)) && (alProcedureState.definition['Params'] !== "")) {
-                alProcedureState.definition['Params'].split(';').forEach(paramDefinition => {
-                    let paramName = paramDefinition.split(':')[0].trim();
-                    if (paramName.match(/\bvar\s/) !== null) {
-                        paramName = paramName.substring(paramName.indexOf('var') + 4);
-                    }
-
-                    let documented = false;
-                    if (jsonDocumentation.param !== undefined) {
-                        if (jsonDocumentation.param.length !== undefined) {
-                            for (let i = 0; i < jsonDocumentation.param.length; i++) {
-                                if (jsonDocumentation.param[i].attr.name === paramName) {
-                                    if (jsonDocumentation.param[i].value !== "") {
-                                        documented = true;
-                                        jsonDocumentation.param.splice(i, 1);
-                                    }
-                                    break;
-                                }
-                            }
-                        } else {
-                            if (jsonDocumentation.param.attr.name === paramName) {
-                                if (jsonDocumentation.param.value !== "") {
-                                    documented = true;
-                                    jsonDocumentation.param = undefined;
-                                }
-                            }
-                        }
-                    }
-                    if (!documented) {
-                        diag.push({
-                            type: DiagnosticSeverity.Warning,
-                            diagnosticCode: ALXmlDocDiagnosticCode.ParameterMissing,
-                            element: paramName
-                        });
-                    }
-                });
+            let inheritALProcedure: ALProcedure | undefined = inheritALObject.Procedures?.find(inheritALProcedure => (inheritALProcedure.Name === alProcedure.Name));
+            if (inheritALProcedure !== undefined) {
+                this.AnalyzeProcedureDocumentation(inheritALObject, inheritALProcedure);
             }
-
-            if (jsonDocumentation.param !== undefined) {
-                if (jsonDocumentation.param.length !== undefined) {
-                    jsonDocumentation.param.forEach((param: { attr: { name: string; }; }) => {
-                        diag.push({
-                            type: DiagnosticSeverity.Warning,
-                            diagnosticCode: ALXmlDocDiagnosticCode.ParameterUnnecessary,
-                            element: param.attr.name
-                        });
-                    });
-                } else {
-                    diag.push({
-                        type: DiagnosticSeverity.Warning,
-                        diagnosticCode: ALXmlDocDiagnosticCode.ParameterUnnecessary,
-                        element: jsonDocumentation.param.attr.name
-                    });
-                }
-            }
-
-            if (alProcedureState.definition['ReturnType'] !== undefined) {
-                if ((!jsonDocumentation.returns) || (jsonDocumentation.returns === "")) {
-                    diag.push({
-                        type: DiagnosticSeverity.Warning,
-                        diagnosticCode: ALXmlDocDiagnosticCode.ReturnTypeMissing,
-                        element: 'return value'
-                    });
-                }
-            }
-        }
+        }       
 
         let missingDoc = diag.filter(this.IsMissingDocumentationDiag);
         if ((missingDoc !== undefined) && (missingDoc.length > 0)) {
-            let msg: string = "";
-            let code: string = "";
+            let message: string = '';
+            let code: string = '';
             if (missingDoc[0].diagnosticCode !== ALXmlDocDiagnosticCode.XmlDocumentationMissing) {
                 missingDoc.forEach(diag => {
                     switch (diag.diagnosticCode) {
                         case ALXmlDocDiagnosticCode.ParameterMissing:
-                            diag.element = `parameter '${diag.element}'`;
+                            diag.element = `Parameter '${diag.element}'`;
+                        break;
+                        case ALXmlDocDiagnosticCode.ReturnTypeMissing:
+                            diag.element = `Return value${(diag.element !== '') ? ' \'' + diag.element + '\'' : ''}`;
                         break;
                     }
-                    msg = this.AppendString(msg, diag.element, ", ");
-                    code = this.AppendString(code, this.GetDiagnosticCode(diag.diagnosticCode), ", ");
+                    message = StringUtil.AppendString(message, diag.element, ', ');
+                    code = StringUtil.AppendString(code, this.GetDiagnosticCode(diag.diagnosticCode), ', ');
                 });
-
-                msg = `The procedure ${alProcedureState.name} is missing documentation for ${msg}.`;
+                let isAre = 'is';
+                if (missingDoc.length > 1) {
+                    isAre = 'are';
+                }
+                message = `${message} ${isAre} defined in signature for ${ALProcedureType[alProcedure.Type]} ${alProcedure.Name}, but ${isAre} not documented.`;
             } else {
                 code = this.GetDiagnosticCode(missingDoc[0].diagnosticCode);
-                msg = `Procedure documentation for ${alProcedureState.name} is missing.`;
+                message = `The ${ALProcedureType[alProcedure.Type]} ${alProcedure.Name} is missing XML documentation.`;
             }
-            let diagnostic = new Diagnostic(alProcedureState.position, msg, DiagnosticSeverity.Warning);
+            let diagnostic = new Diagnostic(alProcedure.Range!, 
+                message, 
+                Configuration.GetProcedureDocumentationCheckInformationLevel(alObject.Uri));
             diagnostic.source = ALXmlDocDiagnosticPrefix;
             diagnostic.code = code;
-            this.diagnostics.push(diagnostic);
+
+            this.diags.push(diagnostic);
         }
-        let unnecessaryDoc = diag.filter(this.IsUnnecessaryDocumentationDiag);
-        if ((unnecessaryDoc !== undefined) && (unnecessaryDoc.length > 0)) {
-            let msg: string = "";
-            let code: string = "";
-            unnecessaryDoc.forEach(diag => {
-                switch (diag.diagnosticCode) {
-                    case ALXmlDocDiagnosticCode.ParameterUnnecessary:
-                        diag.element = `parameter '${diag.element}'`;
-                    break;
-                }
-                msg = this.AppendString(msg, diag.element, ", ");
-                code = this.AppendString(code, diag.diagnosticCode, ", ");
-            });
+    }
+    
+    /**
+     * Analyse documentation of the given object.
+     * @param alObject 
+     */
+    private AnalyzeObjectDocumentation(alObject: ALObject) {
+        if (alObject === null) {
+            return;
+        }
 
-            let subMsg: string = "";
-            if (unnecessaryDoc.length > 1) {
-                subMsg = "are";
-            } else {
-                subMsg = "is";
-            }
-            msg = `The ${msg} ${subMsg} described in documentation for procedure ${alProcedureState.name} but do not exist.`;
-
-            let diagnostic = new Diagnostic(alProcedureState.position, msg, DiagnosticSeverity.Warning);
+        if (!Configuration.IsDocumentationMandatoryForAccessLevel(alObject.Access)) {
+            return;
+        }
+        
+        if (alObject.XmlDocumentation.Exists === XMLDocumentationExistType.No) {            
+            let diagnostic = new Diagnostic(alObject.Range!, 
+                `XML documentation is expected for Object ${alObject.Name}.`, 
+                Configuration.GetObjectDocumentationCheckInformationLevel(alObject.Uri));
             diagnostic.source = ALXmlDocDiagnosticPrefix;
-            diagnostic.code = code;
-            this.diagnostics.push(diagnostic);
+            diagnostic.code = ALXmlDocDiagnosticCode.ObjectXmlDocumentationMissing;
+
+            this.diags.push(diagnostic);
         }
     }
 
+    /**
+     * Checks whether any XML documentation is present for AL Procedure or not.
+     * @param alProcedure ALProcedure to search for any XML documentation present
+     */
+    private IsMissingXmlDocumentation(alProcedure: ALProcedure): boolean {
+        return (alProcedure.XmlDocumentation.Exists === XMLDocumentationExistType.No) && 
+            ((alProcedure.Return === undefined) || (alProcedure.Return?.XmlDocumentation.Exists === XMLDocumentationExistType.No)) && 
+            (alProcedure.Parameters?.find(alProcedure => (alProcedure.XmlDocumentation.Exists === XMLDocumentationExistType.Yes)) === undefined);
+    }
+
+    /**
+     * Returns diagnostics string.
+     * @param diagnosticCode {ALXmlDocDiagnosticCode}
+     */
+    private GetDiagnosticCode(diagnosticCode: ALXmlDocDiagnosticCode): any {
+        return diagnosticCode.toString();
+    }
+
+    /**
+     * Returns true if actual diagnostic code is representing a missing documentation.
+     */
     private IsMissingDocumentationDiag(element: { diagnosticCode: ALXmlDocDiagnosticCode; }, index: any, array: any) {
         return (
             (element.diagnosticCode === ALXmlDocDiagnosticCode.XmlDocumentationMissing) || 
             (element.diagnosticCode === ALXmlDocDiagnosticCode.SummaryMissing) ||
             (element.diagnosticCode === ALXmlDocDiagnosticCode.ParameterMissing) || 
-            (element.diagnosticCode === ALXmlDocDiagnosticCode.ReturnTypeMissing) || 
-            (element.diagnosticCode === ALXmlDocDiagnosticCode.RemarkMissing));
+            (element.diagnosticCode === ALXmlDocDiagnosticCode.ReturnTypeMissing));
     }
 
+    /**
+     * Returns true if actual diagnostic code is representing a unnecessary documentation.
+     */
     private IsUnnecessaryDocumentationDiag(element: { diagnosticCode: ALXmlDocDiagnosticCode; }, index: any, array: any) {
         return ((element.diagnosticCode === ALXmlDocDiagnosticCode.ParameterUnnecessary));
     }
-    
-    private AppendString(baseString: string, append: string, concatString: string = ""): string {
-        if (baseString.includes(append)) {
-            return baseString;
-        }
-        if (baseString !== "") {
-            baseString = `${baseString}${concatString}`;
-        }
-        baseString = `${baseString}${append}`;
 
-        return baseString;
-    }
-
-    private GetDiagnosticCode(code: ALXmlDocDiagnosticCode): string {
-        return code.toString();
-    }
-
-    private UpdateDiagnostics() {
-        if (this.diagnostics === []) {
-            this.diagnosticsCollection.clear();
+    /**
+     * Update DiagnosticCollection to present them to the user.
+     */
+    private UpdateDiagnosticCollection() {
+        if (this.diags === []) {
+            ALDiagnosticCollection.Diagnostics.clear();
+            return;
         }
         
-        this.diagnosticsCollection.set(this.document.uri, this.diagnostics);
+        ALDiagnosticCollection.Diagnostics.set(this.document.uri, this.diags);
     }
 
-    public dispose() {
-    }
 }

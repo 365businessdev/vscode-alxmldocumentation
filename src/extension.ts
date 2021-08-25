@@ -1,25 +1,25 @@
-import { ExtensionContext } from "vscode";
-import { DoComment } from "./DoComment";
-import { DoExport } from "./DoExport";
-import { DoHover } from "./DoHover";
-import { DoCheckDocumentation } from "./DoCheckDocumentation";
-import { Configuration } from "./util/Configuration";
+import { ExtensionContext } from 'vscode';
+import { ALObjectCache } from './ALObjectCache';
+import { Controller } from './Controller';
+import { Configuration } from './util/Configuration';
 
-export function activate(context: ExtensionContext) {	
-	Configuration.AskEnableCheckProcedureDocumentation();
+export async function activate(context: ExtensionContext) {	
+	const controller = new Controller(context);
+	
+	if (Configuration.InitializeALObjectCacheOnStartUp()) {
+		let startTime = Date.now();
 
-	const doComment = new DoComment();
-	const doExport = new DoExport();
-	const doHover = new DoHover();
-	const doCheckDocumentation = new DoCheckDocumentation();
+		controller.Initialize().then(() => {
+			let endTime = Date.now();
 
-	context.subscriptions.push(doComment);
-	context.subscriptions.push(doExport);
-	context.subscriptions.push(doHover);
-	context.subscriptions.push(doCheckDocumentation);
-
-	console.log("AL XML Documentation Extension has been activated.");
+			console.log(`AL XML Documentation Extension has been activated. Initialization for ${ALObjectCache.ALObjects.length} AL Objects took ${Math.round((endTime - startTime) * 100 / 100)}ms.`);
+		});			
+	} else {
+		console.log('AL XML Documentation Extension has been activated. Initialization skipped.');
+	}
 }
 
 // this method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() {
+	ALObjectCache.ALObjects = []; // delete cache
+}

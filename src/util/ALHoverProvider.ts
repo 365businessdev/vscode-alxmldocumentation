@@ -1,52 +1,59 @@
-import { HoverProvider, TextDocument, Position, CancellationToken, workspace, Hover } from "vscode";
-import { ALLangServerProxy } from "./ALLangServerProxy";
-import { ALSyntaxUtil } from "./ALSyntaxUtil";
-import { ALDocCommentUtil } from "./ALDocCommentUtil";
-import { isNullOrUndefined } from "util";
+import { CancellationToken, Hover, HoverProvider, Location, MarkdownString, Position, TextDocument } from 'vscode';
+import { ALProcedure } from '../types/ALProcedure';
+import { XMLDocumentationExistType } from '../types/XMLDocumentationExistType';
+import { ALDocCommentUtil } from './ALDocCommentUtil';
+import { ALLangServerProxy } from './ALLangServerProxy';
 
 export class ALHoverProvider implements HoverProvider {
     async provideHover(document: TextDocument, position: Position, token: CancellationToken) {   
+        let result: MarkdownString = new MarkdownString();
+
         // retrieve source code from language server
         let alLangServerProxy = new ALLangServerProxy();     
-        const alSourceCode = await alLangServerProxy.GetALSourceCode(document.uri.toString(), position);
-        if (alSourceCode === undefined) {
-            return;
-        }
-        
-        // extract xml documentation if exist (search backwards from line no given by GoToDefinition)
-        var docBuffer = '';
-        let alSourceCodeLines = alSourceCode.value.split(/\r\n|\r|\n/);
-        for (var i = (alSourceCode.pos.line - 1); (i > 0); i--) {
-            let line = alSourceCodeLines[i];
-            if (line.trim().startsWith('///')) {
-                docBuffer = `${line.replace('///','').trim()}\r\n${docBuffer}`;
-            }
-            if ((ALSyntaxUtil.IsProcedure(line, (i > 0) ? alSourceCodeLines[i - 1] : "")) || (ALSyntaxUtil.IsObject(line))) {
-                break;
-            }
-        }
-        if (docBuffer === '') {
+        const alDefinition = await alLangServerProxy.GetALObjectFromDefinition(document.uri.toString(), position);
+        if ((alDefinition === undefined) || (alDefinition.ALObject === null)) {
             return;
         }
 
-        let jsonDocumentation = ALDocCommentUtil.GetJsonFromXmlDocumentation(docBuffer);
-        // build hover text with summary
-        let hoverText: string[] = [];
-        if ((jsonDocumentation.summary) && (jsonDocumentation.summary !== "")) {
-            hoverText.push(jsonDocumentation.summary);
-        } else {
-            return; // don't show w/o summary
+        // find AL procedure by line no.
+        let alProcedure: ALProcedure | undefined = alDefinition.ALObject.Procedures?.find(procedure => procedure.LineNo === alDefinition.Position.line);
+        if ((alProcedure === undefined) || (alProcedure.XmlDocumentation.Exists === XMLDocumentationExistType.No)) {
+            return; // not found
         }
 
-        if ((jsonDocumentation.remarks) && (jsonDocumentation.remarks !== "")) {
-            hoverText.push(`**Remarks:** ${jsonDocumentation.remarks}`);
+        let jsonDocumentation: any = await alDefinition.ALObject.GetDocumentationAsJsonObject(alProcedure);                
+        // AL Language Version 6.x is providing simple XML Documentation capabilities. Do not push procedure summary in this case.
+        if ((alLangServerProxy.GetALExtension()?.packageJSON.version < '6.0.0') || (alProcedure.XmlDocumentation.Exists === XMLDocumentationExistType.Inherit)) {
+            // add Summary to hover message.
+            if ((jsonDocumentation.summary) && (jsonDocumentation.summary !== '')) {
+                result.appendMarkdown(`${jsonDocumentation.summary} \n`);
+            } else {
+                return; // don't show w/o summary
+            }
+        }
+        // add Remarks to hover message.
+        if ((jsonDocumentation.remarks) && (jsonDocumentation.remarks.trim() !== '')) {
+            result.appendMarkdown(`*${jsonDocumentation.remarks}*  \n`);
         } 
 
-        if (!isNullOrUndefined(hoverText)) {
-            return new Hover(hoverText);
-        } else {
-            return;
+        // add Return to hover message.
+        if ((alProcedure.Return !== undefined) && (alProcedure.Return.XmlDocumentation.Exists === XMLDocumentationExistType.Yes)) {
+            // convert XML Documentation to more readable JSON object.
+            let returnDocumentation = ALDocCommentUtil.GetJsonFromXmlDocumentation(alProcedure.Return.XmlDocumentation.Documentation);
+            if ((returnDocumentation.returns) && (returnDocumentation.returns.trim() !== '')) {
+                result.appendMarkdown(`${returnDocumentation.returns} \n`);
+            }
+        }
+        
+        // add Example to hover message.
+        if (jsonDocumentation.example) {
+            result.appendMarkdown(`#### Example \n`);
+            result.appendMarkdown(`${jsonDocumentation.example.value} \n`);
+            result.appendCodeblock(jsonDocumentation.example.code);
+        }
+
+        if (result.value !== '') {
+            return new Hover(result);
         }
     }
-    
 }

@@ -1,82 +1,177 @@
-import { CodeActionProvider, CodeActionKind, TextDocument, Range, Selection, CodeActionContext, CancellationToken, CodeAction } from "vscode";
-import { ALSyntaxUtil } from "./ALSyntaxUtil";
-import { ALXmlDocDiagnosticPrefix, ALXmlDocDiagnosticCode } from "../types";
+import { Position, Range, SnippetString, TextEditor } from 'vscode';
+import { ALObject } from '../types/ALObject';
+import { ALParameter } from '../types/ALParameter';
+import { ALProcedure } from '../types/ALProcedure';
+import { ALDocCommentUtil } from './ALDocCommentUtil';
+import { ALSyntaxUtil } from './ALSyntaxUtil';
 
-export class ALFixDocumentation implements CodeActionProvider {
-	public static readonly providedCodeActionKinds = [
-		CodeActionKind.QuickFix
-    ];
-
-    public provideCodeActions(document: TextDocument, range: Range | Selection, context: CodeActionContext, token: CancellationToken): CodeAction[] {
-        let procedureState: { name: string; position: Range; definition: { [key: string]: string; }; documentation: string } | null;
-        procedureState = ALSyntaxUtil.GetALProcedureState(document, range.start.line);
-        if ((procedureState === null) || (procedureState === undefined)) {
-            return [ ];
+export class ALFixDocumentation {
+    /**
+     * Add missing XML documentation for AL procedure.
+     * @param editor {TextEditor}
+     * @param alProcedure {ALProcedure}
+     */
+    public static FixObjectDocumentation(editor: TextEditor | undefined, alObject: ALObject) {
+        if (editor === undefined) {
+            return;
         }
 
-        let quickFixActions: CodeAction[] = [];
-        context.diagnostics.filter(diagnostic => diagnostic.source === ALXmlDocDiagnosticPrefix).forEach(diagnostic => {
-            let procedureDefinition = ALSyntaxUtil.AnalyzeProcedureDefinition(document.getText().replace(/\r/g,'').split('\n')[procedureState!.position.start.line])?.groups;
-            if (procedureDefinition) {
-                if (procedureState!.documentation === "") {
-                    let action = new CodeAction('Add documentation', CodeActionKind.QuickFix);
-                    action.command = { 
-                        command: "bdev-al-xml-doc.fixDocumentation", 
-                        title: 'Add procedure documentation', 
-                        tooltip: 'This quick fix is automatically adding procedure documentation.',
-                        arguments: [ procedureState ]
-                    };
-                    action.diagnostics = [diagnostic];
-                    action.isPreferred = true;
-                    quickFixActions.push(action);
-                } else {
-                    let action = null;
-                    let codes = diagnostic.code?.toString().split(', ');
-                    [...new Set(codes)].forEach(diagnosticCode => {
-                        switch (diagnosticCode) {
-                            case ALXmlDocDiagnosticCode.SummaryMissing:
-                                action = new CodeAction('Add summary documentation', CodeActionKind.QuickFix);
-                                action.command = { 
-                                    command: "bdev-al-xml-doc.fixSummaryDocumentation", 
-                                    title: 'Add procedure summary documentation', 
-                                    tooltip: 'This quick fix is automatically adding procedure summary documentation.',
-                                    arguments: [ procedureState ] 
-                                };
-                                action.diagnostics = [diagnostic];
-                                action.isPreferred = true;
-                                quickFixActions.push(action);
-                                break;
-                            case ALXmlDocDiagnosticCode.ParameterMissing:
-                                action = new CodeAction('Add parameter documentation', CodeActionKind.QuickFix);
-                                action.command = { 
-                                    command: "bdev-al-xml-doc.fixParameterDocumentation", 
-                                    title: 'Add procedure parameter documentation', 
-                                    tooltip: 'This quick fix is automatically adding procedure parameter documentation.',
-                                    arguments: [ procedureState ] 
-                                };
-                                action.diagnostics = [diagnostic];
-                                action.isPreferred = true;
-                                quickFixActions.push(action);
-                                break;
-                            case ALXmlDocDiagnosticCode.ReturnTypeMissing:
-                                action = new CodeAction('Add return type documentation', CodeActionKind.QuickFix);
-                                action.command = { 
-                                    command: "bdev-al-xml-doc.fixReturnTypeDocumentation", 
-                                    title: 'Add procedure return type documentation', 
-                                    tooltip: 'This quick fix is automatically adding procedure return type documentation.',
-                                    arguments: [ procedureState ] 
-                                };
-                                action.diagnostics = [diagnostic];
-                                action.isPreferred = true;
-                                quickFixActions.push(action);
-                                break;
-                        }
-                    });
-                }
-
-            }
-        });
-
-        return quickFixActions;
+        editor.insertSnippet(new SnippetString(
+            `${ALDocCommentUtil.GetObjectDocumentation(alObject)}\r\n`),
+            new Position(alObject.LineNo, ALDocCommentUtil.GetLineStartPosition(editor.document, alObject.LineNo))
+        );
     }
+
+    /**
+     * Add missing XML documentation for AL procedure.
+     * @param editor {TextEditor}
+     * @param alProcedure {ALProcedure}
+     */
+    public static FixDocumentation(editor: TextEditor | undefined, alProcedure: ALProcedure) {
+        if (editor === undefined) {
+            return;
+        }
+
+        let lineNo = this.FindLineNoToStartXmlDocumentation(editor, alProcedure);
+
+        editor.insertSnippet(new SnippetString(
+            `${ALDocCommentUtil.GetProcedureDocumentation(alProcedure)}\r\n`),
+            new Position(lineNo, ALDocCommentUtil.GetLineStartPosition(editor.document, lineNo))
+        );
+    }
+    
+    /**
+     * Add missing Summary XML documentation for AL procedure.
+     * @param editor {TextEditor}
+     * @param alProcedure {ALProcedure}
+     */
+    public static FixSummaryDocumentation(editor: TextEditor | undefined, alProcedure: ALProcedure) {
+        if (editor === undefined) {
+            return;
+        }
+
+        let lineNo = this.FindLineNoToStartXmlDocumentation(editor, alProcedure);
+        
+        editor.insertSnippet(new SnippetString(
+            `/// ${alProcedure.XmlDocumentation.Documentation.replace('__idx__', '1').split('\r\n').join('\r\n/// ')}\r\n`),
+            new Position(lineNo, ALDocCommentUtil.GetLineStartPosition(editor.document, lineNo))
+        );
+    }
+
+    /**
+     * Add missing Summary XML documentation for AL procedure.
+     * @param editor {TextEditor}
+     * @param alProcedure {ALProcedure}
+     */
+    public static FixParameterDocumentation(editor: TextEditor | undefined, alProcedure: ALProcedure) {
+        if (editor === undefined) {
+            return;
+        }
+
+        let placeholderIdx = 1;
+        let xmlDocumentation: string = ALDocCommentUtil.GenerateProcedureDocString(alProcedure, placeholderIdx);
+        alProcedure.Parameters?.forEach(alParameter => {
+            placeholderIdx++;
+            xmlDocumentation += ALDocCommentUtil.GenerateParameterDocString(alParameter, placeholderIdx);
+        });
+        let jsonDocumentation = ALDocCommentUtil.GetJsonFromXmlDocumentation(xmlDocumentation);
+        let parameters: { alParameter: ALParameter | undefined; documentation: string; insertAtLineNo: number }[] = [];
+        if (jsonDocumentation.param.length === undefined) {
+            parameters.push({
+                alParameter: alProcedure.Parameters!.find(alParameter => (alParameter.Name === jsonDocumentation.param.attr.name)),
+                documentation: jsonDocumentation.param.value,
+                insertAtLineNo: ALDocCommentUtil.GetXmlDocumentationNodeLineNo(editor, alProcedure.LineNo, 'param', 'name', jsonDocumentation.param.attr.name)
+            });
+        } else {
+            jsonDocumentation.param.forEach((param: { attr: { name: string; }; value: string; }) => {
+                parameters.push({
+                    alParameter: alProcedure.Parameters!.find(alParameter => (alParameter.Name === param.attr.name)),
+                    documentation: param.value,
+                    insertAtLineNo: ALDocCommentUtil.GetXmlDocumentationNodeLineNo(editor, alProcedure.LineNo, 'param', 'name', param.attr.name)
+                });
+            });
+        }
+
+        let i = 0;
+        let j = 0;
+        parameters.forEach(parameter => {
+            if (parameter.insertAtLineNo === -1) {
+                if ((i === 0) || (parameters[i-1].insertAtLineNo === -1)) {
+                    parameter.insertAtLineNo = ALDocCommentUtil.GetXmlDocumentationNodeLineNo(editor, alProcedure.LineNo, 'summary');
+                } else {
+                    parameter.insertAtLineNo = parameters[i-1].insertAtLineNo + j;
+                }
+                if (parameter.alParameter !== undefined) {
+                    editor.insertSnippet(new SnippetString(`/// ${ALDocCommentUtil.GenerateParameterDocString(parameter.alParameter, i)}\r\n`), 
+                        new Position(parameter.insertAtLineNo, ALDocCommentUtil.GetLineStartPosition(editor.document, parameter.insertAtLineNo)));
+                }
+                j++;
+            }
+            i++;
+        });
+    }
+
+    public static FixReturnTypeDocumentation(editor: TextEditor | undefined, alProcedure: ALProcedure) {
+        if (editor === undefined) {
+            return;
+        }
+
+        if (!alProcedure.Return) {
+            return;
+        }
+
+        let lineNo = this.FindLineNoToStartXmlDocumentation(editor, alProcedure, false);
+        
+        editor.insertSnippet(new SnippetString(
+            `/// ${alProcedure.Return.XmlDocumentation.Documentation.replace('__idx__', '1').split('\r\n').join('\r\n/// ')}\r\n`),
+            new Position(lineNo, ALDocCommentUtil.GetLineStartPosition(editor.document, lineNo))
+        );
+    }
+
+    /**
+     * Remove unnecessary parameter documentation from XML documentation.
+     * @param editor {TextEditor}
+     * @param alProcedure {ALProcedure}
+     * @param range {Range} of the unnecessary parameter documentation.
+     */
+    public static FixUnnecessaryParameterDocumentation(editor: TextEditor | undefined, alProcedure: ALProcedure, range: Range) {
+        if (editor === undefined) {
+            return;
+        }
+
+        editor.edit(edit => {
+            edit.delete(new Range(new Position(range.start.line - 1, this.GetLastCharacterOfLine(editor, range.start.line - 1)),new Position(range.end.line, range.end.character)));
+        });
+    }
+
+    /**
+     * Get last character position of a given line.
+     * @param editor {TextEditor}
+     * @param lineNo Line number to get the last character position from.
+     */
+    static GetLastCharacterOfLine(editor: TextEditor, lineNo: number): number {
+        let codeLines: Array<string> = ALSyntaxUtil.SplitALCodeToLines(editor.document.getText());
+        return codeLines[lineNo].length;
+    }
+
+    /**
+     * Get line number to paste XML documentation for given ALProcedure. 
+     * @param editor {TextEditor}
+     * @param alProcedure {ALProcedure}
+     */
+    private static FindLineNoToStartXmlDocumentation(editor: TextEditor, alProcedure: ALProcedure, includeComments: boolean = true): number {
+        let codeLines: Array<string> = ALSyntaxUtil.SplitALCodeToLines(editor.document.getText());
+        let lineNo = 0;
+        for (lineNo = alProcedure.LineNo - 1; lineNo > 0; lineNo--) {
+            if (!codeLines[lineNo].trim().startsWith('[')) {
+                if ((!codeLines[lineNo].trim().startsWith('///')) || (!includeComments)) {
+                    break;
+                }
+            }
+        }
+        lineNo++;
+
+        return lineNo;
+    }
+
 }
