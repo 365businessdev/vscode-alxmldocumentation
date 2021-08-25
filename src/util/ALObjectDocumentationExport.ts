@@ -314,6 +314,9 @@ pdf_options:
 
         // write example
         let documentation: any = ALDocCommentUtil.GetJsonFromXmlDocumentation(alObject.XmlDocumentation.Documentation);
+        if ((documentation === null) || (documentation === undefined)) {
+            return;
+        }
         if (documentation.example) {            
             doc.WriteHeading('Example', headingLevel);
             doc.WriteLine(documentation.example.value);
@@ -406,6 +409,9 @@ pdf_options:
             }
 
             let documentation: any = ALDocCommentUtil.GetJsonFromXmlDocumentation(alProcedure.XmlDocumentation.Documentation);
+            if ((documentation === null) || (documentation === undefined)) {
+                return;
+            }
             if (documentation.example) {
                 doc.WriteHeading('Example', headingLevel);
                 doc.WriteLine(documentation.example.value);
