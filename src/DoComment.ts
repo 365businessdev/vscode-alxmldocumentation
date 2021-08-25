@@ -153,7 +153,7 @@ export class DoComment {
         } else {
             // find procedure
             let alProcedure: ALProcedure | undefined = alObject.Procedures?.find(alProcedure => (alProcedure.LineNo > activeLineNo));
-            if ((!alProcedure) || (alProcedure.XmlDocumentation.Exists)) {
+            if ((!alProcedure) || (alProcedure.ALDocumentation.Exists)) {
                 return;
             }
             docString = ALDocCommentUtil.GetProcedureDocumentation(alProcedure);

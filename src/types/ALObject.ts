@@ -8,8 +8,8 @@ import { ALObjectExtensionType } from './ALObjectExtensionType';
 import { ALObjectType } from './ALObjectType';
 import { ALObsoleteState } from './ALObsoleteState';
 import { ALProcedure } from './ALProcedure';
-import { XMLDocumentation } from './XMLDocumentation';
-import { XMLDocumentationExistType } from './XMLDocumentationExistType';
+import { ALDocumentation } from './ALDocumentation';
+import { ALDocumentationExists } from './ALDocumentationExists';
 
 export class ALObject {
     /**
@@ -101,9 +101,9 @@ export class ALObject {
 
     /**
      * XML Documentation.
-     * @type {XMLDocumentation}
+     * @type {ALDocumentation}
      */
-    public XmlDocumentation: XMLDocumentation  = new XMLDocumentation();    
+    public ALDocumentation: ALDocumentation  = new ALDocumentation();    
 
     /**
      * Return XML Documentation for request object converted as JSON object.
@@ -114,15 +114,15 @@ export class ALObject {
         if (obj === null) {
             obj = this;
         }
-        if (obj.XmlDocumentation.Exists === XMLDocumentationExistType.No) {
+        if (obj.ALDocumentation.Exists === ALDocumentationExists.No) {
             return '';
         }
 
-        let documentation = ALDocCommentUtil.GetJsonFromXmlDocumentation(obj.XmlDocumentation.Documentation);
-        switch (obj.XmlDocumentation.Exists) {
-            case XMLDocumentationExistType.Yes:
+        let documentation = ALDocCommentUtil.GetJsonFromALDocumentation(obj.ALDocumentation.Documentation);
+        switch (obj.ALDocumentation.Exists) {
+            case ALDocumentationExists.Yes:
                 return documentation;
-            case XMLDocumentationExistType.Inherit:
+            case ALDocumentationExists.Inherit:
                 if (obj instanceof ALObject) {
                     console.debug('Inherit documentation for ALObject is not supported.');
                     return '';
@@ -151,10 +151,10 @@ export class ALObject {
                             }
 
                             let codeReference: ALProcedure | undefined = alDefinition.ALObject.Procedures?.find(codeRefProcedure => (codeRefProcedure.Code === codeRefProcedureCode));
-                            if ((codeReference === undefined) ||(codeReference?.XmlDocumentation.Exists === XMLDocumentationExistType.No)) {
+                            if ((codeReference === undefined) ||(codeReference?.ALDocumentation.Exists === ALDocumentationExists.No)) {
                                 return '';
                             }
-                            documentation = ALDocCommentUtil.GetJsonFromXmlDocumentation(codeReference.XmlDocumentation.Documentation);
+                            documentation = ALDocCommentUtil.GetJsonFromALDocumentation(codeReference.ALDocumentation.Documentation);
                             return documentation;
                         });
                     } catch {
