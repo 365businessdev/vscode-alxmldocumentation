@@ -318,14 +318,7 @@ pdf_options:
             return;
         }
         if (documentation.example) {            
-            doc.WriteHeading('Example', headingLevel);
-            doc.WriteLine(documentation.example.value);
-            
-            if(documentation.example.lang) {
-                doc.WriteCode(documentation.example.code, documentation.example.lang);
-            } else{
-                doc.WriteCode(documentation.example.code);
-            }
+            this.WriteExample(doc, documentation, headingLevel);
         }
     }
 
@@ -413,11 +406,7 @@ pdf_options:
                 return;
             }
             if (documentation.example) {
-                doc.WriteHeading('Example', headingLevel);
-                doc.WriteLine(documentation.example.value);
-                doc.WriteLine();
-                doc.WriteCode(documentation.example.code);
-                doc.WriteLine();
+                this.WriteExample(doc, documentation, headingLevel);
             }
         }
         headingLevel -= 2;
@@ -445,5 +434,20 @@ pdf_options:
      */
     private static enumKeys<O extends object, K extends keyof O = keyof O>(obj: O): K[] {
         return Object.keys(obj).filter(k => Number.isNaN(+k)) as K[];
+    }
+
+
+    /**
+     * Helper function to write Example block for procedures and objects
+     * @param doc MarkdownWriter instance
+     * @param documentation documentation object
+     * @param headingLevel Current heading level
+     */
+    private static WriteExample(doc: MarkdownWriter, documentation: any, headingLevel: number) {
+        doc.WriteHeading('Example', headingLevel);
+
+        doc.WriteCode(documentation.example.value, documentation.example.attr.lang);
+
+        doc.WriteLine();
     }
 }
