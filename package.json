@@ -239,7 +239,7 @@
 		"fast-xml-parser": "^3.19.0",
 		"fs-extra": "^9.1.0",
 		"guid-typescript": "^1.0.9",
-		"md-to-pdf": "^3.3.2",
+		"md-to-pdf": "^5.0.0",
 		"vscode-languageclient": "^6.1.4"
 	},
 	"scripts": {
