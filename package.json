@@ -11,7 +11,7 @@
 		"url": "https://www.365businessdev.com/"
 	},
 	"engines": {
-		"vscode": "^1.59.0"
+		"vscode": "^1.65.0"
 	},
 	"categories": [
 		"Other"
@@ -236,11 +236,11 @@
 	},
 	"dependencies": {
 		"cancellationtoken": "^2.2.0",
-		"fast-xml-parser": "^3.19.0",
-		"fs-extra": "^9.1.0",
+		"fast-xml-parser": "^4.0.6",
+		"fs-extra": "^10.0.1",
 		"guid-typescript": "^1.0.9",
-		"md-to-pdf": "^5.0.0",
-		"vscode-languageclient": "^6.1.4"
+		"md-to-pdf": "^5.1.0",
+		"vscode-languageclient": "^7.0.0"
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
@@ -251,17 +251,17 @@
 		"test": "node ./out/test/runTest.js"
 	},
 	"devDependencies": {
-		"@types/fs-extra": "^9.0.12",
-		"@types/glob": "^7.1.4",
-		"@types/mocha": "^7.0.2",
-		"@types/node": "^13.13.52",
-		"@types/vscode": "^1.59.0",
-		"@typescript-eslint/eslint-plugin": "^2.34.0",
-		"@typescript-eslint/parser": "^2.34.0",
-		"eslint": "^6.8.0",
-		"glob": "^7.1.7",
-		"mocha": "^7.2.0",
-		"typescript": "^3.9.10",
+		"@types/fs-extra": "^9.0.13",
+		"@types/glob": "^7.2.0",
+		"@types/mocha": "^9.1.0",
+		"@types/node": "^17.0.21",
+		"@types/vscode": "^1.65.0",
+		"@typescript-eslint/eslint-plugin": "^5.15.0",
+		"@typescript-eslint/parser": "^5.15.0",
+		"eslint": "^8.11.0",
+		"glob": "^7.2.0",
+		"mocha": "^9.2.2",
+		"typescript": "^4.6.2",
 		"vscode-test": "^1.6.1"
 	},
 	"repository": {
