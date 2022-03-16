@@ -32,7 +32,7 @@ export class ALFixDocumentation {
             return;
         }
 
-        let lineNo = this.FindLineNoToStartXmlDocumentation(editor, alProcedure);
+        let lineNo = this.FindLineNoToStartDocumentation(editor, alProcedure);
 
         editor.insertSnippet(new SnippetString(
             `${ALDocCommentUtil.GetProcedureDocumentation(alProcedure)}\r\n`),
@@ -50,10 +50,10 @@ export class ALFixDocumentation {
             return;
         }
 
-        let lineNo = this.FindLineNoToStartXmlDocumentation(editor, alProcedure);
+        let lineNo = this.FindLineNoToStartDocumentation(editor, alProcedure);
         
         editor.insertSnippet(new SnippetString(
-            `/// ${alProcedure.XmlDocumentation.Documentation.replace('__idx__', '1').split('\r\n').join('\r\n/// ')}\r\n`),
+            `/// ${alProcedure.ALDocumentation.Documentation.replace('__idx__', '1').split('\r\n').join('\r\n/// ')}\r\n`),
             new Position(lineNo, ALDocCommentUtil.GetLineStartPosition(editor.document, lineNo))
         );
     }
@@ -69,25 +69,25 @@ export class ALFixDocumentation {
         }
 
         let placeholderIdx = 1;
-        let xmlDocumentation: string = ALDocCommentUtil.GenerateProcedureDocString(alProcedure, placeholderIdx);
+        let documentation: string = ALDocCommentUtil.GenerateProcedureDocString(alProcedure, placeholderIdx);
         alProcedure.Parameters?.forEach(alParameter => {
             placeholderIdx++;
-            xmlDocumentation += ALDocCommentUtil.GenerateParameterDocString(alParameter, placeholderIdx);
+            documentation += ALDocCommentUtil.GenerateParameterDocString(alParameter, placeholderIdx);
         });
-        let jsonDocumentation = ALDocCommentUtil.GetJsonFromXmlDocumentation(xmlDocumentation);
+        let jsonDocumentation = ALDocCommentUtil.GetJsonFromALDocumentation(documentation);
         let parameters: { alParameter: ALParameter | undefined; documentation: string; insertAtLineNo: number }[] = [];
         if (jsonDocumentation.param.length === undefined) {
             parameters.push({
                 alParameter: alProcedure.Parameters!.find(alParameter => (alParameter.Name === jsonDocumentation.param.attr.name)),
                 documentation: jsonDocumentation.param.value,
-                insertAtLineNo: ALDocCommentUtil.GetXmlDocumentationNodeLineNo(editor, alProcedure.LineNo, 'param', 'name', jsonDocumentation.param.attr.name)
+                insertAtLineNo: ALDocCommentUtil.GetALDocumentationNodeLineNo(editor, alProcedure.LineNo, 'param', 'name', jsonDocumentation.param.attr.name)
             });
         } else {
             jsonDocumentation.param.forEach((param: { attr: { name: string; }; value: string; }) => {
                 parameters.push({
                     alParameter: alProcedure.Parameters!.find(alParameter => (alParameter.Name === param.attr.name)),
                     documentation: param.value,
-                    insertAtLineNo: ALDocCommentUtil.GetXmlDocumentationNodeLineNo(editor, alProcedure.LineNo, 'param', 'name', param.attr.name)
+                    insertAtLineNo: ALDocCommentUtil.GetALDocumentationNodeLineNo(editor, alProcedure.LineNo, 'param', 'name', param.attr.name)
                 });
             });
         }
@@ -97,7 +97,7 @@ export class ALFixDocumentation {
         parameters.forEach(parameter => {
             if (parameter.insertAtLineNo === -1) {
                 if ((i === 0) || (parameters[i-1].insertAtLineNo === -1)) {
-                    parameter.insertAtLineNo = ALDocCommentUtil.GetXmlDocumentationNodeLineNo(editor, alProcedure.LineNo, 'summary');
+                    parameter.insertAtLineNo = ALDocCommentUtil.GetALDocumentationNodeLineNo(editor, alProcedure.LineNo, 'summary');
                 } else {
                     parameter.insertAtLineNo = parameters[i-1].insertAtLineNo + j;
                 }
@@ -120,10 +120,10 @@ export class ALFixDocumentation {
             return;
         }
 
-        let lineNo = this.FindLineNoToStartXmlDocumentation(editor, alProcedure, false);
+        let lineNo = this.FindLineNoToStartDocumentation(editor, alProcedure, false);
         
         editor.insertSnippet(new SnippetString(
-            `/// ${alProcedure.Return.XmlDocumentation.Documentation.replace('__idx__', '1').split('\r\n').join('\r\n/// ')}\r\n`),
+            `/// ${alProcedure.Return.ALDocumentation.Documentation.replace('__idx__', '1').split('\r\n').join('\r\n/// ')}\r\n`),
             new Position(lineNo, ALDocCommentUtil.GetLineStartPosition(editor.document, lineNo))
         );
     }
@@ -159,7 +159,7 @@ export class ALFixDocumentation {
      * @param editor {TextEditor}
      * @param alProcedure {ALProcedure}
      */
-    private static FindLineNoToStartXmlDocumentation(editor: TextEditor, alProcedure: ALProcedure, includeComments: boolean = true): number {
+    private static FindLineNoToStartDocumentation(editor: TextEditor, alProcedure: ALProcedure, includeComments: boolean = true): number {
         let codeLines: Array<string> = ALSyntaxUtil.SplitALCodeToLines(editor.document.getText());
         let lineNo = 0;
         for (lineNo = alProcedure.LineNo - 1; lineNo > 0; lineNo--) {

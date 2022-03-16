@@ -1,4 +1,4 @@
-import { XMLDocumentation } from './XmlDocumentation';
+import { ALDocumentation } from './ALDocumentation';
 
 export class ALProcedureReturn {
     /**
@@ -13,7 +13,7 @@ export class ALProcedureReturn {
 
     /**
      * XML Documentation.
-     * @type {XMLDocumentation}
+     * @type {ALDocumentation}
      */
-    public XmlDocumentation: XMLDocumentation  = new XMLDocumentation();
+    public ALDocumentation: ALDocumentation  = new ALDocumentation();
 }

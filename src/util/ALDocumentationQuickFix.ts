@@ -37,7 +37,7 @@ export class ALDocumentationQuickFixProvider implements CodeActionProvider {
             }
             diagCodes.forEach(diagnosticCode => {
                 let alProcedure: ALProcedure | undefined;
-                if ((diagnosticCode !== ALXmlDocDiagnosticCode.ObjectXmlDocumentationMissing) && (diagnosticCode !== ALXmlDocDiagnosticCode.ParameterUnnecessary)) {
+                if ((diagnosticCode !== ALXmlDocDiagnosticCode.ObjectDocumentationMissing) && (diagnosticCode !== ALXmlDocDiagnosticCode.ParameterUnnecessary)) {
                     alProcedure = alObject?.Procedures?.find(alProcedure => (alProcedure.LineNo === range.start.line));
                     if (alProcedure === undefined) {
                         console.error(`[ProvideCodeActionsAsync] - Unable to locate ALProcedure object for diagnostics entry. Please report this error at https://github.com/365businessdev/vscode-alxmldocumentation/issues`);
@@ -46,23 +46,23 @@ export class ALDocumentationQuickFixProvider implements CodeActionProvider {
                 }
 
                 switch (diagnosticCode) {
-                    case ALXmlDocDiagnosticCode.XmlDocumentationMissing:
-                        this.AddXmlDocumentationMissingCodeAction(alProcedure, diagnostic);
+                    case ALXmlDocDiagnosticCode.DocumentationMissing:
+                        this.AddDocumentationMissingCodeAction(alProcedure, diagnostic);
                         break;
                     case ALXmlDocDiagnosticCode.SummaryMissing:
-                        this.AddSummaryXmlDocumentationMissingCodeAction(alProcedure, diagnostic);
+                        this.AddSummaryDocumentationMissingCodeAction(alProcedure, diagnostic);
                         break;
                     case ALXmlDocDiagnosticCode.ParameterMissing:
-                        this.AddParameterXmlDocumentationMissingCodeAction(alProcedure, diagnostic);
+                        this.AddParameterDocumentationMissingCodeAction(alProcedure, diagnostic);
                         break;
                     case ALXmlDocDiagnosticCode.ReturnTypeMissing:
-                        this.AddReturnXmlDocumentationMissingCodeAction(alProcedure, diagnostic);
+                        this.AddReturnDocumentationMissingCodeAction(alProcedure, diagnostic);
                         break;
                     case ALXmlDocDiagnosticCode.ParameterUnnecessary:
-                        this.AddUnnecessaryParameterXmlDocumentationMissingCodeAction(alProcedure, diagnostic);
+                        this.AddUnnecessaryParameterDocumentationMissingCodeAction(alProcedure, diagnostic);
                         break;
-                    case ALXmlDocDiagnosticCode.ObjectXmlDocumentationMissing:
-                        this.AddObjectXmlDocumentationMissingCodeAction(alObject, diagnostic);
+                    case ALXmlDocDiagnosticCode.ObjectDocumentationMissing:
+                        this.AddObjectDocumentationMissingCodeAction(alObject, diagnostic);
                         break;
                 }
             });
@@ -77,7 +77,7 @@ export class ALDocumentationQuickFixProvider implements CodeActionProvider {
      * @param alProcedure AL Procedure.
      * @param diagnostic Diagnostic entry.
      */
-    private AddObjectXmlDocumentationMissingCodeAction(alObject: ALObject | null, diagnostic: Diagnostic) {
+    private AddObjectDocumentationMissingCodeAction(alObject: ALObject | null, diagnostic: Diagnostic) {
         let action: CodeAction = new CodeAction('Add XML documentation', CodeActionKind.QuickFix);
         action.command = {
             command: `${ALXmlDocConfigurationPrefix}.fixObjectDocumentation`,
@@ -95,7 +95,7 @@ export class ALDocumentationQuickFixProvider implements CodeActionProvider {
      * @param alProcedure AL Procedure.
      * @param diagnostic Diagnostic entry.
      */
-    private AddXmlDocumentationMissingCodeAction(alProcedure: ALProcedure | undefined, diagnostic: Diagnostic) {
+    private AddDocumentationMissingCodeAction(alProcedure: ALProcedure | undefined, diagnostic: Diagnostic) {
         let action: CodeAction = new CodeAction('Add XML documentation', CodeActionKind.QuickFix);
         action.command = {
             command: `${ALXmlDocConfigurationPrefix}.fixDocumentation`,
@@ -113,7 +113,7 @@ export class ALDocumentationQuickFixProvider implements CodeActionProvider {
      * @param alProcedure AL Procedure.
      * @param diagnostic Diagnostic entry.
      */
-    private AddSummaryXmlDocumentationMissingCodeAction(alProcedure: ALProcedure | undefined, diagnostic: Diagnostic) {
+    private AddSummaryDocumentationMissingCodeAction(alProcedure: ALProcedure | undefined, diagnostic: Diagnostic) {
         let action: CodeAction = new CodeAction('Add summary XML documentation', CodeActionKind.QuickFix);
         action.command = {
             command: `${ALXmlDocConfigurationPrefix}.fixSummaryDocumentation`,
@@ -131,7 +131,7 @@ export class ALDocumentationQuickFixProvider implements CodeActionProvider {
      * @param alProcedure AL Procedure.
      * @param diagnostic Diagnostic entry.
      */
-    private AddParameterXmlDocumentationMissingCodeAction(alProcedure: ALProcedure | undefined, diagnostic: Diagnostic) {
+    private AddParameterDocumentationMissingCodeAction(alProcedure: ALProcedure | undefined, diagnostic: Diagnostic) {
         let action: CodeAction = new CodeAction('Add parameter XML documentation', CodeActionKind.QuickFix);
         action.command = {
             command: `${ALXmlDocConfigurationPrefix}.fixParameterDocumentation`,
@@ -149,7 +149,7 @@ export class ALDocumentationQuickFixProvider implements CodeActionProvider {
      * @param alProcedure AL Procedure.
      * @param diagnostic Diagnostic entry.
      */
-    private AddReturnXmlDocumentationMissingCodeAction(alProcedure: ALProcedure | undefined, diagnostic: Diagnostic) {
+    private AddReturnDocumentationMissingCodeAction(alProcedure: ALProcedure | undefined, diagnostic: Diagnostic) {
         let action: CodeAction = new CodeAction('Add return value XML documentation', CodeActionKind.QuickFix);
         action.command = {
             command: `${ALXmlDocConfigurationPrefix}.fixReturnDocumentation`,
@@ -167,7 +167,7 @@ export class ALDocumentationQuickFixProvider implements CodeActionProvider {
      * @param alProcedure AL Procedure.
      * @param diagnostic Diagnostic entry.
      */
-    private AddUnnecessaryParameterXmlDocumentationMissingCodeAction(alProcedure: ALProcedure | undefined, diagnostic: Diagnostic) {
+    private AddUnnecessaryParameterDocumentationMissingCodeAction(alProcedure: ALProcedure | undefined, diagnostic: Diagnostic) {
         let action: CodeAction = new CodeAction('Remove unnecessary parameter XML documentation', CodeActionKind.QuickFix);
         action.command = {
             command: `${ALXmlDocConfigurationPrefix}.fixUnnecessaryParameterDocumentation`,

@@ -3,7 +3,7 @@ import { ALXmlDocDiagnosticCode, ALXmlDocDiagnosticPrefix } from '../types';
 import { ALObject } from '../types/ALObject';
 import { ALObjectType } from '../types/ALObjectType';
 import { ALProcedure } from '../types/ALProcedure';
-import { XMLDocumentationExistType } from '../types/XMLDocumentationExistType';
+import { ALDocumentationExists } from '../types/ALDocumentationExists';
 import { ALSyntaxUtil } from './ALSyntaxUtil';
 import { ALDocCommentUtil } from './ALDocCommentUtil';
 import { Configuration } from './Configuration';
@@ -82,28 +82,28 @@ export class ALCheckDocumentation {
         let i = 0;
         try {
             let codeLines: string[] = ALSyntaxUtil.SplitALCodeToLines(document.getText());
-            let xmlDocumentation: string ='';
+            let documentation: string ='';
             for(i = 0; i < codeLines.length; i++) {
                 let line: string = codeLines[i];
                 if (!line.trim().startsWith('///')) {
                     if (ALSyntaxUtil.IsObjectDefinition(line)) {
-                        xmlDocumentation = '';
+                        documentation = '';
                         continue;
                     } else {
-                        if (xmlDocumentation !== '') {
+                        if (documentation !== '') {
                             let alProcedure: ALProcedure | undefined = alObject.Procedures?.find(alProcedure => (i <= alProcedure.LineNo));
                             if (alProcedure === undefined) {
                                 console.debug(`Could not find AL Procedure for XML documentation found in ${alObject.FileName} line ${i}.`);
                                 continue;
                             }
-                            this.GetUnnecessaryProcedureDocumentationDiagnostics(codeLines, i, xmlDocumentation, alObject, alProcedure);
+                            this.GetUnnecessaryProcedureDocumentationDiagnostics(codeLines, i, documentation, alObject, alProcedure);
                         }
-                        xmlDocumentation = '';
+                        documentation = '';
                         continue;
                     }
                 }
 
-                xmlDocumentation += line.trim().replace('///','');
+                documentation += line.trim().replace('///','');
             }
         } catch (ex) {
             console.debug(`An error occurred in ${alObject.FileName} during analyze unnecessary documentations.\r\n${ex}`);
@@ -114,13 +114,13 @@ export class ALCheckDocumentation {
      * Analyze procedure for unnecessary XML documentations.
      * @param codeLines AL Source Code.
      * @param currentLineNo Actual line no. in AL Source Code.
-     * @param xmlDocumentation Captured XML documentation.
+     * @param documentation Captured XML documentation.
      * @param alObject ALObject
      * @param alProcedure ALProcedure
      */
-    private GetUnnecessaryProcedureDocumentationDiagnostics(codeLines: string[], currentLineNo: number, xmlDocumentation: string, alObject: ALObject, alProcedure: ALProcedure) {
+    private GetUnnecessaryProcedureDocumentationDiagnostics(codeLines: string[], currentLineNo: number, documentation: string, alObject: ALObject, alProcedure: ALProcedure) {
         // convert to JSON to make it more accessible 
-        let jsonDocumentation = ALDocCommentUtil.GetJsonFromXmlDocumentation(xmlDocumentation);
+        let jsonDocumentation = ALDocCommentUtil.GetJsonFromALDocumentation(documentation);
         if (!jsonDocumentation.param) {
             return;
         }
@@ -186,7 +186,7 @@ export class ALCheckDocumentation {
             return;
         }
 
-        if (!Configuration.IsProcedureDocumentationMandatory(alObject.Access, alProcedure.Type, alProcedure.Subtype, alProcedure.Access, alObject.Uri)) {
+        if (!Configuration.IsProcedureDocumentationMandatory(alObject, alProcedure.Type, alProcedure.Subtype, alProcedure.Access, alObject.Uri)) {
             return;
         }
 
@@ -195,19 +195,19 @@ export class ALCheckDocumentation {
             element: string
         }[] = [];
 
-        if (this.IsMissingXmlDocumentation(alProcedure)) {
+        if (this.IsMissingDocumentation(alProcedure)) {
             let diagnostic = new Diagnostic(alProcedure.Range!, 
                 `XML documentation is expected for ${ALProcedureType[alProcedure.Type]} ${alProcedure.Name}.`, 
                 Configuration.GetProcedureDocumentationCheckInformationLevel(alObject.Uri));
             diagnostic.source = ALXmlDocDiagnosticPrefix;
-            diagnostic.code = ALXmlDocDiagnosticCode.XmlDocumentationMissing;
+            diagnostic.code = ALXmlDocDiagnosticCode.DocumentationMissing;
 
             this.diags.push(diagnostic);
             return;
         }
 
-        if (alProcedure.XmlDocumentation.Exists !== XMLDocumentationExistType.Inherit) {
-            if (alProcedure.XmlDocumentation.Exists === XMLDocumentationExistType.No) {
+        if (alProcedure.ALDocumentation.Exists !== ALDocumentationExists.Inherit) {
+            if (alProcedure.ALDocumentation.Exists === ALDocumentationExists.No) {
                 let diagnostic = new Diagnostic(alProcedure.Range!, 
                     `Summary is expected in XML documentation for ${ALProcedureType[alProcedure.Type]} ${alProcedure.Name}.`, 
                     Configuration.GetProcedureDocumentationCheckInformationLevel(alObject.Uri));
@@ -218,7 +218,7 @@ export class ALCheckDocumentation {
             }
 
             alProcedure.Parameters?.forEach(alParameter => {
-                if (alParameter.XmlDocumentation.Exists === XMLDocumentationExistType.No) {
+                if (alParameter.ALDocumentation.Exists === ALDocumentationExists.No) {
                     diag.push({
                         diagnosticCode: ALXmlDocDiagnosticCode.ParameterMissing,
                         element: alParameter.Name!
@@ -226,7 +226,7 @@ export class ALCheckDocumentation {
                 }
             });
 
-            if (alProcedure.Return?.XmlDocumentation.Exists === XMLDocumentationExistType.No) {
+            if (alProcedure.Return?.ALDocumentation.Exists === ALDocumentationExists.No) {
                 diag.push({
                     diagnosticCode: ALXmlDocDiagnosticCode.ReturnTypeMissing,
                     element: `${((alProcedure.Return.Name !== '') ? alProcedure.Return.Name : '')}`
@@ -250,7 +250,7 @@ export class ALCheckDocumentation {
         if ((missingDoc !== undefined) && (missingDoc.length > 0)) {
             let message: string = '';
             let code: string = '';
-            if (missingDoc[0].diagnosticCode !== ALXmlDocDiagnosticCode.XmlDocumentationMissing) {
+            if (missingDoc[0].diagnosticCode !== ALXmlDocDiagnosticCode.DocumentationMissing) {
                 missingDoc.forEach(diag => {
                     switch (diag.diagnosticCode) {
                         case ALXmlDocDiagnosticCode.ParameterMissing:
@@ -295,12 +295,12 @@ export class ALCheckDocumentation {
             return;
         }
         
-        if (alObject.XmlDocumentation.Exists === XMLDocumentationExistType.No) {            
+        if (alObject.ALDocumentation.Exists === ALDocumentationExists.No) {            
             let diagnostic = new Diagnostic(alObject.Range!, 
                 `XML documentation is expected for Object ${alObject.Name}.`, 
                 Configuration.GetObjectDocumentationCheckInformationLevel(alObject.Uri));
             diagnostic.source = ALXmlDocDiagnosticPrefix;
-            diagnostic.code = ALXmlDocDiagnosticCode.ObjectXmlDocumentationMissing;
+            diagnostic.code = ALXmlDocDiagnosticCode.ObjectDocumentationMissing;
 
             this.diags.push(diagnostic);
         }
@@ -310,10 +310,10 @@ export class ALCheckDocumentation {
      * Checks whether any XML documentation is present for AL Procedure or not.
      * @param alProcedure ALProcedure to search for any XML documentation present
      */
-    private IsMissingXmlDocumentation(alProcedure: ALProcedure): boolean {
-        return (alProcedure.XmlDocumentation.Exists === XMLDocumentationExistType.No) && 
-            ((alProcedure.Return === undefined) || (alProcedure.Return?.XmlDocumentation.Exists === XMLDocumentationExistType.No)) && 
-            (alProcedure.Parameters?.find(alProcedure => (alProcedure.XmlDocumentation.Exists === XMLDocumentationExistType.Yes)) === undefined);
+    private IsMissingDocumentation(alProcedure: ALProcedure): boolean {
+        return (alProcedure.ALDocumentation.Exists === ALDocumentationExists.No) && 
+            ((alProcedure.Return === undefined) || (alProcedure.Return?.ALDocumentation.Exists === ALDocumentationExists.No)) && 
+            (alProcedure.Parameters?.find(alProcedure => (alProcedure.ALDocumentation.Exists === ALDocumentationExists.Yes)) === undefined);
     }
 
     /**
@@ -329,7 +329,7 @@ export class ALCheckDocumentation {
      */
     private IsMissingDocumentationDiag(element: { diagnosticCode: ALXmlDocDiagnosticCode; }, index: any, array: any) {
         return (
-            (element.diagnosticCode === ALXmlDocDiagnosticCode.XmlDocumentationMissing) || 
+            (element.diagnosticCode === ALXmlDocDiagnosticCode.DocumentationMissing) || 
             (element.diagnosticCode === ALXmlDocDiagnosticCode.SummaryMissing) ||
             (element.diagnosticCode === ALXmlDocDiagnosticCode.ParameterMissing) || 
             (element.diagnosticCode === ALXmlDocDiagnosticCode.ReturnTypeMissing));

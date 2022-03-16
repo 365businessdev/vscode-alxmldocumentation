@@ -5,7 +5,7 @@ import { ALParameter } from './ALParameter';
 import { ALProcedureReturn } from './ALProcedureReturn';
 import { ALProcedureSubtype } from './ALProcedureSubtype';
 import { ALProcedureType } from './ALProcedureType';
-import { XMLDocumentation } from './XmlDocumentation';
+import { ALDocumentation } from './ALDocumentation';
 
 export class ALProcedure {
     /**
@@ -82,9 +82,9 @@ export class ALProcedure {
 
     /**
      * XML Documentation.
-     * @type {XMLDocumentation}
+     * @type {ALDocumentation}
      */
-    public XmlDocumentation: XMLDocumentation  = new XMLDocumentation();
+    public ALDocumentation: ALDocumentation  = new ALDocumentation();
 
     /**
      * Get AL Example Syntax to call this function.

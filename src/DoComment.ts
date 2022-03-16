@@ -20,9 +20,7 @@ export class DoComment {
     constructor() {       
         const subscriptions: Disposable[] = [];
 
-        workspace.onDidChangeTextDocument(event => {
-            return; // TODO: This causes serious problems due to hundreds of calls! :-(
-            /**
+        workspace.onDidChangeTextDocument(event => {            
             const activeEditor = window.activeTextEditor;
 
             if (event.document.languageId !== 'al') {
@@ -30,33 +28,8 @@ export class DoComment {
             }
 
             if (activeEditor && event.document === activeEditor.document) {
-                ALSyntaxUtil.ClearALObjectFromCache(activeEditor.document);
                 this.DoComment(activeEditor, event.contentChanges[0]);
-                let alObject: ALObject | null = ALSyntaxUtil.GetALObject(activeEditor.document);
-                if (alObject === null) {
-                    return;
-                }
-                if (alObject.Type === ALObjectType.Interface) {
-                    // update implementing codeunits
-                    let implALObjects: Array<ALObject> | undefined = ALObjectCache.ALObjects.filter(implALObject => ((implALObject.ExtensionType === ALObjectExtensionType.Implement) && (implALObject.ExtensionObject === alObject?.Name)));
-                    if (implALObjects === undefined) {
-                        return;
-                    }
-                    implALObjects.forEach(implALObject => {
-                        let document = Object.assign({});
-                        if (fs.existsSync(`${implALObject.Path}/${implALObject.FileName}`)) {
-                            document.getText = () => fs.readFileSync(`${implALObject.Path}/${implALObject.FileName}`, 'utf8');
-                            document.fileName = `${implALObject.Path}/${implALObject.FileName}`;
-                            
-                            console.debug(`Update AL Object Cache for object ${implALObject.Name} regarding change in ${ALObjectType[alObject!.Type]} ${alObject!.Name}.`);
-                            ALSyntaxUtil.ClearALObjectFromCache(document);
-                            ALSyntaxUtil.GetALObject(document);
-                        }
-                    });
-                }
-                ALCheckDocumentation.CheckDocumentationForALObject(alObject, activeEditor.document);
             }
-             */
         }, this, subscriptions);
         
         this.disposable = Disposable.from(...subscriptions);
@@ -75,9 +48,6 @@ export class DoComment {
         if ((this.event === undefined) || (this.event === null) || (this.activeEditor === undefined) || (this.activeEditor === null)) {
             return;
         }
-        if (this.event.text !== '/') {
-            return;
-        }
 
         // if action comes from snippet an additional '/// ' is included 
         var doubleDocCommentIndex = this.vsCodeApi.ReadLineAtCurrent().indexOf('/// /// ');
@@ -89,9 +59,12 @@ export class DoComment {
                 editBuilder.replace(replaceSelection, '');
             });
         }
-        
-        if (!Configuration.DirectDocumentationIsEnabled(this.activeEditor.document.uri)) {
-            return;
+
+        // If we're not we in a XML documentation line
+        if (!(this.vsCodeApi.ReadLine(this.vsCodeApi.GetActiveLine()).trim().startsWith('///'))) {
+            if (this.event.text !== '/') {
+                return;
+            }
         }
 
         if (!this.IsDoCommentTrigger()) {
@@ -112,6 +85,10 @@ export class DoComment {
         }
 
         if (this.vsCodeApi.ReadLine(this.vsCodeApi.GetNextLine()).trim().startsWith('///')) {
+            return;
+        }
+            
+        if (!Configuration.DirectDocumentationIsEnabled(this.activeEditor.document.uri)) {
             return;
         }
         await this.WriteDocString();
@@ -176,7 +153,7 @@ export class DoComment {
         } else {
             // find procedure
             let alProcedure: ALProcedure | undefined = alObject.Procedures?.find(alProcedure => (alProcedure.LineNo > activeLineNo));
-            if ((!alProcedure) || (alProcedure.XmlDocumentation.Exists)) {
+            if ((!alProcedure) || (alProcedure.ALDocumentation.Exists)) {
                 return;
             }
             docString = ALDocCommentUtil.GetProcedureDocumentation(alProcedure);

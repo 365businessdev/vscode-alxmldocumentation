@@ -1,6 +1,8 @@
 import { workspace, window, WorkspaceConfiguration, WorkspaceFolder, Uri, DiagnosticSeverity } from 'vscode';
 import { ALXmlDocConfigurationPrefix } from '../types';
 import { ALAccessLevel } from '../types/ALAccessLevel';
+import { ALObject } from '../types/ALObject';
+import { ALObjectType } from '../types/ALObjectType';
 import { ALProcedureSubtype } from '../types/ALProcedureSubtype';
 import { ALProcedureType } from '../types/ALProcedureType';
 import { FilesystemHelper } from './filesystem/FilesystemHelper';
@@ -37,17 +39,19 @@ export class Configuration {
     public static DocumentationExportPath(): string {
         var path = require('path');
         var documentationPath = this.GetConfigurationValue('DocumentationExportPath');
+        let workspaceRoot : Uri | null = this.GetWorkspaceRootFolder();
+        if (workspaceRoot === null) {
+            window.showErrorMessage('Please setup \'DocumentationExportPath\' in workspace settings to define the export directory.');
+            return '';
+        }
         if (documentationPath === undefined || documentationPath === null || documentationPath === '') {
-            let workspaceRoot : Uri | null = this.GetWorkspaceRootFolder();
-            if (workspaceRoot === null) {
-                window.showErrorMessage('Please setup \'DocumentationExportPath\' in workspace settings to define the export directory.');
-                return '';
-            }
             // fallback scenario
             documentationPath = path.join(workspaceRoot.fsPath, 'doc');			
         } else {
-            if (workspace.workspaceFolders) {
-                documentationPath = path.replace('${workspaceFolder}', path.dirname(workspace.workspaceFolders[0].uri.toString()));
+            if ((documentationPath.includes('${workspaceFolder}')) && (workspace.workspaceFolders)) {
+                documentationPath = documentationPath.replace('${workspaceFolder}', path.dirname(workspace.workspaceFolders[0].uri.fsPath));
+            } else {
+                documentationPath = path.join(workspaceRoot.fsPath, documentationPath);
             }
         }
         return documentationPath;
@@ -105,17 +109,18 @@ export class Configuration {
 
     /**
      * Test whether the given AL Procedure properties need to be documented or not.
+     * @param alObject ALObject.
      * @param alProcedureType ALProcedureType.
      * @param alProcedureSubtype ALProcedureSubtype.
      * @param alAccessLevel ALAccessLevel.
      * @param fileUri Actual file url or undefined.
      */
-    public static IsProcedureDocumentationMandatory(alObjectAccessLevel: ALAccessLevel, alProcedureType: ALProcedureType, alProcedureSubtype: ALProcedureSubtype, alAccessLevel: ALAccessLevel, fileUri: Uri | undefined = undefined): boolean {
+    public static IsProcedureDocumentationMandatory(alObject: ALObject, alProcedureType: ALProcedureType, alProcedureSubtype: ALProcedureSubtype, alAccessLevel: ALAccessLevel, fileUri: Uri | undefined = undefined): boolean {
         if (!this.ProcedureDocumentationCheckIsEnabled(fileUri)) {
             return false;
         }
-
-        if ((!this.IsDocumentationMandatoryForAccessLevel(alAccessLevel)) || (!this.IsDocumentationMandatoryForAccessLevel(alObjectAccessLevel))) {
+        
+        if ((!this.IsDocumentationMandatoryForAccessLevel(alAccessLevel)) || (!this.IsDocumentationMandatoryForAccessLevel(alObject.Access))) {
             return false;
         }
 
@@ -127,22 +132,22 @@ export class Configuration {
         mandatoryProcedureTypes.forEach(mandatoryProcedureType => {
             switch (mandatoryProcedureType) {
                 case 'Global Procedures':
-                    if ((alProcedureType === ALProcedureType.Procedure) && (alProcedureSubtype === ALProcedureSubtype.Normal) && (ALAccessLevel.Public === alAccessLevel)) {
+                    if ((alProcedureType === ALProcedureType.Procedure) && (alProcedureSubtype === ALProcedureSubtype.Normal) && (ALAccessLevel.Public === alAccessLevel) && (alObject.Type !== ALObjectType.ControlAddIn)) {
                         isMandatory =  true;
                     }
                     break;
                 case 'Local Procedures':
-                    if ((alProcedureType === ALProcedureType.Procedure) && (alProcedureSubtype === ALProcedureSubtype.Normal) && (ALAccessLevel.Local === alAccessLevel)) {
+                    if ((alProcedureType === ALProcedureType.Procedure) && (alProcedureSubtype === ALProcedureSubtype.Normal) && (ALAccessLevel.Local === alAccessLevel) && (alObject.Type !== ALObjectType.ControlAddIn)) {
                         isMandatory =  true;
                     }
                     break;
                 case 'Internal Procedures':
-                    if ((alProcedureType === ALProcedureType.Procedure) && (alProcedureSubtype === ALProcedureSubtype.Normal) && (ALAccessLevel.Internal === alAccessLevel)) {
+                    if ((alProcedureType === ALProcedureType.Procedure) && (alProcedureSubtype === ALProcedureSubtype.Normal) && (ALAccessLevel.Internal === alAccessLevel) && (alObject.Type !== ALObjectType.ControlAddIn)) {
                         isMandatory =  true;
                     }
                     break;
                 case 'Protected Procedures':
-                    if ((alProcedureType === ALProcedureType.Procedure) && (alProcedureSubtype === ALProcedureSubtype.Normal) && (ALAccessLevel.Protected === alAccessLevel)) {
+                    if ((alProcedureType === ALProcedureType.Procedure) && (alProcedureSubtype === ALProcedureSubtype.Normal) && (ALAccessLevel.Protected === alAccessLevel) && (alObject.Type !== ALObjectType.ControlAddIn)) {
                         isMandatory =  true;
                     }
                     break;
@@ -163,6 +168,16 @@ export class Configuration {
                     break;
                 case 'Test Procedures':
                     if ((alProcedureType === ALProcedureType.Procedure) && (alProcedureSubtype === ALProcedureSubtype.Test)) {
+                        isMandatory =  true;
+                    }
+                    break;
+                case 'Control Add-In Procedures':
+                    if ((alProcedureType === ALProcedureType.Procedure) && (alObject.Type === ALObjectType.ControlAddIn)) {
+                        isMandatory =  true;
+                    }
+                    break;
+                case 'Control Add-In Events':
+                    if ((alProcedureType === ALProcedureType.Event) && (alObject.Type === ALObjectType.ControlAddIn)) {
                         isMandatory =  true;
                     }
                     break;

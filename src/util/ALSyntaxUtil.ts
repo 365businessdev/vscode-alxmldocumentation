@@ -12,8 +12,8 @@ import { ALObjectType } from '../types/ALObjectType';
 import { ALObsoleteState } from '../types/ALObsoleteState';
 import { ALProcedureSubtype } from '../types/ALProcedureSubtype';
 import { ALProcedureType } from '../types/ALProcedureType';
-import { XMLDocumentation } from '../types/XmlDocumentation';
-import { XMLDocumentationExistType } from '../types/XMLDocumentationExistType';
+import { ALDocumentation } from '../types/ALDocumentation';
+import { ALDocumentationExists } from '../types/ALDocumentationExists';
 import { ALObjectCache } from '../ALObjectCache';
 import * as fs from 'fs';
 import { Guid } from 'guid-typescript';
@@ -210,8 +210,8 @@ export class ALSyntaxUtil {
 
             perfUtil = new ProcessingTimeUtil();
             // get XML Documentation
-            alObject.XmlDocumentation = this.GetALObjectDocumentation(alObject, code);
-            if ((alObject.XmlDocumentation.Exists === XMLDocumentationExistType.No)) {
+            alObject.ALDocumentation = this.GetALObjectDocumentation(alObject, code);
+            if ((alObject.ALDocumentation.Exists === ALDocumentationExists.No)) {
                 ALDocCommentUtil.GenerateObjectDocString(alObject);
             }
             perfUtil.Measure(`Getting XML Documentation for ${ALObjectType[objectType]} ${objectName}`);
@@ -348,28 +348,28 @@ export class ALSyntaxUtil {
         if (alProcedure.TryFunction) {
             alProcedure.Return = new ALProcedureReturn();
             alProcedure.Return.Type = 'Boolean';
-            alProcedure.Return.XmlDocumentation.Exists = XMLDocumentationExistType.Yes;
-            alProcedure.Return.XmlDocumentation.Documentation = '<returns>False if an runtime error occurred. Otherwise true.</returns>';
+            alProcedure.Return.ALDocumentation.Exists = ALDocumentationExists.Yes;
+            alProcedure.Return.ALDocumentation.Documentation = '<returns>False if an runtime error occurred. Otherwise true.</returns>';
         }
         if (this.TokenIsCancelled(token)) {
             throw new Error("Cancellation requested.");
         }
 
         // get XML Documentation
-        alProcedure.XmlDocumentation = this.GetALObjectProcedureDocumentation(alProcedure, code);
-        switch (alProcedure.XmlDocumentation.Exists) {
-            case XMLDocumentationExistType.No:
-                if ((alProcedure.XmlDocumentation.Exists === XMLDocumentationExistType.No)) {
+        alProcedure.ALDocumentation = this.GetALObjectProcedureDocumentation(alProcedure, code);
+        switch (alProcedure.ALDocumentation.Exists) {
+            case ALDocumentationExists.No:
+                if ((alProcedure.ALDocumentation.Exists === ALDocumentationExists.No)) {
                     ALDocCommentUtil.GenerateProcedureDocString(alProcedure);
                 }
                 break;
-            case XMLDocumentationExistType.Inherit:                
+            case ALDocumentationExists.Inherit:                
                 // clear parameter and return documentation previously collected
                 for (let i = 0; i < alProcedure.Parameters.length; i++) {
-                    alProcedure.Parameters[i].XmlDocumentation = new XMLDocumentation();
+                    alProcedure.Parameters[i].ALDocumentation = new ALDocumentation();
                 }
                 if (alProcedure.Return !== undefined) {
-                    alProcedure.Return.XmlDocumentation = new XMLDocumentation();
+                    alProcedure.Return.ALDocumentation = new ALDocumentation();
                 }
                 break;
         }
@@ -408,8 +408,8 @@ export class ALSyntaxUtil {
             }
             if (alReturn !== undefined) {
                 // get XML Documentation
-                alReturn.XmlDocumentation = this.GetALObjectProcedureReturnDocumentation(alProcedure, alReturn, code);
-                if ((alReturn.XmlDocumentation.Exists === XMLDocumentationExistType.No)) {
+                alReturn.ALDocumentation = this.GetALObjectProcedureReturnDocumentation(alProcedure, alReturn, code);
+                if ((alReturn.ALDocumentation.Exists === ALDocumentationExists.No)) {
                     ALDocCommentUtil.GenerateProcedureReturnDocString(alReturn);
                 }
             }
@@ -448,8 +448,8 @@ export class ALSyntaxUtil {
                 }
             }
             // get XML Documentation
-            alParameter.XmlDocumentation = this.GetALObjectProcedureParameterDocumentation(alProcedure, alParameter, code);
-            if ((alParameter.XmlDocumentation.Exists === XMLDocumentationExistType.No)) {
+            alParameter.ALDocumentation = this.GetALObjectProcedureParameterDocumentation(alProcedure, alParameter, code);
+            if ((alParameter.ALDocumentation.Exists === ALDocumentationExists.No)) {
                 ALDocCommentUtil.GenerateParameterDocString(alParameter);
             }
             alProcedure.Parameters.push(alParameter);
@@ -467,6 +467,8 @@ export class ALSyntaxUtil {
                 return ALProcedureType.Trigger;
             case 'procedure':
                 return ALProcedureType.Procedure;
+            case 'event':
+                return ALProcedureType.Event;
         }
 
         console.error(`Unknown AL procedure type ${alProcedureDefinition['Type'].toLowerCase()} found.`);
@@ -800,8 +802,8 @@ export class ALSyntaxUtil {
      * @param alObject ALObject object.
      * @param code AL Source Code.
      */
-    private static GetALObjectDocumentation(alObject: ALObject, code: string): XMLDocumentation {
-        let result: XMLDocumentation = new XMLDocumentation();
+    private static GetALObjectDocumentation(alObject: ALObject, code: string): ALDocumentation {
+        let result: ALDocumentation = new ALDocumentation();
 
         try {
             let codeLines: Array<string>  = this.SplitALCodeToLines(code);
@@ -817,7 +819,7 @@ export class ALSyntaxUtil {
             }
 
             if (result.Documentation !== '') {
-                result.Exists = XMLDocumentationExistType.Yes;
+                result.Exists = ALDocumentationExists.Yes;
             }
         }
         catch (ex)
@@ -831,8 +833,8 @@ export class ALSyntaxUtil {
      * @param alProcedure ALProcedure object.
      * @param code AL Source Code.
      */
-    public static GetALObjectProcedureDocumentation(alProcedure: ALProcedure, code: string): XMLDocumentation {
-        let result: XMLDocumentation = new XMLDocumentation();
+    public static GetALObjectProcedureDocumentation(alProcedure: ALProcedure, code: string): ALDocumentation {
+        let result: ALDocumentation = new ALDocumentation();
         
         try {
             let codeLines: Array<string> = this.SplitALCodeToLines(code);
@@ -848,9 +850,9 @@ export class ALSyntaxUtil {
 
                     if (collect) {
                         if (result.Documentation !== '') {
-                            result.Documentation = `${line.replace('///','').trim()}\r\n${result.Documentation}`;
+                            result.Documentation = `${line.trimLeft().replace('/// ','').trimRight()}\r\n${result.Documentation}`;
                         } else {
-                            result.Documentation = line.replace('///','').trim();
+                            result.Documentation = line.trimLeft().replace('/// ','').trimRight();
                         }
                     }
 
@@ -859,7 +861,7 @@ export class ALSyntaxUtil {
                     }
 
                     if (line.match(InheritDocRegEx) !== null) {
-                        result.Exists = XMLDocumentationExistType.Inherit;
+                        result.Exists = ALDocumentationExists.Inherit;
                         result.Documentation = line.trim().replace('///','');
                         return result;
                     }
@@ -870,7 +872,7 @@ export class ALSyntaxUtil {
             }
 
             if (result.Documentation !== '') {
-                result.Exists = XMLDocumentationExistType.Yes;            
+                result.Exists = ALDocumentationExists.Yes;            
             }
         }
         catch (ex)
@@ -885,8 +887,8 @@ export class ALSyntaxUtil {
      * @param alParameter ALParameter object.
      * @param code AL Source Code.
      */
-    public static GetALObjectProcedureParameterDocumentation(alProcedure: ALProcedure, alParameter: ALParameter, code: string): XMLDocumentation {
-        let result: XMLDocumentation = new XMLDocumentation();
+    public static GetALObjectProcedureParameterDocumentation(alProcedure: ALProcedure, alParameter: ALParameter, code: string): ALDocumentation {
+        let result: ALDocumentation = new ALDocumentation();
         
         try {
             let codeLines: Array<string> = this.SplitALCodeToLines(code);
@@ -919,7 +921,7 @@ export class ALSyntaxUtil {
                             result.Documentation = '';
                         } else {
                             if (result.Documentation !== '') {
-                                result.Exists = XMLDocumentationExistType.Yes;
+                                result.Exists = ALDocumentationExists.Yes;
                             }
                             return result;
                         }
@@ -942,8 +944,8 @@ export class ALSyntaxUtil {
      * @param alReturn ALProcedureReturn object.
      * @param code AL Source Code.
      */
-    public static GetALObjectProcedureReturnDocumentation(alProcedure: ALProcedure, alReturn: ALProcedureReturn, code: string): XMLDocumentation {
-        let result: XMLDocumentation = new XMLDocumentation();
+    public static GetALObjectProcedureReturnDocumentation(alProcedure: ALProcedure, alReturn: ALProcedureReturn, code: string): ALDocumentation {
+        let result: ALDocumentation = new ALDocumentation();
         
         try {
             let codeLines: Array<string> = this.SplitALCodeToLines(code);
@@ -975,7 +977,7 @@ export class ALSyntaxUtil {
             }
 
             if (result.Documentation !== '') {
-                result.Exists = XMLDocumentationExistType.Yes;
+                result.Exists = ALDocumentationExists.Yes;
             }
         }
         catch (ex)

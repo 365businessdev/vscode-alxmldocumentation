@@ -10,7 +10,7 @@ import { ALObjectType } from '../types/ALObjectType';
 import { ALObsoleteState } from '../types/ALObsoleteState';
 import { ALProcedure } from '../types/ALProcedure';
 import { ALProcedureType } from '../types/ALProcedureType';
-import { XMLDocumentationExistType } from '../types/XMLDocumentationExistType';
+import { ALDocumentationExists } from '../types/ALDocumentationExists';
 import { ALAppJsonReader } from './ALAppJsonReader';
 import { ALDocCommentUtil } from './ALDocCommentUtil';
 import { Configuration } from './Configuration';
@@ -118,7 +118,11 @@ pdf_options:
                 output.appendLine(`${StringUtil.GetTimestamp()} Error: Unable to create PDF file.`);
             }
         } catch (ex) {
-            output.appendLine(ex);
+            if (typeof ex === "string") {
+                output.appendLine(ex);
+            } else if (ex instanceof Error) {
+                output.appendLine(ex.message);
+            }
         } finally {
             FilesystemHelper.DeleteFile(`${this.GetDocumentationExportPath()}/${appJson.name.replace(/\s/mg, '_')}.md`);
         }        
@@ -168,16 +172,16 @@ pdf_options:
                 let link: string = '';
                 if (isNewDoc) {
                     if (Configuration.IncludeProcedureDocumentationInObjectDocumentationFile()) {
-                        link = `${alObject.Name?.replace(/\s/mg, '_')}.md`;
+                        link = `${alObject.FileName!.replace(/\s/mg, '_').replace('.al', '')}.md`;
                     } else {                    
-                        link = `${alObject.Name?.replace(/\s/mg, '_')}/index.md`;
+                        link = `${alObject.FileName!.replace(/\s/mg, '_').replace('.al', '')}/index.md`;
                     }
                 } else {
-                    link = `#${alObject.Name?.replace(/[\s\.]/mg, '-').toLowerCase()}`;
+                    link = `#${alObject.FileName!.replace(/\s/mg, '_').replace('.al', '').toLowerCase()}`;
                 }
                 if (doc !== null) {
                     doc.WriteLine(` - [${alObject.Name}${alObject.ID !== undefined ? " (ID " + alObject.ID + ")" : ""}](${link})<br>`);
-                    if (alObject.XmlDocumentation.Exists === XMLDocumentationExistType.Yes) {
+                    if (alObject.ALDocumentation.Exists === ALDocumentationExists.Yes) {
                         let documentation = await alObject.GetDocumentationAsJsonObject();
                         doc.WriteLine(`<ul id="object-description"><i>${documentation.summary}</i></ul>\n`);
                     }
@@ -213,9 +217,9 @@ pdf_options:
         // determine export file name
         let fileName: string = '';
         if (!includeProcedure) {
-            fileName = `${this.GetDocumentationExportPath()}/${alObject.Name!.replace(/\s/mg, '_')}/index.md`;
+            fileName = `${this.GetDocumentationExportPath()}/${alObject.FileName!.replace(/\s/mg, '_').replace('.al', '')}/index.md`;
         } else {
-            fileName = `${this.GetDocumentationExportPath()}/${alObject.Name!.replace(/\s/mg, '_')}.md`;
+            fileName = `${this.GetDocumentationExportPath()}/${alObject.FileName!.replace(/\s/mg, '_').replace('.al', '')}.md`;
         }
         if (doc === null) {
             doc = new MarkdownWriter(fileName);
@@ -227,11 +231,11 @@ pdf_options:
         doc.WriteHeading(alObject.Name!, headingLevel); 
         
         doc.WriteLine();
-        switch (alObject.XmlDocumentation.Exists) {
-            case XMLDocumentationExistType.No:
+        switch (alObject.ALDocumentation.Exists) {
+            case ALDocumentationExists.No:
                 this.WriteOutput(`Warning: XML documentation could not been found for ${ALObjectType[alObject.Type]} ${alObject.Name}.`);
                 break;
-            case XMLDocumentationExistType.Yes:
+            case ALDocumentationExists.Yes:
                 let documentation: any = await alObject.GetDocumentationAsJsonObject();
                 doc.WriteLine(documentation.summary);
                 if (documentation.remarks) {
@@ -264,7 +268,7 @@ pdf_options:
         }
         // write procedure / trigger documentation
         if (alObject.Procedures) {
-            if (alObject.Procedures.filter(alProcedure => ((alProcedure.Type === ALProcedureType.Trigger) && (alProcedure.XmlDocumentation.Exists !== XMLDocumentationExistType.No))).length !== 0) {
+            if (alObject.Procedures.filter(alProcedure => ((alProcedure.Type === ALProcedureType.Trigger) && (alProcedure.ALDocumentation.Exists !== ALDocumentationExists.No))).length !== 0) {
                 doc.WriteHeading('Triggers', headingLevel);
                 if (!includeProcedure) {
                     doc.WriteLine();
@@ -278,7 +282,7 @@ pdf_options:
                             await this.WriteProcedureDocumentation(doc, alObject, alProcedure, headingLevel);
                         } else {
                             let documentation = await alObject.GetDocumentationAsJsonObject(alProcedure);
-                            doc.WriteLine(`| [${'`' + alProcedure.Name + '()`'}](${alObject.Name?.replace(/\s/mg, '_')}/${alProcedure.Name?.replace(/\s/mg, '_')}.md) | ${documentation.summary} |`);
+                            doc.WriteLine(`| [${'`' + alProcedure.Name + '()`'}](${alObject.FileName!.replace(/\s/mg, '_').replace('.al', '')}/${alProcedure.Name?.replace(/\s/mg, '_')}.md) | ${documentation.summary} |`);
                             await ALObjectDocumentationExport.ExportProcedure(alObject, alProcedure, output);
                         }
                     }
@@ -287,7 +291,7 @@ pdf_options:
                     doc.WriteLine();
                 }
             }
-            if (alObject.Procedures.filter(alProcedure => ((alProcedure.Type === ALProcedureType.Procedure) && (alProcedure.XmlDocumentation.Exists !== XMLDocumentationExistType.No))).length !== 0) {
+            if (alObject.Procedures.filter(alProcedure => ((alProcedure.Type === ALProcedureType.Procedure) && (alProcedure.ALDocumentation.Exists !== ALDocumentationExists.No))).length !== 0) {
                 doc.WriteHeading('Procedures', headingLevel);
                 if (!includeProcedure) {
                     doc.WriteLine();
@@ -301,7 +305,7 @@ pdf_options:
                             await this.WriteProcedureDocumentation(doc, alObject, alProcedure, headingLevel);
                         } else {                            
                             let documentation = await alObject.GetDocumentationAsJsonObject(alProcedure);
-                            doc.WriteLine(`| [${'`' + alProcedure.Name + '()`'}](${alProcedure.Name?.replace(/\s/mg, '_')}.md) | ${documentation.summary} |`);
+                            doc.WriteLine(`| [${'`' + alProcedure.Name + '()`'}](${alProcedure.Name?.replace(/\s/mg, '_')}.md) | ${documentation.summary.replace(/\n/gm, '<br>')} |`);
                             await ALObjectDocumentationExport.ExportProcedure(alObject, alProcedure, output);
                         }
                     }
@@ -313,11 +317,12 @@ pdf_options:
         }
 
         // write example
-        let documentation: any = ALDocCommentUtil.GetJsonFromXmlDocumentation(alObject.XmlDocumentation.Documentation);
+        let documentation: any = ALDocCommentUtil.GetJsonFromALDocumentation(alObject.ALDocumentation.Documentation);
+        if ((documentation === null) || (documentation === undefined)) {
+            return;
+        }
         if (documentation.example) {            
-            doc.WriteHeading('Example', headingLevel);
-            doc.WriteLine(documentation.example.value);
-            doc.WriteCode(documentation.example.code);
+            this.WriteExample(doc, documentation, headingLevel);
         }
     }
 
@@ -332,11 +337,11 @@ pdf_options:
     public static async ExportProcedure(alObject: ALObject, alProcedure: ALProcedure, output: OutputChannel, headingLevel: number = 0) {   
         this.Initialize(output);
         // do not export procedures w/o documentation
-        if (alProcedure.XmlDocumentation.Exists === XMLDocumentationExistType.No) {
+        if (alProcedure.ALDocumentation.Exists === ALDocumentationExists.No) {
             this.WriteOutput(`Warning: No documentation found for ${ALProcedureType[alProcedure.Type]} ${alProcedure.Name}()`);
             return;
         }
-        let doc = new MarkdownWriter(`${this.GetDocumentationExportPath()}/${alObject.Name!.replace(/\s/mg, '_')}/${alProcedure.Name!.replace(/\s/mg, '_')}.md`);
+        let doc = new MarkdownWriter(`${this.GetDocumentationExportPath()}/${alObject.FileName!.replace(/\s/mg, '_').replace('.al', '')}/${alProcedure.Name!.replace(/\s/mg, '_')}.md`);
         await this.WriteProcedureDocumentation(doc, alObject, alProcedure, headingLevel);
     }
 
@@ -351,7 +356,7 @@ pdf_options:
         
         headingLevel++;
         doc.WriteHeading('`' + alProcedure.Name + '()`', headingLevel);
-        if (alProcedure.XmlDocumentation.Exists !== XMLDocumentationExistType.No) {
+        if (alProcedure.ALDocumentation.Exists !== ALDocumentationExists.No) {
             let documentation: any = await alObject.GetDocumentationAsJsonObject(alProcedure);
             doc.WriteLine(documentation.summary);
             if (documentation.remarks) {
@@ -379,8 +384,8 @@ pdf_options:
                 doc.WriteLine(`*${alParameter.Name}*<br>`);
                 doc.WriteLine(`&emsp;Type: ${alParameter.Type} ${alParameter.Subtype !== undefined ? ` ${alParameter.Subtype}` : '' }<br>`);
                 doc.WriteLine();
-                if (alParameter.XmlDocumentation.Exists === XMLDocumentationExistType.Yes) {
-                    let documentation: any = ALDocCommentUtil.GetJsonFromXmlDocumentation(alParameter.XmlDocumentation.Documentation);
+                if (alParameter.ALDocumentation.Exists === ALDocumentationExists.Yes) {
+                    let documentation: any = ALDocCommentUtil.GetJsonFromALDocumentation(alParameter.ALDocumentation.Documentation);
                     doc.WriteLine(documentation.param.value);
                     doc.WriteLine();
                 }
@@ -389,14 +394,23 @@ pdf_options:
         }
 
         if (alProcedure.Type === ALProcedureType.Procedure) {
-            if ((alProcedure.Return) && (alProcedure.Return.XmlDocumentation.Exists === XMLDocumentationExistType.Yes)) {
+            if ((alProcedure.Return) && (alProcedure.Return.ALDocumentation.Exists === ALDocumentationExists.Yes)) {
                 doc.WriteHeading('Return', headingLevel);
                 doc.WriteLine(`*${alProcedure.Return.Name !== "" ? alProcedure.Return.Name + ': ' : ''}${alProcedure.Return.Type}*<br>`);
                 doc.WriteLine();
-                let documentation: any = ALDocCommentUtil.GetJsonFromXmlDocumentation(alProcedure.Return.XmlDocumentation.Documentation);
+                let documentation: any = ALDocCommentUtil.GetJsonFromALDocumentation(alProcedure.Return.ALDocumentation.Documentation);
                 if (documentation.returns) {
                     doc.WriteLine(documentation.returns);
                 }
+                doc.WriteLine();
+            }
+
+            let documentation: any = ALDocCommentUtil.GetJsonFromALDocumentation(alProcedure.ALDocumentation.Documentation);
+            if ((documentation === null) || (documentation === undefined)) {
+                return;
+            }
+            if (documentation.example) {
+                this.WriteExample(doc, documentation, headingLevel);
             }
         }
         headingLevel -= 2;
@@ -424,5 +438,20 @@ pdf_options:
      */
     private static enumKeys<O extends object, K extends keyof O = keyof O>(obj: O): K[] {
         return Object.keys(obj).filter(k => Number.isNaN(+k)) as K[];
+    }
+
+
+    /**
+     * Helper function to write Example block for procedures and objects
+     * @param doc MarkdownWriter instance
+     * @param documentation documentation object
+     * @param headingLevel Current heading level
+     */
+    private static WriteExample(doc: MarkdownWriter, documentation: any, headingLevel: number) {
+        doc.WriteHeading('Example', headingLevel);
+
+        doc.WriteCode(documentation.example.value, documentation.example.attr.lang);
+
+        doc.WriteLine();
     }
 }

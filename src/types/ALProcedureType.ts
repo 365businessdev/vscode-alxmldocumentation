@@ -3,5 +3,6 @@
  */
 export enum ALProcedureType {
 	Procedure,
-	Trigger
+	Trigger,
+	Event
 }

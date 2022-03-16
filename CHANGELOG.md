@@ -123,12 +123,14 @@ All notable changes to the "AL XML Documentation" extension will be documented i
 - Fixed configuration description for `CheckProcedureDocumentationForAccessLevel`
 
 ## [1.0.5] - 2021-01-25
+
 - Fixed Issue [#42](https://github.com/365businessdev/vscode-alxmldocumentation/issues/42) - Underscore in Interface Names.
 - Fixed Issue [#43](https://github.com/365businessdev/vscode-alxmldocumentation/issues/43) - "Inherit AL XML Documentation Comment" results in 'badly formed XML' if parameter type object name contains spaces (and therefore surrounded by quotes in the signature) 
 - Fixed Issue [#27](https://github.com/365businessdev/vscode-alxmldocumentation/issues/27) - Inherit documentation for procedures implementing interface methods with underscore in object name
 - Added configuration parameter `InitializeALObjectCacheOnStartUp` to skip initialization while start-up.
 
 ## [1.1.1] - 2021-04-21
+
 - Fixed Issue [#45](https://github.com/365businessdev/vscode-alxmldocumentation/issues/45) - Code analyzer rules for missing procedure XML documentation also reacts on 'procedure' in comments.
   > Thanks to @rvanbekkum for reporting.
 - Fixed missing example code in inherit procedure documentation.
@@ -138,7 +140,7 @@ All notable changes to the "AL XML Documentation" extension will be documented i
 - Added pdf documentation export.
 - Added custom stylesheet (css) support for documentation export.
 - Fixed Issue [#41](https://github.com/365businessdev/vscode-alxmldocumentation/issues/41) - &lt;returns&gt; tag contents are missing from generated markdown.
-- Added markdown documentation export project index [#49](https://github.com/365businessdev/vscode-alxmldocumentation/issues/49). 
+- Added markdown documentation export project index [#49](https://github.com/365businessdev/vscode-alxmldocumentation/issues/49).
   > Thanks to @spookymattress and @MacWin77 for the idea and feedback.
 - Fixed Issue [#48](https://github.com/365businessdev/vscode-alxmldocumentation/issues/48) - Option for no code-analyzer message for objects with Access=Internal
   > Thanks to @rvanbekkum for reporting.
@@ -150,3 +152,24 @@ All notable changes to the "AL XML Documentation" extension will be documented i
 - Fixed Issue [[#57](https://github.com/365businessdev/vscode-alxmldocumentation/issues/57)] - Multi-line documentation in markdown export
 - Add `event` support
 - Add `<code>` support for `<param>` and `<summary>`, including language specification.
+
+## [1.1.3] - 2021-06-18
+
+- Fixed Issue [[#62](https://github.com/365businessdev/vscode-alxmldocumentation/issues/62)] - Change export path to root directory of app and test projects
+  > Thanks to @OtterWhisperer for reporting.
+- Fixed additional '///' in snippet usage.
+- Fixed example code formatting.
+
+## [1.1.5] - 2021-06-20
+
+- Merged contribution for Issue [#62](https://github.com/365businessdev/vscode-alxmldocumentation/issues/62) - Change export path to root directory of app and test projects.
+  > Thanks to @OtterWhisperer.
+- Updated node modules.
+- Fixed Issue [#64](https://github.com/365businessdev/vscode-alxmldocumentation/issues/64) - Example Code from procedure documentation is missing in documentation export.
+- Use AL filename for documentation export (`ObjectName.Type.al` => `ObjectName.Type.md`)
+- Fix multi-line procedure summary documentation breaks md-layout.
+
+## [1.1.6] - 2021-08-25
+
+- Merged contribution for Issue [#70](https://github.com/365businessdev/vscode-alxmldocumentation/issues/70) - Example tag only accepts 'al' language
+- Fixed issue [#68](https://github.com/365businessdev/vscode-alxmldocumentation/issues/68) - Cannot read property 'example' of undefined

@@ -14,7 +14,7 @@ export class ALDocCommentUtil {
      * @param alObject ALObject object.
      */
     public static GetObjectDocumentation(alObject: ALObject): string {
-        return `/// ${alObject.XmlDocumentation.Documentation.replace('__idx__', '1').split('\r\n').join('\r\n/// ')}`;
+        return `/// ${alObject.ALDocumentation.Documentation.replace('__idx__', '1').split('\r\n').join('\r\n/// ')}`;
     }
 
     /**
@@ -30,17 +30,17 @@ export class ALDocCommentUtil {
 
         placeholderIdx++;
 
-        let docString: string = `/// ${alProcedure.XmlDocumentation.Documentation.replace('__idx__', placeholderIdx.toString()).split('\r\n').join('\r\n/// ')}`;
+        let docString: string = `/// ${alProcedure.ALDocumentation.Documentation.replace('__idx__', placeholderIdx.toString()).split('\r\n').join('\r\n/// ')}`;
 
         if ((alProcedure.Parameters !== undefined) && (alProcedure.Parameters.length !== 0)) {
             alProcedure.Parameters.forEach(alParameter => {
                 placeholderIdx++;
-                docString += `\r\n/// ${alParameter.XmlDocumentation.Documentation.replace('__idx__', placeholderIdx.toString()).split('\r\n').join('\r\n/// ')}`;
+                docString += `\r\n/// ${alParameter.ALDocumentation.Documentation.replace('__idx__', placeholderIdx.toString()).split('\r\n').join('\r\n/// ')}`;
             });
         }
         if (alProcedure.Return !== undefined) {
             placeholderIdx++;
-            docString += `\r\n/// ${alProcedure.Return.XmlDocumentation.Documentation.replace('__idx__', placeholderIdx.toString()).split('\r\n').join('\r\n/// ')}`;
+            docString += `\r\n/// ${alProcedure.Return.ALDocumentation.Documentation.replace('__idx__', placeholderIdx.toString()).split('\r\n').join('\r\n/// ')}`;
         }
 
         return docString;
@@ -71,7 +71,7 @@ export class ALDocCommentUtil {
         docString += '.}\r\n';
         docString += '</summary>';
 
-        alObject.XmlDocumentation.Documentation = docString;
+        alObject.ALDocumentation.Documentation = docString;
 
         return docString;
     }
@@ -87,7 +87,7 @@ export class ALDocCommentUtil {
         docString += '${' + ((idx === -1) ? '__idx__' : idx) + ':' + alProcedure.Name + '.}\r\n';
         docString += '</summary>';
 
-        alProcedure.XmlDocumentation.Documentation = docString;
+        alProcedure.ALDocumentation.Documentation = docString;
 
         return docString;
     }
@@ -114,7 +114,7 @@ export class ALDocCommentUtil {
         docString += '.}';
         docString += '</param>';
 
-        alParameter.XmlDocumentation.Documentation = docString;
+        alParameter.ALDocumentation.Documentation = docString;
 
         return docString;
     }
@@ -137,16 +137,16 @@ export class ALDocCommentUtil {
         docString += '.}';
         docString += '</returns>';
 
-        alProcedureReturn.XmlDocumentation.Documentation = docString;
+        alProcedureReturn.ALDocumentation.Documentation = docString;
 
         return docString;
     }
     
     /**
      * Converts XML Documentation to JSON object.
-     * @param xmlDocumentation XML Documentation.
+     * @param documentation XML Documentation.
      */
-    public static GetJsonFromXmlDocumentation(xmlDocumentation: string): any {        
+    public static GetJsonFromALDocumentation(documentation: string): any {        
         // transform xml to json
         var parser = require('fast-xml-parser');
         var options = {
@@ -158,7 +158,7 @@ export class ALDocCommentUtil {
             parseAttributeValue : true
         };
         try {
-            var jsonDocumentation = parser.parse(`<?xml version="1.0."?><root>${xmlDocumentation}</root>`, options, true);
+            var jsonDocumentation = parser.parse(`<?xml version="1.0."?><root>${documentation}</root>`, options, true);
         } catch(ex) {
             return;
         }
@@ -192,15 +192,15 @@ export class ALDocCommentUtil {
 
     /**
      * Get XML Documentation node from XML Documentation.
-     * @param xmlDocumentation XML Documentation.
+     * @param documentation XML Documentation.
      * @param xmlNode Requested XML node.
      * @param attrName Requested attribute (optional).
      * @param attrValue Requested attribute value (optional).
      */
-    public static GetXmlDocumentationNode(xmlDocumentation: string, xmlNode: string, attrName: string = '', attrValue: string = ''): string {
+    public static GetALDocumentationNode(documentation: string, xmlNode: string, attrName: string = '', attrValue: string = ''): string {
         let isTag: boolean = false;
         let docNode: string = '';
-        xmlDocumentation.split('\n').forEach(line => {
+        documentation.split('\n').forEach(line => {
             if (attrName !== '') {
                 if (line.includes(`<${xmlNode} ${attrName}='${attrValue}'>`)) {
                     isTag = true;
@@ -232,7 +232,7 @@ export class ALDocCommentUtil {
      * @param attrName Searched XML attribute name.
      * @param attrValue Searched XML attribute value.
      */
-    public static GetXmlDocumentationNodeLineNo(editor: TextEditor, startingLineNo: number = -1, nodeName: string, attrName: string = "", attrValue: string = ""): number { 
+    public static GetALDocumentationNodeLineNo(editor: TextEditor, startingLineNo: number = -1, nodeName: string, attrName: string = "", attrValue: string = ""): number { 
         let paramEndLineNo: number = -1;
 
         if (startingLineNo === -1) {
@@ -273,7 +273,7 @@ export class ALDocCommentUtil {
      * @param editor Current instance of TextEditor object.
      * @param startingLineNo Line No. to start search from (optional).
      */
-    public static GetLastXmlDocumentationLineNo(editor: TextEditor, startingLineNo: number = -1): number { 
+    public static GetLastALDocumentationLineNo(editor: TextEditor, startingLineNo: number = -1): number { 
         if (startingLineNo === -1) {
             let vsCodeApi = new VSCodeApi(editor); 
             startingLineNo = vsCodeApi.GetActivePosition().line;
