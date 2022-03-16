@@ -86,8 +86,11 @@ export class DoExport {
             window.showErrorMessage('An error occurred while processing. See output for further information.');
 
             this.output = this.getOutputChannel(Configuration.OutputChannelName());
-            this.output.show(true);
-            this.output.appendLine(ex.message);
+            if (typeof ex === "string") {
+                this.output.appendLine(ex);
+            } else if (ex instanceof Error) {
+                this.output.appendLine(ex.message);
+            }
         }
     }
 
@@ -119,7 +122,11 @@ export class DoExport {
             window.showErrorMessage('An error occurred while processing. See output for further information.');
 
             this.output.appendLine('');
-            this.output.appendLine(ex.message);
+            if (typeof ex === "string") {
+                this.output.appendLine(ex);
+            } else if (ex instanceof Error) {
+                this.output.appendLine(ex.message);
+            }
 
             return;
         }
@@ -188,7 +195,11 @@ export class DoExport {
             window.showErrorMessage('An error occurred while processing. See output for further information.');
 
             this.output.appendLine('');
-            this.output.appendLine(ex.message);
+            if (typeof ex === "string") {
+                this.output.appendLine(ex);
+            } else if (ex instanceof Error) {
+                this.output.appendLine(ex.message);
+            }
 
             return;
         }

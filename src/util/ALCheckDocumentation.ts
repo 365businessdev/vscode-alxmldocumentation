@@ -106,7 +106,11 @@ export class ALCheckDocumentation {
                 documentation += line.trim().replace('///','');
             }
         } catch (ex) {
-            console.debug(`An error occurred in ${alObject.FileName} during analyze unnecessary documentations.\r\n${ex}`);
+            if (typeof ex === "string") {
+                console.debug(`An error occurred in ${alObject.FileName} during analyze unnecessary documentations.\r\n${ex}`);
+            } else if (ex instanceof Error) {
+                console.debug(`An error occurred in ${alObject.FileName} during analyze unnecessary documentations.\r\n${ex.message}`);
+            }
         }
     }
 
