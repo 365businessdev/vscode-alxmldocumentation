@@ -118,7 +118,11 @@ pdf_options:
                 output.appendLine(`${StringUtil.GetTimestamp()} Error: Unable to create PDF file.`);
             }
         } catch (ex) {
-            output.appendLine(ex);
+            if (typeof ex === "string") {
+                output.appendLine(ex);
+            } else if (ex instanceof Error) {
+                output.appendLine(ex.message);
+            }
         } finally {
             FilesystemHelper.DeleteFile(`${this.GetDocumentationExportPath()}/${appJson.name.replace(/\s/mg, '_')}.md`);
         }        
