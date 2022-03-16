@@ -125,13 +125,13 @@ export class ALCheckDocumentation {
     private GetUnnecessaryProcedureDocumentationDiagnostics(codeLines: string[], currentLineNo: number, documentation: string, alObject: ALObject, alProcedure: ALProcedure) {
         // convert to JSON to make it more accessible 
         let jsonDocumentation = ALDocCommentUtil.GetJsonFromALDocumentation(documentation);
-        if (!jsonDocumentation.param) {
+        if ((jsonDocumentation === undefined) || (jsonDocumentation.param === undefined)) {
             return;
         }
 
         let unnecessaryParameters: Array<string> = [];
 
-        if (jsonDocumentation.param.length) { // multiple parameters
+        if (Array.isArray(jsonDocumentation.param)) { // multiple parameters
             for (let i = 0; i < jsonDocumentation.param.length; i++) {
                 this.GetUnnecessaryParameterDocumentationDiagnostics(unnecessaryParameters, jsonDocumentation.param[i], alProcedure);
             }
@@ -170,13 +170,13 @@ export class ALCheckDocumentation {
      * @param param Documented parameter
      * @param alProcedure ALProcedure
      */
-    private GetUnnecessaryParameterDocumentationDiagnostics(unnecessaryParameters: Array<string>, param: { value: string, attr: { name: string }}, alProcedure: ALProcedure) {
+    private GetUnnecessaryParameterDocumentationDiagnostics(unnecessaryParameters: Array<string>, param: { value: string, name: string }, alProcedure: ALProcedure) {
         if (!param) {
             return;
         }
         
-        if (alProcedure.Parameters.find(alParameter => (alParameter.Name === param.attr.name)) === undefined) {
-            unnecessaryParameters.push(param.attr.name);
+        if (alProcedure.Parameters.find(alParameter => (alParameter.Name === param.name)) === undefined) {
+            unnecessaryParameters.push(param.name);
         }
     }
 

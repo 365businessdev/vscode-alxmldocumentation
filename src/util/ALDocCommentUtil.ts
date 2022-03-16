@@ -148,7 +148,7 @@ export class ALDocCommentUtil {
      */
     public static GetJsonFromALDocumentation(documentation: string): any {        
         // transform xml to json
-        var parser = require('fast-xml-parser');
+        const { XMLParser } = require("fast-xml-parser");
         var options = {
             attributeNamePrefix : '',
             attrNodeName: 'attr',
@@ -157,8 +157,9 @@ export class ALDocCommentUtil {
             ignoreNameSpace : true,
             parseAttributeValue : true
         };
+        const parser = new XMLParser(options);
         try {
-            var jsonDocumentation = parser.parse(`<?xml version="1.0."?><root>${documentation}</root>`, options, true);
+            var jsonDocumentation = parser.parse(`<?xml version="1.0."?><root>${documentation}</root>`);
         } catch(ex) {
             return;
         }
