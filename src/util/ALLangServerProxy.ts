@@ -3,7 +3,7 @@
 import { Location, extensions, workspace, Uri, Range, Extension } from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-import { LanguageClient, Position, CancellationTokenSource, CancellationToken } from 'vscode-languageclient';
+import { Position, CancellationTokenSource, BaseLanguageClient as LanguageClient } from 'vscode-languageclient';
 import { ALObject } from '../types/ALObject';
 import { ALSyntaxUtil } from './ALSyntaxUtil';
 
@@ -159,7 +159,11 @@ export class ALLangServerProxy {
             }
         }   
         catch (ex) {
-            console.debug(ex.message);
+            if (typeof ex === "string") {
+                console.debug(ex);
+            } else if (ex instanceof Error) {
+                console.debug(ex.message);
+            }
             return undefined;
         }    
 
