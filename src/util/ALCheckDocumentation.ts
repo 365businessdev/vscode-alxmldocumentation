@@ -186,7 +186,7 @@ export class ALCheckDocumentation {
             return;
         }
 
-        if (!Configuration.IsProcedureDocumentationMandatory(alObject.Access, alProcedure.Type, alProcedure.Subtype, alProcedure.Access, alObject.Uri)) {
+        if (!Configuration.IsProcedureDocumentationMandatory(alObject, alProcedure.Type, alProcedure.Subtype, alProcedure.Access, alObject.Uri)) {
             return;
         }
 
