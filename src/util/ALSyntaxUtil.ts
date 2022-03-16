@@ -467,6 +467,8 @@ export class ALSyntaxUtil {
                 return ALProcedureType.Trigger;
             case 'procedure':
                 return ALProcedureType.Procedure;
+            case 'event':
+                return ALProcedureType.Event;
         }
 
         console.error(`Unknown AL procedure type ${alProcedureDefinition['Type'].toLowerCase()} found.`);
