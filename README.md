@@ -1,5 +1,7 @@
 # XML Documentation Comments Support for AL language in Visual Studio Code
 
+> **Important**<br>This extension is deprecated as this functionality is now mostly built-in to AL Language extension. This project is no longer being maintained.
+
 Generate XML documentation comments for AL source code and create markdown documentation from it.
 
 ## Usage
